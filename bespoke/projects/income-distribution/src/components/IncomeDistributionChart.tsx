@@ -10,9 +10,7 @@ import {
 } from "react"
 import cx from "clsx"
 import * as R from "remeda"
-import { scaleLinear, scaleLog } from "@visx/scale"
-import { area, curveMonotoneX, line } from "d3-shape"
-import type { ScaleLinear, ScaleLogarithmic } from "d3-scale"
+import type { ScaleLogarithmic } from "d3-scale"
 
 import { Bounds, getRelativeMouse } from "@ourworldindata/utils"
 import {
@@ -36,10 +34,8 @@ import type {
     IncomeDistributionChartModel,
 } from "../core/chartModel.js"
 import {
-    combinedFactor,
     formatCurrencyLabel,
     formatIncome,
-    isCurrencyWrittenAsCode,
     timeIntervalNoun,
 } from "../core/currency.js"
 import {
@@ -67,11 +63,22 @@ import {
     WORLD_ENTITY_NAME,
 } from "../core/constants.js"
 import { displayEntityName } from "../core/legendLabels.js"
-import type { ChartAnnotationTarget } from "../core/annotations.js"
-import type {
-    ChartAnnotation,
-    ChartPresentation,
-} from "../core/presentation.js"
+import { annotationTargetPoint, placeAnnotation } from "../core/annotations.js"
+import {
+    computeAxisTicks,
+    LABELLED_MULTIPLIERS,
+    LABELLED_MULTIPLIERS_NARROW,
+    type AxisTick,
+} from "../core/axisTicks.js"
+import {
+    computeAreaPaths,
+    computeTotalPaths,
+    makeXScale,
+    makeYScale,
+    MARGIN,
+    plotRect,
+} from "../core/chartGeometry.js"
+import type { ChartPresentation } from "../core/presentation.js"
 import { IncomeDistributionTooltip } from "./IncomeDistributionTooltip.js"
 
 export interface IncomeDistributionChartProps extends ChartPresentation {
@@ -120,20 +127,6 @@ export interface IncomeDistributionChartProps extends ChartPresentation {
      */
     onUnlabelledCountriesChange?: (keys: string[]) => void
 }
-
-// The bottom holds the tick labels and, under them, the axis label, which
-// takes two lines on narrow charts
-const MARGIN = { top: 10, right: 16, bottom: 58, left: 16 }
-const MARGIN_BOTTOM_NARROW = 72
-
-/** Multiples of each power of ten that get a tick */
-const TICK_MULTIPLIERS = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-// In order of priority: when neighbouring labels would overlap, the later
-// ones give way (the 2s go before the 3s and 5s, as they're the tightest)
-const LABELLED_MULTIPLIERS = [1, 3, 5, 2]
-const LABELLED_MULTIPLIERS_NARROW = [1, 3]
-/** Between neighbouring tick labels */
-const TICK_LABEL_GAP = 6
 
 const REGION_LABEL_FONT_SIZES = [14, 13, 12, 11, 10, 9] as const
 const REGION_LABEL_FONT_SIZES_NARROW = [13, 12, 11, 10, 9] as const
@@ -207,12 +200,6 @@ interface PovertyLineText {
     hint?: string
 }
 
-interface AxisTick {
-    /** Int-$/day, for positioning */
-    value: number
-    label?: string
-}
-
 function IncomeDistributionChartContent({
     model,
     yearData,
@@ -245,43 +232,28 @@ function IncomeDistributionChartContent({
     width: number
     height: number
 }): React.ReactElement {
-    const plotLeft = MARGIN.left
-    const plotRight = Math.max(width - MARGIN.right, plotLeft + 1)
-    const plotTop = MARGIN.top
-    const plotBottom = Math.max(
-        height - (isNarrow ? MARGIN_BOTTOM_NARROW : MARGIN.bottom),
-        plotTop + 1
-    )
+    const {
+        left: plotLeft,
+        right: plotRight,
+        top: plotTop,
+        bottom: plotBottom,
+    } = plotRect(width, height, isNarrow)
     const tickFontSize = isNarrow ? 11 : 12
 
     const incomes = model.grid.incomes
     const isStacked = model.regionBands.length > 0
 
     const xScale = useMemo(
-        () =>
-            scaleLog<number>({
-                domain: [incomes[0], incomes[incomes.length - 1]],
-                range: [plotLeft, plotRight],
-                clamp: true,
-            }),
+        () => makeXScale(incomes, [plotLeft, plotRight]),
         [incomes, plotLeft, plotRight]
     )
+    // Unstacked curves get room above them for their labels
+    const yTop = isStacked
+        ? plotTop
+        : Math.min(plotTop + COUNTRY_LABEL_HEADROOM, plotBottom)
     const yScale = useMemo(
-        () =>
-            scaleLinear<number>({
-                domain: [0, model.yMax > 0 ? model.yMax : 1],
-                // Unstacked curves get room above them for their labels
-                range: [
-                    plotBottom,
-                    isStacked
-                        ? plotTop
-                        : Math.min(
-                              plotTop + COUNTRY_LABEL_HEADROOM,
-                              plotBottom
-                          ),
-                ],
-            }),
-        [model.yMax, plotBottom, plotTop, isStacked]
+        () => makeYScale(model.yMax, [plotBottom, yTop]),
+        [model.yMax, plotBottom, yTop]
     )
 
     const paths = useMemo(
@@ -293,23 +265,13 @@ function IncomeDistributionChartContent({
     const totalTop = isStacked
         ? model.series[model.series.length - 1]?.y1
         : undefined
-    const totalPaths = useMemo(() => {
-        if (!totalTop || (!outlineTotal && !fillBelowLine)) return undefined
-        const x = (_: number, i: number): number => xScale(incomes[i])
-        return {
-            outline:
-                line<number>()
-                    .x(x)
-                    .y((y) => yScale(y))
-                    .curve(curveMonotoneX)(totalTop) ?? "",
-            area:
-                area<number>()
-                    .x(x)
-                    .y0(yScale(0))
-                    .y1((y) => yScale(y))
-                    .curve(curveMonotoneX)(totalTop) ?? "",
-        }
-    }, [totalTop, outlineTotal, fillBelowLine, incomes, xScale, yScale])
+    const totalPaths = useMemo(
+        () =>
+            totalTop && (outlineTotal || fillBelowLine)
+                ? computeTotalPaths(totalTop, incomes, xScale, yScale)
+                : undefined,
+        [totalTop, outlineTotal, fillBelowLine, incomes, xScale, yScale]
+    )
     const totalPeak = useMemo(() => {
         const i = totalTop ? argMax(totalTop) : undefined
         if (!totalTop || i === undefined) return undefined
@@ -1591,126 +1553,6 @@ function estimateLeftoverLegendBox(
     return { left: right - width, right, top, bottom: top + height }
 }
 
-/** Below this share of a series' tallest point, it has no data worth drawing */
-const EMPTY_HEIGHT_RATIO = 1e-3
-
-/**
- * One area path per series. Outside the range where a series has any height,
- * as beyond a country's data, the path stops rather than running on along
- * the axis as a flat line; within that range it stays in one piece, through
- * any dip to nothing between bumps.
- */
-function computeAreaPaths(
-    series: ChartSeries[],
-    incomes: number[],
-    xScale: ScaleLogarithmic<number, number>,
-    yScale: ScaleLinear<number, number>
-): string[] {
-    return series.map((s) => {
-        const heights = s.y1.map((y, i) => y - s.y0[i])
-        const threshold = Math.max(...heights) * EMPTY_HEIGHT_RATIO
-        const first = heights.findIndex((h) => h > threshold)
-        const last = heights.findLastIndex((h) => h > threshold)
-        const generator = area<number>()
-            .defined((_, i) => i >= first && i <= last)
-            .x((_, i) => xScale(incomes[i]))
-            .y0((_, i) => yScale(s.y0[i]))
-            .y1((_, i) => yScale(s.y1[i]))
-            .curve(curveMonotoneX)
-        return generator(s.y1) ?? ""
-    })
-}
-
-/**
- * Ticks at round amounts in the displayed currency and interval (1, 2, 3, 5
- * × 10^k by default), positioned in int-$/day. The other multiples get
- * unlabelled minor ticks, as does a labelled multiple whose label would
- * overlap a higher-priority neighbour's (`labelledMultipliers` is in order
- * of priority). A currency written as its code (CHF) is named on the first
- * label only; the rest are bare numbers.
- */
-function computeAxisTicks(
-    xScale: ScaleLogarithmic<number, number>,
-    currency: Currency,
-    timeInterval: TimeInterval,
-    labelledMultipliers: number[],
-    fontSize: number
-): AxisTick[] {
-    const factor = combinedFactor(currency, timeInterval)
-    if (!(factor > 0)) return []
-    const [min, max] = xScale.domain()
-    const codeOnFirstLabelOnly = isCurrencyWrittenAsCode(currency)
-    const ticks: (AxisTick & { multiplier: number })[] = []
-    for (
-        let power = Math.floor(Math.log10(min * factor));
-        Math.pow(10, power) <= max * factor;
-        power++
-    ) {
-        for (const multiplier of TICK_MULTIPLIERS) {
-            // Round away float noise like 3 × 0.1 = 0.30000000000000004
-            const displayed = Number(
-                (multiplier * Math.pow(10, power)).toPrecision(12)
-            )
-            const value = displayed / factor
-            if (value < min || value > max) continue
-            ticks.push({
-                value,
-                multiplier,
-                label: labelledMultipliers.includes(multiplier)
-                    ? formatIncome(value, currency, timeInterval, {
-                          short: true,
-                          dropCode: codeOnFirstLabelOnly,
-                      })
-                    : undefined,
-            })
-        }
-    }
-    const firstLabelled = ticks.find((tick) => tick.label !== undefined)
-    if (codeOnFirstLabelOnly && firstLabelled)
-        firstLabelled.label = formatIncome(
-            firstLabelled.value,
-            currency,
-            timeInterval,
-            { short: true }
-        )
-
-    // Place the labels by priority, dropping any that would overlap one
-    // already placed
-    const placed: { left: number; right: number }[] = []
-    const keep = new Set<AxisTick>()
-    // The label naming the currency goes first, so it's always there
-    const namesCurrency = codeOnFirstLabelOnly ? firstLabelled : undefined
-    const byPriority = [
-        ...(namesCurrency ? [namesCurrency] : []),
-        ...labelledMultipliers.flatMap((multiplier) =>
-            ticks.filter(
-                (tick) =>
-                    tick.multiplier === multiplier &&
-                    tick.label !== undefined &&
-                    tick !== namesCurrency
-            )
-        ),
-    ]
-    for (const tick of byPriority) {
-        if (tick.label === undefined) continue
-        const halfWidth =
-            Bounds.forText(tick.label, { fontSize }).width / 2 +
-            TICK_LABEL_GAP / 2
-        const x = xScale(tick.value)
-        const box = { left: x - halfWidth, right: x + halfWidth }
-        const overlaps = placed.some(
-            (other) => box.left < other.right && box.right > other.left
-        )
-        if (overlaps) continue
-        placed.push(box)
-        keep.add(tick)
-    }
-    return ticks.map((tick) => {
-        const { multiplier: _multiplier, ...rest } = tick
-        return keep.has(tick) ? rest : { ...rest, label: undefined }
-    })
-}
-
 /** The series a delegated pointer event landed on, from the path's data attribute */
 function seriesKeyOf(target: EventTarget): string | null {
     if (!(target instanceof Element)) return null
@@ -1774,124 +1616,4 @@ function AxisEndLabels({
             </text>
         </g>
     )
-}
-
-/** The value of `values` (one per grid point) at `income`, interpolated on the log axis */
-function valueAtIncome(
-    values: number[],
-    incomes: number[],
-    income: number
-): number {
-    const i = R.sortedIndex(incomes, income)
-    if (i <= 0) return values[0]
-    if (i >= incomes.length) return values[values.length - 1]
-    const t =
-        (Math.log(income) - Math.log(incomes[i - 1])) /
-        (Math.log(incomes[i]) - Math.log(incomes[i - 1]))
-    return values[i - 1] + t * (values[i] - values[i - 1])
-}
-
-function annotationTargetPoint(
-    target: ChartAnnotationTarget,
-    {
-        model,
-        xScale,
-        yScale,
-        plotTop,
-        plotBottom,
-    }: {
-        model: IncomeDistributionChartModel
-        xScale: ScaleLogarithmic<number, number>
-        yScale: ScaleLinear<number, number>
-        plotTop: number
-        plotBottom: number
-    }
-): { x: number; y: number } {
-    const { income } = target
-    const x = xScale(income)
-    if ("plot" in target.y)
-        return { x, y: plotTop + target.y.plot * (plotBottom - plotTop) }
-    const { curve, fraction = 1 } = target.y
-    const series =
-        curve === "total"
-            ? model.series[model.series.length - 1]
-            : model.series.find((s) => s.key === curve)
-    if (!series) return { x, y: plotBottom }
-    const top = valueAtIncome(series.y1, model.grid.incomes, income)
-    const bottom = valueAtIncome(series.y0, model.grid.incomes, income)
-    return { x, y: yScale(bottom + fraction * (top - bottom)) }
-}
-
-interface PlacedAnnotation {
-    key: string
-    content: React.ReactNode
-    /** Of the text block, absolutely positioned in the chart's container */
-    style: React.CSSProperties
-    arrow?: Pick<
-        React.ComponentProps<typeof BezierArrow>,
-        "start" | "end" | "startHandle" | "endHandle"
-    >
-}
-
-/** Pixel positions of an annotation's text and arrow, the text kept inside the chart */
-function placeAnnotation(
-    annotation: ChartAnnotation,
-    { target, width }: { target: { x: number; y: number }; width: number }
-): PlacedAnnotation {
-    const { textOffset, textAnchor = "top-left", arrow } = annotation
-    const blockWidth = Math.min(annotation.width, width)
-    const anchorX = target.x + textOffset.dx
-    const anchorY = target.y + textOffset.dy
-    const isRight = textAnchor.endsWith("right")
-    const left = R.clamp(isRight ? anchorX - blockWidth : anchorX, {
-        min: 0,
-        max: Math.max(width - blockWidth, 0),
-    })
-    const style: React.CSSProperties = {
-        left,
-        width: blockWidth,
-        textAlign: isRight ? "right" : "left",
-        ...(textAnchor.startsWith("top")
-            ? { top: anchorY }
-            : { top: anchorY, transform: "translateY(-100%)" }),
-    }
-
-    let placedArrow: PlacedAnnotation["arrow"]
-    if (arrow) {
-        const start = {
-            x: target.x + arrow.from.dx,
-            y: target.y + arrow.from.dy,
-        }
-        // Stop short of the target, along the line from the start
-        const gap = arrow.gap ?? 4
-        const distance = Math.hypot(target.x - start.x, target.y - start.y)
-        const ratio = distance > gap ? (distance - gap) / distance : 0
-        const end = {
-            x: start.x + (target.x - start.x) * ratio,
-            y: start.y + (target.y - start.y) * ratio,
-        }
-        const startHandle = arrow.startHandle
-            ? {
-                  x: start.x + arrow.startHandle.dx,
-                  y: start.y + arrow.startHandle.dy,
-              }
-            : undefined
-        // The curve's end tangent runs from the start handle, so the head is
-        // set along that; left out, the arrow would aim its head along the
-        // straight line from its start
-        const endHandle = startHandle
-            ? {
-                  x: end.x + (startHandle.x - end.x) * 0.3,
-                  y: end.y + (startHandle.y - end.y) * 0.3,
-              }
-            : undefined
-        placedArrow = { start, end, startHandle, endHandle }
-    }
-
-    return {
-        key: annotation.key,
-        content: annotation.content,
-        style,
-        arrow: placedArrow,
-    }
 }

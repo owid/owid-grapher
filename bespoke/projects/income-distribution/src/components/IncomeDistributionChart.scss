@@ -123,7 +123,7 @@
 }
 
 // Text placed next to the data it's about, positioned by the chart (see
-// placeAnnotation in IncomeDistributionChart.tsx)
+// placeAnnotation in core/annotations.ts)
 .income-distribution-chart__annotation {
     position: absolute;
     z-index: 1;

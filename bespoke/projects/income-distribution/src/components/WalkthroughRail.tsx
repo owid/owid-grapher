@@ -1,7 +1,5 @@
 import { memo, useEffect, useMemo, useRef } from "react"
 import cx from "clsx"
-import { scaleLinear, scaleLog } from "@visx/scale"
-import { area, curveMonotoneX } from "d3-shape"
 import { faLightbulb, faPlay, faStop } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 
@@ -12,6 +10,11 @@ import {
 
 import { argMax } from "../core/argMax.js"
 import { buildChartModel } from "../core/chartModel.js"
+import {
+    computeAreaPaths,
+    makeXScale,
+    makeYScale,
+} from "../core/chartGeometry.js"
 import type { IncomeDistributionYear } from "../core/types.js"
 import type { Walkthrough } from "../core/walkthroughs.js"
 import { WalkthroughLabel } from "./Walkthrough.js"
@@ -212,23 +215,16 @@ const WalkthroughThumbnail = memo(function WalkthroughThumbnail({
             selectedCountries: thumbnail.countries ?? [],
         })
         const incomes = model.grid.incomes
-        const x = scaleLog<number>({
-            domain: [incomes[0], incomes[incomes.length - 1]],
-            range: [0, THUMBNAIL_WIDTH],
+        const x = makeXScale(incomes, [0, THUMBNAIL_WIDTH])
+        const y = makeYScale(model.yMax, [THUMBNAIL_HEIGHT, THUMBNAIL_TOP])
+        // Too small for trimmed tails to show, so the plain paths will do
+        const ds = computeAreaPaths(model.series, incomes, x, y, {
+            trimEmptyEnds: false,
         })
-        const y = scaleLinear<number>({
-            domain: [0, model.yMax > 0 ? model.yMax : 1],
-            range: [THUMBNAIL_HEIGHT, THUMBNAIL_TOP],
-        })
-        const paths = model.series.map((series) => ({
+        const paths = model.series.map((series, i) => ({
             key: series.key,
             color: series.color,
-            d:
-                area<number>()
-                    .x((_, i) => x(incomes[i]))
-                    .y0((_, i) => y(series.y0[i]))
-                    .y1((_, i) => y(series.y1[i]))
-                    .curve(curveMonotoneX)(series.y1) ?? "",
+            d: ds[i],
         }))
         let markerX: number | undefined
         if (thumbnail.povertyLine !== undefined)
