@@ -1,4 +1,4 @@
-import { useCallback, useId, useMemo, useState } from "react"
+import { useCallback, useId, useMemo, useRef, useState } from "react"
 import cx from "clsx"
 import {
     Autocomplete,
@@ -68,6 +68,13 @@ export function IncomeUnitPicker({
     isNarrow,
 }: IncomeUnitPickerProps): React.ReactElement {
     const [isOpen, setIsOpen] = useState(false)
+    // Opens towards the side with more room and stays there: its contents
+    // change height as choices are made, and a popover that flips or shifts
+    // while open gets out from under the pointer
+    const triggerRef = useRef<HTMLDivElement>(null)
+    const [placement, setPlacement] = useState<"bottom start" | "top start">(
+        "bottom start"
+    )
     // The popover sits in the light DOM, so its ids and the radio group's
     // name must be unique across the whole page
     const id = useId()
@@ -85,7 +92,16 @@ export function IncomeUnitPicker({
 
     const handleOpenChange = useCallback(
         (open: boolean) => {
-            if (open) setIsOtherExpanded(selectedChoice === "other")
+            if (open) {
+                setIsOtherExpanded(selectedChoice === "other")
+                const rect = triggerRef.current?.getBoundingClientRect()
+                if (rect) {
+                    const below = window.innerHeight - rect.bottom
+                    setPlacement(
+                        rect.top > below ? "top start" : "bottom start"
+                    )
+                }
+            }
             setIsOpen(open)
         },
         [selectedChoice]
@@ -102,7 +118,10 @@ export function IncomeUnitPicker({
 
     return (
         <DialogTrigger isOpen={isOpen} onOpenChange={handleOpenChange}>
-            <div className="grapher-dropdown income-distribution-unit-picker">
+            <div
+                ref={triggerRef}
+                className="grapher-dropdown income-distribution-unit-picker"
+            >
                 <Button
                     className="control"
                     aria-label={`Measured in ${label}. Change currency or time unit`}
@@ -117,7 +136,8 @@ export function IncomeUnitPicker({
                     isNarrow &&
                         "income-distribution-unit-picker__popover--narrow"
                 )}
-                placement="bottom start"
+                placement={placement}
+                shouldFlip={false}
             >
                 <style>{popoverCss}</style>
                 <div className="income-distribution-unit-picker__panel">
