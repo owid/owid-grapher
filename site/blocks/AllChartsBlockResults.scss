@@ -5,6 +5,7 @@ $all-charts-block-row-thumbnail-height: 84px;
 $all-charts-block-row-padding: 16px;
 $all-charts-block-row-accent-width: 3px;
 $all-charts-block-row-thumbnail-gap: 8px;
+$all-charts-block-row-thumbnails-margin-top: 12px;
 $all-charts-block-results-height: $grapher-height;
 $all-charts-block-results-inline-preview-height: 520px;
 
@@ -301,7 +302,7 @@ $all-charts-block-results-inline-preview-height: 520px;
         .all-charts-block-row__thumbnails {
             display: flex;
             gap: $all-charts-block-row-thumbnail-gap;
-            margin: 12px 0 0;
+            margin: $all-charts-block-row-thumbnails-margin-top 0 0;
             padding: 0;
             list-style: none;
 
@@ -320,12 +321,13 @@ $all-charts-block-results-inline-preview-height: 520px;
             background: white;
             cursor: pointer;
             scroll-margin-top: $all-charts-block-sticky-nav-height +
-                $all-charts-block-search-height + $all-charts-block-row-padding;
+                $all-charts-block-search-height +
+                $all-charts-block-row-thumbnails-margin-top;
 
             @include sm-only {
                 scroll-margin-top: $all-charts-block-sticky-nav-height-sm +
                     $all-charts-block-search-height +
-                    $all-charts-block-row-padding;
+                    $all-charts-block-row-thumbnails-margin-top;
             }
 
             &:hover {
