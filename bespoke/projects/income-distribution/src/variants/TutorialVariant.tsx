@@ -72,6 +72,11 @@ const RAIL_GAP = 32
 
 /** A horizontal swipe longer than this, and mostly sideways, changes the slide */
 const SWIPE_DISTANCE = 50
+/** Slide fields the reader's choice outlives the slide for (see stickyReleased) */
+const STICKY_FIELDS: ReadonlySet<SlideChartField> = new Set([
+    "currency",
+    "timeInterval",
+])
 /** Without interaction for this long, the next button starts pulsing */
 const NUDGE_AFTER_MS = 3000
 
@@ -164,6 +169,12 @@ function CaptionedTutorialVariant({
         slideKey: "",
         released: new Set(),
     })
+    // Units the reader picked on a slide stay picked: on the slides after it
+    // and on the chart once the walkthrough closes, so a reader who switched
+    // to their own currency keeps seeing it
+    const [stickyReleased, setStickyReleased] = useState<
+        ReadonlySet<SlideChartField>
+    >(() => new Set())
     const slideState = useMemo(
         (): SlideLocalState =>
             storedSlideState.slideKey === slideKey
@@ -250,21 +261,25 @@ function CaptionedTutorialVariant({
         const resolved = resolveSlideChartState(
             readerState,
             slide.chart,
-            slideState.released,
+            new Set([...stickyReleased, ...slideState.released]),
             (name) => yearData.byName.has(name)
         )
         return slideState.povertyLine !== undefined
             ? { ...resolved, povertyLine: slideState.povertyLine }
             : resolved
-    }, [slide, readerState, slideState, yearData])
+    }, [slide, readerState, slideState, stickyReleased, yearData])
 
     // A slide's control writes to the reader's state, and from then on the
     // slide shows what the reader picked
     const release = useCallback(
-        (field: SlideChartField) =>
-            updateSlideState((current) => ({
-                released: new Set([...current.released, field]),
-            })),
+        (field: SlideChartField) => {
+            if (STICKY_FIELDS.has(field))
+                setStickyReleased((current) => new Set([...current, field]))
+            else
+                updateSlideState((current) => ({
+                    released: new Set([...current.released, field]),
+                }))
+        },
         [updateSlideState]
     )
     const slideSetters = useMemo(
