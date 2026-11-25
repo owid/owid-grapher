@@ -68,6 +68,8 @@ export function WalkthroughRail({
         >
             {walkthroughs.map((walkthrough) => {
                 const isActive = progress.activeId === walkthrough.id
+                const isWatched =
+                    !isActive && progress.watchedIds.has(walkthrough.id)
                 return (
                     <button
                         key={walkthrough.id}
@@ -75,6 +77,8 @@ export function WalkthroughRail({
                         className={cx("income-distribution-tutorial-card", {
                             "income-distribution-tutorial-card--active":
                                 isActive,
+                            "income-distribution-tutorial-card--watched":
+                                isWatched,
                         })}
                         aria-pressed={isActive}
                         onClick={() => onToggle(walkthrough.id)}

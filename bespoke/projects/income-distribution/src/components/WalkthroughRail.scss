@@ -38,6 +38,17 @@
     background: $blue-20;
 }
 
+// A watched walkthrough fades back, as in the design, until pointed at
+.income-distribution-tutorial-card--watched {
+    opacity: 0.5;
+    transition: opacity 150ms;
+
+    &:hover,
+    &:focus-visible {
+        opacity: 1;
+    }
+}
+
 .income-distribution-tutorial-card__thumbnail {
     position: relative;
     display: block;
