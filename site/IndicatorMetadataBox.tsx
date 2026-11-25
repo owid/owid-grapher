@@ -19,7 +19,7 @@ import {
     makeDateRangeLabel,
     makeLastUpdated,
     makeNextUpdate,
-    convertHeadingTextToId,
+    getHeadingId,
 } from "@ourworldindata/components"
 import {
     ArchiveContext,
@@ -29,7 +29,6 @@ import {
     OwidEnrichedGdocBlock,
 } from "@ourworldindata/types"
 import { useEffect, useRef } from "react"
-import urlSlug from "url-slug"
 import {
     formatAttributions,
     prepareSourcesForDisplay,
@@ -55,15 +54,9 @@ function groupFaqsByQuestion(blocks: OwidEnrichedGdocBlock[]): FaqQuestion[] {
     const questions: FaqQuestion[] = []
     for (const block of blocks) {
         if (block.type === "heading") {
-            // Match the IDs ArticleBlock gave these headings before the rollout.
-            const id =
-                block.supertitle && (block.level === 2 || block.level === 3)
-                    ? urlSlug(
-                          `${spansToUnformattedPlainText(block.supertitle)}-${spansToUnformattedPlainText(block.text)}`
-                      )
-                    : convertHeadingTextToId(block.text)
             questions.push({
-                id,
+                // Same ids as ArticleBlock, so links to the old layout still work
+                id: getHeadingId(block),
                 question: spansToUnformattedPlainText(block.text),
                 answer: [],
             })

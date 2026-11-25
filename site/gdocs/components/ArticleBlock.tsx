@@ -20,7 +20,11 @@ import {
     TocHeadingWithSupertitle,
     Url,
 } from "@ourworldindata/utils"
-import { CodeSnippet, convertHeadingTextToId } from "@ourworldindata/components"
+import {
+    CodeSnippet,
+    convertHeadingTextToId,
+    getHeadingId,
+} from "@ourworldindata/components"
 import SDGGrid from "./SDGGrid.js"
 import { BlockErrorBoundary, BlockErrorFallback } from "./BlockErrorBoundary.js"
 import { match } from "ts-pattern"
@@ -28,7 +32,6 @@ import SpanElements from "./SpanElements.js"
 import Paragraph from "./Paragraph.js"
 import People from "./People.js"
 import SDGTableOfContents from "./SDGTableOfContents.js"
-import urlSlug from "url-slug"
 import { MissingData } from "./MissingData.js"
 import { AdditionalCharts } from "./AdditionalCharts.js"
 import { ProminentLink } from "./ProminentLink.js"
@@ -378,13 +381,7 @@ function ArticleBlockInternal({
         .with({ type: "heading", level: 2 }, (block) => {
             const { supertitle, text } = block
 
-            const id = supertitle
-                ? urlSlug(
-                      `${spansToUnformattedPlainText(
-                          supertitle
-                      )}-${spansToUnformattedPlainText(text)}`
-                  )
-                : convertHeadingTextToId(block.text)
+            const id = getHeadingId(block)
 
             return (
                 <>
@@ -424,13 +421,7 @@ function ArticleBlockInternal({
         })
         .with({ type: "heading", level: 3 }, (block) => {
             const { supertitle, text } = block
-            const id = supertitle
-                ? urlSlug(
-                      `${spansToUnformattedPlainText(
-                          supertitle
-                      )}-${spansToUnformattedPlainText(text)}`
-                  )
-                : convertHeadingTextToId(block.text)
+            const id = getHeadingId(block)
             return (
                 <h3
                     className={cx(

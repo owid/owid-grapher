@@ -37,6 +37,7 @@ export {
     getUrlTarget,
     checkIsInternalLink,
     convertHeadingTextToId,
+    getHeadingId,
     getBakePath,
     getCanonicalUrl,
     getCanonicalPath,
