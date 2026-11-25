@@ -120,10 +120,8 @@ abstract class AbstractFooter<
         return this.manager.sourcesLine?.replace(/\r\n|\n|\r/g, "") ?? ""
     }
 
-    // On data pages running the new metadata-layout experiment we turn the
-    // sources line itself into a link to the on-page metadata box (rather than
-    // appending a separate "Learn more about this data" link). Embeds/iframes
-    // don't have that box, so they keep the default behavior.
+    // On data pages the sources line itself links to the metadata box, in place
+    // of "Learn more about this data". Multi-dim pages and embeds keep that.
     @computed protected get linkSourcesToDatapageMetadata(): boolean {
         return (
             !!this.manager.useNewDatapageMetadataLayout &&
@@ -249,6 +247,12 @@ abstract class AbstractFooter<
     }
 
     @computed protected get fontSize(): number {
+        if (this.manager.isStaticAndSmall) return 14
+        if (this.manager.isLayoutFixed) {
+            return this.useBaseFontSize
+                ? scaleFontSize(13, this.baseFontSize)
+                : 13
+        }
         if (this.useBaseFontSize) {
             return scaleFontSize(11, this.baseFontSize)
         }
@@ -256,6 +260,7 @@ abstract class AbstractFooter<
     }
 
     @computed protected get sourcesFontSize(): number {
+        if (this.manager.isLayoutFixed) return this.fontSize
         if (this.useBaseFontSize) {
             return scaleFontSize(12, this.baseFontSize)
         }
@@ -504,22 +509,12 @@ abstract class AbstractFooter<
         // bold "Data source:" label and the separating space are rendered
         // outside the markdown so that only the source name is underlined (the
         // markdown renderer merges the separator space into the source text, so
-        // it can't be excluded from the underline via CSS). We reserve the
-        // label's width in the source's wrap so long source names still wrap.
+        // it can't be excluded from the underline via CSS). The source name is
+        // one inline run that the browser wraps after the label.
         if (this.linkSourcesToDatapageMetadata) {
-            const label = "Data source: "
-            const labelWidth = Bounds.forText(label, {
-                fontSize: this.sourcesFontSize,
-                fontWeight: 700,
-            }).width
             const sourceName = new MarkdownTextWrap({
                 text: this.sourcesLine,
-                // Reserving the label width on every line means a source name
-                // that wraps doesn't use the full width on its second line
-                // onwards (cosmetic), and its measured height can drift from
-                // the rendered height. The 10 experiment pages don't wrap here;
-                // a proper fix would be a first-line offset on MarkdownTextWrap.
-                maxWidth: this.sourcesMaxWidth - labelWidth,
+                maxWidth: Infinity,
                 fontSize: this.sourcesFontSize,
                 lineHeight: this.lineHeight,
             })
@@ -528,8 +523,9 @@ abstract class AbstractFooter<
                     <a
                         className="sources-link"
                         data-track-note="chart_click_sources"
-                        tabIndex={0}
+                        href={`#${DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID}`}
                         onClick={action((e) => {
+                            e.preventDefault()
                             e.stopPropagation()
                             this.scrollToDatapageMetadataSources()
                         })}
@@ -838,15 +834,6 @@ export class StaticFooter extends AbstractFooter<StaticFooterProps> {
 
     protected override get sourcesText(): string {
         return `**Data source:** ${this.sourcesLine}`
-    }
-
-    protected override get fontSize(): number {
-        if (this.manager.isStaticAndSmall) return 14
-        return this.useBaseFontSize ? scaleFontSize(13, this.baseFontSize) : 13
-    }
-
-    protected override get sourcesFontSize(): number {
-        return this.fontSize
     }
 
     protected override get sourcesMaxWidth(): number {

@@ -1,5 +1,6 @@
 import * as db from "../db/db.js"
 import { getTopicSuggestions } from "../db/model/Chart.js"
+import { UNLISTED_TAG_NAME } from "@ourworldindata/types"
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
 
@@ -34,7 +35,7 @@ const batchTagChartsWithGpt = async (
         SELECT chartId
         FROM chart_tags
         JOIN tags ON chart_tags.tagId = tags.id
-        WHERE tags.slug IS NOT NULL OR tags.name = 'Unlisted'
+        WHERE tags.slug IS NOT NULL OR tags.name = '${UNLISTED_TAG_NAME}'
     )
     GROUP BY id
     ${limit ? `LIMIT ${limit}` : ""}

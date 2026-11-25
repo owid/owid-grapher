@@ -59,6 +59,7 @@ import {
 import {
     getMinimalAuthorsByNames,
     getTeamPagePhotos,
+    TeamPagePhoto,
 } from "../db/model/Gdoc/GdocBase.js"
 import { getDatapageDataV2 } from "../site/dataPage.js"
 import { getAllImages } from "../db/model/Image.js"
@@ -92,12 +93,14 @@ const renderDatapageIfApplicable = async (
     {
         imageMetadataDictionary,
         archiveContextDictionary,
+        teamPagePhotos,
         forceDatapage,
         forceSwitcher,
         auxiliaryMode,
     }: {
         imageMetadataDictionary?: Record<string, DbEnrichedImage>
         archiveContextDictionary?: Record<number, ArchiveContext | undefined>
+        teamPagePhotos?: TeamPagePhoto[]
     } & DatapageRenderOptions = {}
 ) => {
     let variable
@@ -151,6 +154,7 @@ const renderDatapageIfApplicable = async (
             forceDatapage,
             forceSwitcher,
             auxiliaryMode,
+            teamPagePhotos,
         },
         knex
     )
@@ -184,9 +188,11 @@ export const renderDataPageOrGrapherPage = async (
     {
         imageMetadataDictionary,
         archiveContextDictionary,
+        teamPagePhotos,
     }: {
         imageMetadataDictionary?: Record<string, DbEnrichedImage>
         archiveContextDictionary?: Record<number, ArchiveContext | undefined>
+        teamPagePhotos?: TeamPagePhoto[]
     } = {}
 ): Promise<string> => {
     const forceDatapage = shouldBakeAsDatapage(grapher)
@@ -195,6 +201,7 @@ export const renderDataPageOrGrapherPage = async (
         imageMetadataDictionary,
         archiveContextDictionary,
         forceDatapage,
+        teamPagePhotos,
     })
     if (datapage) return datapage
     return renderGrapherPage(grapher, knex, {
@@ -332,6 +339,7 @@ export async function renderDataPageV2(
         archiveContextDictionary,
         forceSwitcher,
         auxiliaryMode = DEFAULT_AUXILIARY_INDICATOR_MODE,
+        teamPagePhotos,
     }: {
         variableId: number
         variableMetadata: OwidVariableWithSource
@@ -340,6 +348,7 @@ export async function renderDataPageV2(
         pageGrapher?: GrapherInterface
         imageMetadataDictionary?: Record<string, ImageMetadata>
         archiveContextDictionary?: Record<number, ArchiveContext | undefined>
+        teamPagePhotos?: TeamPagePhoto[]
     } & DatapageRenderOptions,
     knex: db.KnexReadonlyTransaction
 ) {
@@ -444,18 +453,27 @@ export async function renderDataPageV2(
             ),
         ].flatMap((dataset) => dataset.owners)
     )
+    const archiveContext =
+        grapher.id !== undefined
+            ? archiveContextDictionary?.[grapher.id]
+            : undefined
+
     const authors = await getMinimalAuthorsByNames(knex, ownerNames)
-    // Data managers without an author page photo fall back to their team
-    // page photo, which is only worth fetching when someone needs it
     const someoneLacksPhoto = ownerNames.some(
         (name) =>
             !authors.some(
                 (author) => author.name === name && author.featuredImage
             )
     )
-    datapageData.linkedAuthors = someoneLacksPhoto
-        ? addTeamPagePhotos(authors, ownerNames, await getTeamPagePhotos(knex))
-        : authors
+    // Archive pages leave photos out, so they don't need the team page's
+    datapageData.linkedAuthors =
+        someoneLacksPhoto && archiveContext?.type !== "archive-page"
+            ? addTeamPagePhotos(
+                  authors,
+                  ownerNames,
+                  teamPagePhotos ?? (await getTeamPagePhotos(knex))
+              )
+            : authors
 
     // When every pane of a multi-indicator chart shares the same substantive
     // metadata, stitch the panes into a single pane + a templated
@@ -486,11 +504,6 @@ export async function renderDataPageV2(
         }
     }
 
-    const archiveContext =
-        grapher.id !== undefined
-            ? archiveContextDictionary?.[grapher.id]
-            : undefined
-
     // If we're baking to an archival page, then we want to skip a bunch of sections
     // where the links would break
     if (archiveContext?.type !== "archive-page") {
@@ -513,8 +526,7 @@ export async function renderDataPageV2(
             .map((r) => r.imageUrl)
             .filter((f): f is string => !!f)
 
-        // Photos of the data managers. Left out of archived pages, which have
-        // no image assets, so they show initials instead.
+        // Archived pages have no image assets, so managers show initials
         const linkedAuthorFilenames = (datapageData.linkedAuthors ?? [])
             .map((author) => author.featuredImage)
             .filter((f): f is string => !!f)
@@ -675,6 +687,7 @@ const bakeGrapherPage = async (
         await renderDataPageOrGrapherPage(grapher, knex, {
             imageMetadataDictionary: args.imageMetadataDictionary,
             archiveContextDictionary: args.archiveContextDictionary,
+            teamPagePhotos: args.teamPagePhotos,
         })
     )
 }
@@ -686,6 +699,7 @@ export interface BakeSingleGrapherChartArguments {
     slug: string
     imageMetadataDictionary: Record<string, DbEnrichedImage>
     archiveContextDictionary: Record<number, ArchiveContext | undefined>
+    teamPagePhotos: TeamPagePhoto[]
 }
 
 export const bakeSingleGrapherChart = async (
@@ -741,6 +755,7 @@ export const bakeAllChangedGrapherPagesAndDeleteRemovedGraphers = async (
             )
             const archiveContextDictionary =
                 await getLatestArchivedChartPageVersionsIfEnabled(knex)
+            const teamPagePhotos = await getTeamPagePhotos(knex)
 
             const jobs: BakeSingleGrapherChartArguments[] = chartsToBake.map(
                 (row) => ({
@@ -750,6 +765,7 @@ export const bakeAllChangedGrapherPagesAndDeleteRemovedGraphers = async (
                     slug: row.slug,
                     imageMetadataDictionary,
                     archiveContextDictionary,
+                    teamPagePhotos,
                 })
             )
             return { chartsToBake, jobs }

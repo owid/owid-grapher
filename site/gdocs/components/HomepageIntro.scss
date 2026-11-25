@@ -51,6 +51,14 @@
     margin-bottom: 24px;
     transition: border-color 0.125s;
 
+    img {
+        display: block;
+        width: 100%;
+        height: auto;
+        aspect-ratio: $featured-image-aspect-ratio;
+        object-fit: cover;
+    }
+
     &:hover {
         border-color: $blue-30;
     }

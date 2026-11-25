@@ -92,6 +92,7 @@ function getChartCreationModeFromQueryParams(
             return ExplorerChartCreationMode.FromExplorerTableColumnSlugs
         case "indicators":
             return ExplorerChartCreationMode.FromVariableIds
+        case undefined:
         default:
             return undefined
     }

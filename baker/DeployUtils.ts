@@ -37,34 +37,15 @@ export const defaultCommitMessage = async (): Promise<string> => {
 
 const triggerBakeAndDeploy = async (
     deployMetadata: DeployMetadata,
-    knex: KnexReadonlyTransaction,
-    lightningQueue?: DeployChange[]
+    knex: KnexReadonlyTransaction
 ) => {
     // deploy to Buildkite if we're on master and BUILDKITE_API_ACCESS_TOKEN is set
     if (BUILDKITE_API_ACCESS_TOKEN) {
-        const buildkite = new BuildkiteTrigger()
-        if (lightningQueue?.length) {
-            await buildkite.runLightningBuild(
-                lightningQueue.map((change) => change.slug!),
-                deployMetadata
-            )
-        } else {
-            await buildkite.runFullBuild(deployMetadata)
-        }
+        await new BuildkiteTrigger().runFullBuild(deployMetadata)
     } else {
         // otherwise, bake locally. This is used for local development or staging servers
         const baker = new SiteBaker(BAKED_SITE_DIR, BAKED_BASE_URL)
-        if (lightningQueue?.length) {
-            if (!lightningQueue.every((change) => change.slug))
-                throw new Error("Lightning deploy is missing a slug")
-
-            await baker.bakeGDocPosts(
-                knex,
-                lightningQueue.map((c) => c.slug!)
-            )
-        } else {
-            await baker.bakeAll(knex)
-        }
+        await baker.bakeAll(knex)
     }
 }
 
@@ -193,15 +174,8 @@ export const deployIfQueueIsNotEmpty = async (
         const changesSlackMentions = await getChangesSlackMentions(parsedQueue)
         await triggerBakeAndDeploy(
             { title: changesAuthorNames[0], changesSlackMentions },
-            knex,
-            // If every DeployChange is a lightning change, then we can do a
-            // lightning deploy. In the future, we might want to separate
-            // lightning updates from regular deploys so we could prioritize
-            // them, no matter the content of the queue.
-            parsedQueue.every(isLightningChange) ? parsedQueue : undefined
+            knex
         )
         await deployQueueServer.deletePendingFile()
     }
 }
-
-const isLightningChange = (item: DeployChange) => item.slug

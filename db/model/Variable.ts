@@ -22,8 +22,7 @@ import {
 } from "@ourworldindata/grapher"
 import pl from "nodejs-polars"
 import { DATA_API_URL } from "../../settings/serverSettings.js"
-import { deleteGrapherConfigFromR2ByUuid } from "../../serverUtils/r2/chartConfigR2Helpers.js"
-import pMap from "p-map"
+import { deleteGrapherConfigsFromR2ByUuid } from "../../serverUtils/r2/chartConfigR2Helpers.js"
 import {
     MultipleOwidVariableDataDimensionsMap,
     OwidVariableDataMetadataDimensions,
@@ -890,8 +889,7 @@ export async function getOwnersForVariables(
 
     return rows
         .map((row) => {
-            // `owners` is free-form JSON; anything but a list of names (e.g. a
-            // JSON null) would otherwise fail the bake of every page using it
+            // Free-form JSON: a non-list here would fail every page's bake
             const parsed: unknown = row.owners ? JSON.parse(row.owners) : []
             return {
                 datasetId: row.id,
@@ -1799,13 +1797,9 @@ export async function deleteIndicators(
         await trx("chart_configs").whereIn("id", chartConfigIds).delete()
 
         // Only multi dim chart configs are stored in R2
-        await pMap(
-            multiDimConfigIds,
-            // A failed delete should not roll this transaction back.
-            // The next sync to R2 will clean up any orphaned objects.
-            (id) => deleteGrapherConfigFromR2ByUuid(id).catch(console.error),
-            { concurrency: 20 }
-        )
+        // A failed delete should not roll this transaction back.
+        // The next sync to R2 will clean up any orphaned objects.
+        await deleteGrapherConfigsFromR2ByUuid(multiDimConfigIds, console.error)
     }
 
     return { deleted: deletableIndicatorIds, blocked }

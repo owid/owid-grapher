@@ -168,12 +168,7 @@ export const getPrimaryTopic = async (
     return undefined
 }
 
-/**
- * Fill in data managers' photos from the team page where they have no author
- * page photo. People with no author page at all get an empty slug, so they
- * link to their team page entry. Names match across titles and roles, since
- * the team page writes "Dr. Bastian Herre" for the owner "Bastian Herre".
- */
+/** Matches names as team page anchors do, e.g. "Dr. Bastian Herre" */
 export function addTeamPagePhotos(
     authors: LinkedAuthor[],
     names: string[],

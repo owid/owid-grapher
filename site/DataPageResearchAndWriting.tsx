@@ -11,7 +11,6 @@ export default function DataPageResearchAndWriting({
     showExcerpt = false,
 }: {
     relatedResearch: DataPageRelatedResearch[]
-    /** Show each item's excerpt under its title */
     showExcerpt?: boolean
 }) {
     return (

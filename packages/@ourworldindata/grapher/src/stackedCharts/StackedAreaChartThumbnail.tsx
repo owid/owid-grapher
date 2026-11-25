@@ -123,7 +123,7 @@ export class StackedAreaChartThumbnail
     }
 
     @computed private get labelsMaxWidth(): number {
-        return 0.25 * this.bounds.width
+        return 0.3 * this.bounds.width
     }
 
     @computed private get labelsSeries(): Omit<
@@ -135,13 +135,13 @@ export class StackedAreaChartThumbnail
 
         return excludeUndefined(
             this.chartState.series.map((series, seriesIndex) => {
-                const { seriesName, color, focus } = series
+                const { seriesName, shortEntityName, color, focus } = series
 
                 // Don't label background series
                 if (focus?.background) return undefined
 
                 const value = this.chartState.midpoints[seriesIndex]
-                const label = seriesName
+                const label = shortEntityName ?? seriesName
 
                 return { seriesName, value, label, color }
             })

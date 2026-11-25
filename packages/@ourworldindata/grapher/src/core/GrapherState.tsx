@@ -2699,7 +2699,16 @@ export class GrapherState
                 return !this.hideTimeline
 
             // Use the chart-level `hideTimeline` option
-            default:
+            case GRAPHER_CHART_TYPES.LineChart:
+            case GRAPHER_CHART_TYPES.ScatterPlot:
+            case GRAPHER_CHART_TYPES.StackedArea:
+            case GRAPHER_CHART_TYPES.DiscreteBar:
+            case GRAPHER_CHART_TYPES.StackedDiscreteBar:
+            case GRAPHER_CHART_TYPES.SlopeChart:
+            case GRAPHER_CHART_TYPES.StackedBar:
+            case GRAPHER_CHART_TYPES.Marimekko:
+            case GRAPHER_CHART_TYPES.Dumbbell:
+            case GRAPHER_CHART_TYPES.Swimlane:
                 return !this.hideTimeline
         }
     }
@@ -3735,18 +3744,25 @@ export class GrapherState
     }
 
     @computed get baseFontSize(): number {
-        if (this.isStatic && this.initialOptions.baseFontSize)
-            return this.initialOptions.baseFontSize
+        if (this.explicitBaseFontSize !== undefined)
+            return this.explicitBaseFontSize
+        if (!this.isLayoutFixed) {
+            return this.computeBaseFontSizeFromWidth(this.captionedChartBounds)
+        }
         if (this.isStaticAndSmall) {
             return this.computeBaseFontSizeFromHeight(this.staticBounds)
         }
-        if (this.isStatic) return 18
-        return this.computeBaseFontSizeFromWidth(this.captionedChartBounds)
+        return 18
     }
 
     // The header and footer don't rely on the base font size unless explicitly specified
     @computed get useBaseFontSize(): boolean {
-        return this.initialOptions.baseFontSize !== undefined
+        return this.explicitBaseFontSize !== undefined
+    }
+
+    /** The baseFontSize option, which only static exports honor */
+    @computed private get explicitBaseFontSize(): number | undefined {
+        return this.isStatic ? this.initialOptions.baseFontSize : undefined
     }
 
     private computeBaseFontSizeFromHeight(bounds: Bounds): number {
@@ -3766,13 +3782,17 @@ export class GrapherState
         return this.baseFontSize
     }
 
+    @computed get isLayoutFixed(): boolean {
+        return this.isStatic && !this.initialOptions.isStaticLayoutResponsive
+    }
+
     @computed get isNarrow(): boolean {
-        if (this.isStatic) return false
+        if (this.isLayoutFixed) return false
         return this.frameBounds.width <= 420
     }
 
     @computed get isSemiNarrow(): boolean {
-        if (this.isStatic) return false
+        if (this.isLayoutFixed) return false
         return this.frameBounds.width <= 550
     }
 
@@ -3781,7 +3801,7 @@ export class GrapherState
      * grid layout (e.g. side-by-side charts or charts in the All Charts block)
      */
     @computed get isSmall(): boolean {
-        if (this.isStatic) return false
+        if (this.isLayoutFixed) return false
         return this.frameBounds.width <= 740
     }
 
@@ -3790,12 +3810,12 @@ export class GrapherState
      * grid layout (e.g. stand-alone charts in the main text of an article)
      */
     @computed get isMedium(): boolean {
-        if (this.isStatic) return false
+        if (this.isLayoutFixed) return false
         return this.frameBounds.width <= 845
     }
 
     @computed get isStaticAndSmall(): boolean {
-        if (!this.isStatic) return false
+        if (!this.isLayoutFixed) return false
         return this.areStaticBoundsSmall
     }
 
@@ -3807,7 +3827,7 @@ export class GrapherState
     }
 
     @computed get patternScale(): number {
-        if (!this.isStatic) return 1
+        if (!this.isLayoutFixed) return 1
         const { defaultBounds, staticBounds } = this
         const sizeRatio = Math.min(
             staticBounds.width / defaultBounds.width,
@@ -4372,7 +4392,16 @@ export class GrapherState
                 return GRAPHER_TAB_CONFIG_OPTIONS.table
             case GRAPHER_TAB_NAMES.WorldMap:
                 return GRAPHER_TAB_CONFIG_OPTIONS.map
-            default:
+            case GRAPHER_CHART_TYPES.LineChart:
+            case GRAPHER_CHART_TYPES.ScatterPlot:
+            case GRAPHER_CHART_TYPES.StackedArea:
+            case GRAPHER_CHART_TYPES.DiscreteBar:
+            case GRAPHER_CHART_TYPES.StackedDiscreteBar:
+            case GRAPHER_CHART_TYPES.SlopeChart:
+            case GRAPHER_CHART_TYPES.StackedBar:
+            case GRAPHER_CHART_TYPES.Marimekko:
+            case GRAPHER_CHART_TYPES.Dumbbell:
+            case GRAPHER_CHART_TYPES.Swimlane:
                 return this.hasMultipleChartTypes
                     ? mapChartTypeNameToTabConfigOption(tabName)
                     : GRAPHER_TAB_CONFIG_OPTIONS.chart

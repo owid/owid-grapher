@@ -10,6 +10,7 @@ export const ExpandableToggle = ({
     isExpandedDefault = false,
     hasTeaser = false,
     contentId,
+    titleId,
     onToggle,
 }: {
     label: string
@@ -18,6 +19,7 @@ export const ExpandableToggle = ({
     isExpandedDefault?: boolean
     hasTeaser?: boolean
     contentId?: string
+    titleId?: string
     /** Called with the new open state whenever the toggle expands or collapses. */
     onToggle?: (isOpen: boolean) => void
 }) => (
@@ -36,7 +38,9 @@ export const ExpandableToggle = ({
         <summary className="ExpandableToggle__container">
             <div className="ExpandableToggle__button">
                 <div>
-                    <h4 className="ExpandableToggle__title">{label}</h4>
+                    <h4 className="ExpandableToggle__title" id={titleId}>
+                        {label}
+                    </h4>
                     {alwaysVisibleDescription && (
                         <div className="ExpandableToggle__description">
                             {alwaysVisibleDescription}

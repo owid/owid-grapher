@@ -20,6 +20,7 @@ import { NoDataMessage } from "../noDataMessage/NoDataMessage"
 import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
+    NARROW_CHART_WIDTH,
 } from "../core/GrapherConstants"
 import {
     SeriesName,
@@ -417,14 +418,7 @@ export class SlopeChart
     }
 
     @computed private get leftLabelsWidth(): number {
-        // We usually use the "stable" width of the line legend, which might be
-        // a bit too wide because the connector line width is always added, even
-        // it no connector lines are drawn. Using the stable width prevents
-        // layout shifts when the connector lines are toggled on and off.
-        // However, if the chart area is very narrow (like when it's faceted),
-        // the stable width of the line legend takes too much space, so we use the
-        // actual width instead.
-        return this.isNarrow
+        return this.useCompactLayout
             ? this.leftLabelsState.width
             : this.leftLabelsState.stableWidth
     }
@@ -437,14 +431,7 @@ export class SlopeChart
     }
 
     @computed private get rightLabelsWidth(): number {
-        // We usually use the "stable" width of the line legend, which might be
-        // a bit too wide because the connector line width is always added, even
-        // it no connector lines are drawn. Using the stable width prevents
-        // layout shifts when the connector lines are toggled on and off.
-        // However, if the chart area is very narrow (like when it's faceted),
-        // the stable width of the line legend takes too much space, so we use the
-        // actual width instead.
-        return this.isNarrow
+        return this.useCompactLayout
             ? this.rightLabelsState.width
             : this.rightLabelsState.stableWidth
     }
@@ -546,7 +533,7 @@ export class SlopeChart
     }
 
     @computed private get isNarrow(): boolean {
-        return this.bounds.width < 320
+        return this.bounds.width < NARROW_CHART_WIDTH
     }
 
     @computed private get useCompactLayout(): boolean {

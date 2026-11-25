@@ -8,30 +8,6 @@ import { BAKE_ON_CHANGE } from "../settings/serverSettings.js"
 import { DeployQueueServer } from "./DeployQueueServer.js"
 
 /**
- * Returns a map that can resolve Tag names and Tag IDs to the Tag's slug
- * e.g.
- *   "Women's Rights" -> "womens-rights"
- *   123 -> "womens-rights"
- */
-export async function getTagToSlugMap(
-    knex: db.KnexReadonlyTransaction
-): Promise<Record<string | number, string>> {
-    const tags = await db.knexRaw<Pick<DbPlainTag, "name" | "id" | "slug">>(
-        knex,
-        `SELECT slug, name, id FROM tags WHERE slug IS NOT NULL`
-    )
-    const tagsByIdAndName: Record<string | number, string> = {}
-    for (const tag of tags) {
-        if (tag.slug) {
-            tagsByIdAndName[tag.name] = tag.slug
-            tagsByIdAndName[tag.id] = tag.slug
-        }
-    }
-
-    return tagsByIdAndName
-}
-
-/**
  * Given a topic tag's name, return its slug.
  */
 export async function getSlugForTopicTag(

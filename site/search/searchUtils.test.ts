@@ -8,6 +8,7 @@ import {
     createTopicFilter,
     extractFiltersFromQuery,
     createCountryFilter,
+    getFeaturedVizFilters,
 } from "./searchUtils"
 
 import { FilterType, SynonymMap } from "@ourworldindata/types"
@@ -817,5 +818,25 @@ describe("offset pagination for useInfiniteSearchOffset hook", () => {
         expect(getNbPaginatedItemsRequested(0, 3, 6, 3)).toBe(3)
         expect(getNbPaginatedItemsRequested(1, 3, 6, 6)).toBe(9)
         expect(getNbPaginatedItemsRequested(2, 3, 6, 2)).toBe(11)
+    })
+})
+
+describe(getFeaturedVizFilters, () => {
+    it("filters on the normalized query and the selected topic", () => {
+        expect(getFeaturedVizFilters("  Cause-of-Death?", "Health")).toEqual({
+            filters: 'type:featured-viz AND pinnedForSearches:"cause of death"',
+            facetFilters: [["tags:Health"]],
+        })
+    })
+
+    it("filters on the topic alone when there is no query", () => {
+        expect(getFeaturedVizFilters("", "Health")).toEqual({
+            filters: "type:featured-viz",
+            facetFilters: [["tags:Health"]],
+        })
+    })
+
+    it("returns null when the query is only punctuation and there is no topic", () => {
+        expect(getFeaturedVizFilters("?!")).toBeNull()
     })
 })

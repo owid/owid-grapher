@@ -2,7 +2,6 @@ import { imemo, Bounds } from "@ourworldindata/utils"
 import { type ITextWrap } from "../TextWrap/TextWrap.js"
 import { fromMarkdown } from "mdast-util-from-markdown"
 import type { Root, RootContent } from "mdast"
-import { match } from "ts-pattern"
 import { urlRegex } from "../markdown/remarkPlainLinks.js"
 import * as R from "remeda"
 import {
@@ -74,301 +73,107 @@ export function convertMarkdownToIRTokens(
     )
 }
 
-// When using mdast types version 4 this should be typed as:
-// node: RootContentMap[keyof RootContentMap]
 function convertMarkdownNodeToIRTokens(
     node: RootContent,
     fontParams: IRFontParams = {}
 ): IRToken[] {
-    const converted = match(node)
-        .with(
-            {
-                type: "blockquote",
-            },
-            (item) => {
-                return item.children.flatMap((child) =>
-                    convertMarkdownNodeToIRTokens(child, fontParams)
-                )
-            }
+    const convertChildren = (
+        parent: { children: RootContent[] },
+        childFontParams: IRFontParams = fontParams
+    ): IRToken[] =>
+        parent.children.flatMap((child) =>
+            convertMarkdownNodeToIRTokens(child, childFontParams)
         )
-        .with(
-            {
-                type: "break",
-            },
-            (_) => {
-                return [new IRLineBreak()]
-            }
-        )
-        .with(
-            {
-                type: "code",
-            },
-            (item) => {
-                return [new IRText(item.value, fontParams)]
-            }
-        )
-        .with(
-            {
-                type: "emphasis",
-            },
-            (item) => {
+
+    switch (node.type) {
+        // Nodes that just contain other nodes
+        case "blockquote":
+        case "delete":
+        case "footnoteDefinition":
+        case "heading":
+        case "listItem":
+        case "paragraph":
+        case "table":
+        case "tableCell":
+        case "tableRow":
+            return convertChildren(node)
+
+        case "break":
+            return [new IRLineBreak()]
+
+        // Nodes whose value is rendered as plain text
+        case "code":
+        case "html":
+        case "inlineCode":
+        case "yaml":
+            return [new IRText(node.value, fontParams)]
+
+        case "emphasis":
+            return [
+                new IRItalic(
+                    convertChildren(node, { ...fontParams, isItalic: true })
+                ),
+            ]
+
+        case "image":
+            return [new IRText(node.alt ?? "", fontParams)]
+
+        case "link":
+            if (node.url.startsWith("#dod:")) {
+                const term = node.url.replace("#dod:", "")
                 return [
-                    new IRItalic(
-                        item.children.flatMap((child) =>
-                            convertMarkdownNodeToIRTokens(child, {
-                                ...fontParams,
-                                isItalic: true,
-                            })
-                        )
+                    new IRDetailOnDemand(
+                        term,
+                        convertChildren(node),
+                        fontParams
                     ),
                 ]
             }
-        )
-        .with(
-            {
-                type: "heading",
-            },
-            (item) => {
-                return item.children.flatMap((child) =>
-                    convertMarkdownNodeToIRTokens(child, fontParams)
-                )
-            }
-        )
-        .with(
-            {
-                type: "html",
-            },
-            (item) => {
-                return [new IRText(item.value, fontParams)]
-            }
-        )
-        .with(
-            {
-                type: "image",
-            },
-            (item) => {
-                return [new IRText(item.alt ?? "", fontParams)]
-            }
-        )
-        .with(
-            {
-                type: "inlineCode",
-            },
-            (item) => {
-                return [new IRText(item.value, fontParams)]
-            }
-        )
-        .with(
-            {
-                type: "link",
-            },
-            (item) => {
-                if (item.url.startsWith("#dod:")) {
-                    const term = item.url.replace("#dod:", "")
-                    return [
-                        new IRDetailOnDemand(
-                            term,
-                            item.children.flatMap((child) =>
-                                convertMarkdownNodeToIRTokens(child, fontParams)
-                            ),
-                            fontParams
-                        ),
-                    ]
-                } else
-                    return [
-                        new IRLink(
-                            item.url,
-                            item.children.flatMap((child) =>
-                                convertMarkdownNodeToIRTokens(child, fontParams)
-                            )
-                        ),
-                    ]
-            }
-        )
-        .with(
-            {
-                type: "list",
-            },
-            (item) => {
-                if (item.ordered)
-                    return item.children.flatMap((child, index) => [
-                        new IRLineBreak(),
-                        new IRText(`${index + 1}) `, fontParams),
-                        ...convertMarkdownNodeToIRTokens(child, fontParams),
-                    ])
-                else
-                    return item.children.flatMap((child) => [
-                        new IRLineBreak(),
-                        new IRText(`• `, fontParams),
-                        ...convertMarkdownNodeToIRTokens(child, fontParams),
-                    ])
-            }
-        )
-        .with(
-            {
-                type: "listItem",
-            },
-            (item) => {
-                return item.children.flatMap((child) =>
-                    convertMarkdownNodeToIRTokens(child, fontParams)
-                )
-            }
-        )
-        .with(
-            {
-                type: "paragraph",
-            },
-            (item) => {
-                return item.children.flatMap((child) =>
-                    convertMarkdownNodeToIRTokens(child, fontParams)
-                )
-            }
-        )
-        .with(
-            {
-                type: "strong",
-            },
-            (item) => {
-                return [
-                    new IRBold(
-                        item.children.flatMap((child) =>
-                            convertMarkdownNodeToIRTokens(child, {
-                                ...fontParams,
-                                fontWeight: 700,
-                            })
-                        )
-                    ),
-                ]
-            }
-        )
-        .with(
-            {
-                type: "text",
-            },
-            (item) => {
-                const splitted = item.value.split(/\s+/)
-                const tokens = splitted.flatMap((text, i) => {
-                    const textNode = new IRText(text, fontParams)
-                    const node = text.match(urlRegex)
-                        ? new IRLink(text, [textNode], fontParams)
-                        : textNode
-                    if (i < splitted.length - 1) {
-                        return [node, new IRWhitespace(fontParams)]
-                    } else return [node]
-                })
-                return tokens
-            }
-        )
-        .with(
-            {
-                type: "thematicBreak",
-            },
-            (_) => {
-                return [new IRText("---", fontParams)]
-            }
-        )
-        .with(
-            {
-                type: "delete",
-            },
-            (item) => {
-                return item.children.flatMap((child) =>
-                    convertMarkdownNodeToIRTokens(child, fontParams)
-                )
-            }
-        )
-        // Now lets finish this with blocks for FootnoteDefinition, Definition, ImageReference, LinkReference, FootnoteReference, and Table
-        .with(
-            {
-                type: "footnoteDefinition",
-            },
-            (item) => {
-                return item.children.flatMap((child) =>
-                    convertMarkdownNodeToIRTokens(child, fontParams)
-                )
-            }
-        )
-        .with(
-            {
-                type: "definition",
-            },
-            (item) => {
-                return [
-                    new IRText(`${item.identifier}: ${item.label}`, fontParams),
-                ]
-            }
-        )
-        .with(
-            {
-                type: "imageReference",
-            },
-            (item) => {
-                return [
-                    new IRText(`${item.identifier}: ${item.label}`, fontParams),
-                ]
-            }
-        )
-        .with(
-            {
-                type: "linkReference",
-            },
-            (item) => {
-                return [
-                    new IRText(`${item.identifier}: ${item.label}`, fontParams),
-                ]
-            }
-        )
-        .with(
-            {
-                type: "footnoteReference",
-            },
-            (item) => {
-                return [
-                    new IRText(`${item.identifier}: ${item.label}`, fontParams),
-                ]
-            }
-        )
-        .with(
-            {
-                type: "table",
-            },
-            (item) => {
-                return item.children.flatMap((child) =>
-                    convertMarkdownNodeToIRTokens(child, fontParams)
-                )
-            }
-        )
-        .with(
-            {
-                type: "tableCell",
-            },
-            (item) => {
-                return item.children.flatMap((child) =>
-                    convertMarkdownNodeToIRTokens(child, fontParams)
-                )
-            }
-        )
-        // and now TableRow and Yaml
-        .with(
-            {
-                type: "tableRow",
-            },
-            (item) => {
-                return item.children.flatMap((child) =>
-                    convertMarkdownNodeToIRTokens(child, fontParams)
-                )
-            }
-        )
-        .with(
-            {
-                type: "yaml",
-            },
-            (item) => {
-                return [new IRText(item.value, fontParams)]
-            }
-        )
-        .exhaustive()
-    return converted
+            return [new IRLink(node.url, convertChildren(node))]
+
+        case "list":
+            if (node.ordered)
+                return node.children.flatMap((child, index) => [
+                    new IRLineBreak(),
+                    new IRText(`${index + 1}) `, fontParams),
+                    ...convertMarkdownNodeToIRTokens(child, fontParams),
+                ])
+            return node.children.flatMap((child) => [
+                new IRLineBreak(),
+                new IRText(`• `, fontParams),
+                ...convertMarkdownNodeToIRTokens(child, fontParams),
+            ])
+
+        case "strong":
+            return [
+                new IRBold(
+                    convertChildren(node, { ...fontParams, fontWeight: 700 })
+                ),
+            ]
+
+        case "text": {
+            const splitted = node.value.split(/\s+/)
+            return splitted.flatMap((text, i) => {
+                const textNode = new IRText(text, fontParams)
+                const tokenNode = text.match(urlRegex)
+                    ? new IRLink(text, [textNode], fontParams)
+                    : textNode
+                if (i < splitted.length - 1) {
+                    return [tokenNode, new IRWhitespace(fontParams)]
+                }
+                return [tokenNode]
+            })
+        }
+
+        case "thematicBreak":
+            return [new IRText("---", fontParams)]
+
+        case "definition":
+        case "footnoteReference":
+        case "imageReference":
+        case "linkReference":
+            return [new IRText(`${node.identifier}: ${node.label}`, fontParams)]
+    }
 }
 
 export function toPlaintext(markdown: string): string {

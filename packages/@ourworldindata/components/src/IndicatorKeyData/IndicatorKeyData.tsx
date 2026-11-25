@@ -76,7 +76,6 @@ export const makeDateRange = ({
     return getDateRange(dateRange)
 }
 
-/** "Year" when the timespan covers a single year, otherwise "Date range" */
 export const makeDateRangeLabel = ({
     dateRange,
 }: {

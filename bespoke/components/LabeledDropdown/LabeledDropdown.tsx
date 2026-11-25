@@ -40,6 +40,7 @@ export function LabeledDropdown({
     return (
         <LabeledControl label={label} className={className}>
             <Dropdown
+                aria-label={label}
                 {...dropdownProps}
                 options={options}
                 value={selectedOption}

@@ -8,11 +8,7 @@ import { Timeago } from "./Forms.js"
 import { ApiNarrativeChartOverview } from "../adminShared/AdminTypes.js"
 import { GRAPHER_DYNAMIC_THUMBNAIL_URL } from "../settings/clientSettings.mjs"
 import { Link } from "./Link.js"
-import {
-    buildSearchWordsFromSearchString,
-    filterFunctionForSearchWords,
-    highlightFunctionForSearchWords,
-} from "../adminShared/search.js"
+import { useListSearch } from "./useListSearch.js"
 
 function createColumns(ctx: {
     highlightFn: (
@@ -110,35 +106,24 @@ function createColumns(ctx: {
     ]
 }
 
+const searchedText = (narrativeChart: ApiNarrativeChartOverview) => [
+    `${narrativeChart.id}`,
+    narrativeChart.title,
+    narrativeChart.name,
+    narrativeChart.parent.title,
+]
+
 export function NarrativeChartIndexPage() {
     const { admin } = useContext(AdminAppContext)
     const [narrativeCharts, setNarrativeCharts] = useState<
         ApiNarrativeChartOverview[]
     >([])
-    const [searchValue, setSearchValue] = useState("")
-
-    const searchWords = useMemo(
-        () => buildSearchWordsFromSearchString(searchValue),
-        [searchValue]
-    )
-
-    const filteredNarrativeCharts = useMemo(() => {
-        const filterFn = filterFunctionForSearchWords(
-            searchWords,
-            (narrativeChart: ApiNarrativeChartOverview) => [
-                `${narrativeChart.id}`,
-                narrativeChart.title,
-                narrativeChart.name,
-                narrativeChart.parent.title,
-            ]
-        )
-
-        return narrativeCharts.filter(filterFn)
-    }, [narrativeCharts, searchWords])
-    const highlightFn = useMemo(
-        () => highlightFunctionForSearchWords(searchWords),
-        [searchWords]
-    )
+    const {
+        searchValue,
+        setSearchValue,
+        filtered: filteredNarrativeCharts,
+        highlight: highlightFn,
+    } = useListSearch(narrativeCharts, searchedText)
     const deleteFn = useCallback(
         async (narrativeChartId: number) => {
             if (

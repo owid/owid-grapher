@@ -104,7 +104,7 @@ import {
 } from "@react-querybuilder/antd"
 import { parseJsonLogic } from "react-querybuilder/parseJsonLogic"
 import CodeMirror, { EditorView } from "@uiw/react-codemirror"
-import jsonpointer from "json8-pointer"
+import { pointerParse } from "@hyperjump/json-pointer"
 import { EditorColorScaleSection } from "./EditorColorScaleSection.js"
 import { Operation } from "../adminShared/SqlFilterSExpression.js"
 import { CATALOG_URL, DATA_API_URL } from "../settings/clientSettings.mjs"
@@ -367,9 +367,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         const { currentColumnFieldDescription, grapherState } = this
         if (currentColumnFieldDescription === undefined) return
         this.hasUncommitedRichEditorChanges = true
-        const pointer = jsonpointer.parse(
-            currentColumnFieldDescription.pointer
-        ) as string[]
+        const pointer = pointerParse(currentColumnFieldDescription.pointer)
         // Here we are setting the target column field directly at the grapher so the
         // preview is updated. When the user clicks the save button we'll then check
         // the value on grapher vs the value on the richDataRow and perform a proper
@@ -398,9 +396,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         )
             return
 
-        const pointer = jsonpointer.parse(
-            currentColumnFieldDescription.pointer
-        ) as string[]
+        const pointer = pointerParse(currentColumnFieldDescription.pointer)
 
         const prevVal = currentColumnFieldDescription.getter(
             selectedRowContent.config as Record<string, unknown>

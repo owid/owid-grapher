@@ -454,7 +454,7 @@ export class LineChartThumbnail
                 const value = startPoint.y
                 const label = this.shouldShowValueLabelsOnly
                     ? this.formatLabel(value)
-                    : series.seriesName
+                    : series.displayName
 
                 const color = this.chartState.hasColorScale
                     ? darkenColorForLine(

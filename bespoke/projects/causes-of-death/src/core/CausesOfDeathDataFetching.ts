@@ -17,14 +17,13 @@ export const useCausesOfDeathMetadata = (
 } => {
     const result = useQuery({
         queryKey: queryKeys.metadata(),
-        queryFn: () => fetchJson<MetadataJson>(metadataUrl),
+        queryFn: async () =>
+            new CausesOfDeathMetadata(
+                await fetchJson<MetadataJson>(metadataUrl)
+            ),
     })
 
-    const data = result.data
-        ? new CausesOfDeathMetadata(result.data)
-        : undefined
-
-    return { data: data, status: result.status }
+    return { data: result.data, status: result.status }
 }
 
 /** Fetch causes of death data for a specific entity */

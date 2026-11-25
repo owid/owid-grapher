@@ -162,6 +162,9 @@
                         line-clamp: 2;
                         overflow: hidden;
                         text-overflow: ellipsis;
+                        white-space: normal;
+                        width: max-content;
+                        max-width: min(45ch, 80cqw);
                         font-weight: 500;
                         color: $light-text;
 
@@ -169,10 +172,6 @@
                             font-weight: 700;
                             color: $dark-text;
                         }
-                    }
-
-                    .title-fragments {
-                        text-wrap: auto;
                     }
 
                     .description {

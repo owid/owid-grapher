@@ -1,4 +1,4 @@
-import * as d3 from "d3"
+import { scaleSqrt } from "d3-scale"
 import { isDarkColor } from "@ourworldindata/grapher/src/color/ColorUtils"
 import { Bounds } from "@ourworldindata/utils"
 import { formatCount, formatShare } from "../core/CausesOfDeathHelpers.js"
@@ -52,23 +52,20 @@ export function CausesOfDeathTreemapTileLabels({
 
     // Calculate font size based on rectangle area using d3 scaling
     // Make font size range responsive to visualization dimensions
-    const fontSizeScale = d3
-        .scaleSqrt()
+    const fontSizeScale = scaleSqrt()
         .domain([0, (treemapBounds.width * treemapBounds.height) / 4]) // assume max meaningful area is 1/4 of total
         .range([minFontSize, maxFontSize])
         .clamp(true)
     const baseFontSize = Math.round(fontSizeScale(area))
 
     // Calculate adaptive padding based on rectangle dimensions
-    const horizontalPaddingScale = d3
-        .scaleSqrt()
+    const horizontalPaddingScale = scaleSqrt()
         .domain([0, treemapBounds.width / 2]) // based on rectangle width
         .range([2, 6]) // horizontal padding range from 2px to 6px
         .clamp(true)
     const horizontalPadding = Math.round(horizontalPaddingScale(width))
 
-    const verticalPaddingScale = d3
-        .scaleSqrt()
+    const verticalPaddingScale = scaleSqrt()
         .domain([0, treemapBounds.height / 2]) // based on rectangle height
         .range([2, 4]) // vertical padding range from 2px to 6px
         .clamp(true)

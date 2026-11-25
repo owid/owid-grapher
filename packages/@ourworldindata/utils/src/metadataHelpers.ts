@@ -147,6 +147,7 @@ const getPhraseForProcessingLevel = (
             return "with major processing"
         case "minor":
             return "with minor processing"
+        case undefined:
         default:
             return "processed"
     }
@@ -441,11 +442,7 @@ export const formatSourceDate = (
     return parsedDate.format(format)
 }
 
-/**
- * The first and last year of a timespan like "1990-2020" (a hyphen or an en
- * dash, BCE years negative), or of a single year like "2023". Null if it is
- * neither.
- */
+/** The years of "1990-2020" or "2023" (BCE years negative), else null */
 const parseTimespan = (
     timespan: string
 ): { firstYear: number; lastYear: number } | null => {
@@ -458,13 +455,11 @@ const parseTimespan = (
     return { firstYear: parseInt(first, 10), lastYear: parseInt(last, 10) }
 }
 
-/** Whether a timespan covers a single year, e.g. "2023-2023" or "2023" */
 export const isSingleYearTimespan = (timespan: string): boolean => {
     const years = parseTimespan(timespan)
     return !!years && years.firstYear === years.lastYear
 }
 
-/** A year with "BCE" before year 0, and optionally "CE" after it */
 const formatYear = (year: number, withEra = false): string =>
     year < 0 ? `${Math.abs(year)} BCE` : withEra ? `${year} CE` : `${year}`
 
@@ -473,10 +468,9 @@ export const getDateRange = (timespan: string): string | null => {
     if (!years) return null
     const { firstYear, lastYear } = years
 
-    // data for a single year reads as that year, not "2023–2023"
     if (firstYear === lastYear) return formatYear(firstYear)
 
-    // a range that starts BCE marks its end CE, and is spaced to read clearly
+    // "500 BCE – 2000 CE"
     const spansEras = firstYear < 0 || lastYear < 0
     const formattedRange = [
         formatYear(firstYear),

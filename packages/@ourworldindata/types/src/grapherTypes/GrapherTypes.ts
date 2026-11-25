@@ -102,14 +102,9 @@ export interface RelatedChart extends BasicChartInformation {
     chartId: number
     keyChartLevel?: KeyChartLevel
     archiveContext?: ArchiveContext | undefined
-    /** Which step of the related-chart selection picked this chart (data pages only) */
     source?: RelatedChartSource
 }
 
-/**
- * How a data page's related-chart card was chosen: from coviews, or from a
- * fallback when the page has too few coview recommendations.
- */
 export type RelatedChartSource =
     | "coviews"
     | "primary-topic"
@@ -410,6 +405,9 @@ export interface AxisConfigInterface {
      * no tick. Defaults to false.
      */
     isDomainEndExclusive?: boolean
+
+    /** Shorten the log-scale notice in the axis label to "log axis" */
+    shortenLabelLogNotice?: boolean
 }
 
 export interface VerticalComparisonLineConfig {

@@ -1,7 +1,9 @@
 import {
     Choice,
     ChoicesEnriched,
+    Dimension,
     DimensionEnriched,
+    DimensionPresentationType,
     IndicatorsAfterPreProcessing,
     IndicatorTitleWithFragments,
     joinTitleFragments,
@@ -11,11 +13,24 @@ import {
     OwidChartDimensionInterface,
     DimensionProperty,
     MultiDimDataPageConfigEnriched,
+    MultiDimExplorerPresentation,
     normalizeDescriptionKey,
     OwidVariableWithSourceAndDimension,
 } from "@ourworldindata/types"
 import * as _ from "lodash-es"
 import { merge } from "./Util"
+
+/**
+ * How filterToAvailableChoices treats choices that don't lead to an
+ * available view:
+ * - `find-closest` replaces them with the closest available choice, so the
+ *   result always selects a view. Used by the client when navigating.
+ * - `fill-unspecified` keeps the given choices as they are and only fills in
+ *   dimensions without a choice, so the result may not select any view.
+ *   Useful for resolving URLs, where a wrong choice shouldn't silently
+ *   resolve to a different view.
+ */
+type FilterToAvailableChoicesMode = "find-closest" | "fill-unspecified"
 
 interface FilterToAvailableResult {
     selectedChoices: MultiDimDimensionChoices
@@ -94,14 +109,18 @@ export class MultiDimDataPageConfig {
      * - If there is at least one available view for choices[leftmost, ..., cur], continue.
      * - Otherwise, for dimension `cur`, find the first choice that has at least one available view.
      *
+     * With `mode: "fill-unspecified"`, the given choices are never adapted; only dimensions
+     * without a choice (missing or empty) are filled in as above.
+     *
      * The method returns two values:
-     * - `selectedChoices` is the updated version of the input `selectedChoices`, where choices have been adapted to make sure there are available views. It is fully-qualified, i.e. it has choices for all dimensions.
+     * - `selectedChoices` is the updated version of the input `selectedChoices`, where choices have been adapted to make sure there are available views. It is fully-qualified, i.e. it has choices for all dimensions. In `fill-unspecified` mode, it can instead select no view, and dimensions right of a choice that matches no view are left out.
      * - `dimensionsWithAvailableChoices` indicates for each dimension which choices are available, and excludes the ones that are excluded by choices left of it.
      *
      * - @marcelgerber, 2024-07-22
      */
     filterToAvailableChoices(
-        selectedChoices: MultiDimDimensionChoices
+        selectedChoices: MultiDimDimensionChoices,
+        { mode = "find-closest" }: { mode?: FilterToAvailableChoicesMode } = {}
     ): FilterToAvailableResult {
         const updatedSelectedChoices: MultiDimDimensionChoices = {}
         const dimensionsWithAvailableChoices: Record<
@@ -114,13 +133,14 @@ export class MultiDimDataPageConfig {
             const availableViewsBeforeSelection = this.filterViewsByDimensions(
                 updatedSelectedChoices
             )
+            const choice = selectedChoices[currentDimSlug]
             if (
-                selectedChoices[currentDimSlug] &&
-                currentDim.choicesBySlug[selectedChoices[currentDimSlug]]
+                choice &&
+                (mode === "fill-unspecified" ||
+                    currentDim.choicesBySlug[choice])
             ) {
-                updatedSelectedChoices[currentDimSlug] =
-                    selectedChoices[currentDimSlug]
-            } else {
+                updatedSelectedChoices[currentDimSlug] = choice
+            } else if (availableViewsBeforeSelection.length > 0) {
                 updatedSelectedChoices[currentDimSlug] =
                     availableViewsBeforeSelection[0].dimensions[currentDimSlug]
             }
@@ -128,7 +148,10 @@ export class MultiDimDataPageConfig {
             const availableViewsAfterSelection = this.filterViewsByDimensions(
                 updatedSelectedChoices
             )
-            if (availableViewsAfterSelection.length === 0) {
+            if (
+                mode === "find-closest" &&
+                availableViewsAfterSelection.length === 0
+            ) {
                 // If there are no views available after this selection, choose the first available view before this choice and update to its choice
                 updatedSelectedChoices[currentDimSlug] =
                     availableViewsBeforeSelection[0].dimensions[currentDimSlug]
@@ -245,6 +268,51 @@ export function getMultiDimPageTitle(
     return fragments ? `${title.title} - ${fragments}` : title.title
 }
 
+/**
+ * Which control a dimension should be rendered as. An explicit
+ * `presentation.type` in the config takes precedence; otherwise dimensions with at
+ * most two ungrouped choices render as a toggle group (at most four when the
+ * page has only this one dimension, so there's room for a wider control),
+ * dropdowns offering at least ten choices get a search field, and
+ * everything else is a plain dropdown.
+ *
+ * Toggle group or dropdown is decided on the dimension's full choice list and
+ * the config's total number of dimensions, so a control doesn't switch type
+ * as other selections change. The search field is decided on the number of
+ * choices currently available (`availableChoiceCount`): what matters is how
+ * many options the menu actually lists, and at worst the field comes and goes
+ * within the same dropdown. A dimension the heuristic gets wrong can always
+ * set `presentation.type` explicitly.
+ *
+ * The result, explicit or not, is a recommendation: toggle buttons that
+ * don't fit the controls row are rendered as a dropdown instead (see
+ * MeasuredDimensionToggleButtons).
+ */
+export function resolveDimensionPresentationType({
+    dimension,
+    numberOfDimensions,
+    availableChoiceCount,
+}: {
+    dimension: Dimension
+    numberOfDimensions: number
+    availableChoiceCount: number
+}): DimensionPresentationType {
+    if (dimension.presentation?.type) return dimension.presentation.type
+    const hasGroups = dimension.choices.some((choice) => choice.group)
+    const maxToggleChoices = numberOfDimensions === 1 ? 4 : 2
+    if (dimension.choices.length <= maxToggleChoices && !hasGroups)
+        return "toggle-buttons"
+    return availableChoiceCount >= 10 ? "dropdown-with-search" : "dropdown"
+}
+
+export function isMultiDimDataExplorer<
+    Config extends { presentation?: MultiDimExplorerPresentation },
+>(
+    config: Config
+): config is Config & { presentation: MultiDimExplorerPresentation } {
+    return config.presentation?.pageType === "data-explorer"
+}
+
 export const extractMultiDimChoicesFromSearchParams = (
     searchParams: URLSearchParams,
     config: MultiDimDataPageConfig
@@ -259,23 +327,32 @@ export const extractMultiDimChoicesFromSearchParams = (
     return dimensionChoices
 }
 
+/** The search params don't select an existing view of a multi-dim. */
+export class MultiDimViewNotFoundError extends Error {}
+
+/**
+ * Resolve the view selected by a multi-dim URL's search params. Dimensions
+ * missing from the URL are filled in the way the client does it (see
+ * filterToAvailableChoices), so e.g. a URL from before a dimension was added
+ * still resolves. Dimensions present in the URL must match a view exactly.
+ */
 export function searchParamsToMultiDimView(
     config: MultiDimDataPageConfigEnriched,
     searchParams: URLSearchParams
 ): ViewEnriched {
     const multiDimConfig = MultiDimDataPageConfig.fromObject(config)
-    let dimensions = extractMultiDimChoicesFromSearchParams(
+    const urlChoices = extractMultiDimChoicesFromSearchParams(
         searchParams,
         multiDimConfig
     )
-    if (_.isEmpty(dimensions)) {
-        // Get the default dimensions.
-        dimensions = multiDimConfig.getDefaultSelectedChoices()
-    }
-    const view = multiDimConfig.findViewByDimensions(dimensions)
+    const { selectedChoices } = multiDimConfig.filterToAvailableChoices(
+        urlChoices,
+        { mode: "fill-unspecified" }
+    )
+    const view = multiDimConfig.findViewByDimensions(selectedChoices)
     if (!view) {
-        throw new Error(
-            `No view found for dimensions ${JSON.stringify(dimensions)}`
+        throw new MultiDimViewNotFoundError(
+            `No view found for dimensions ${JSON.stringify(urlChoices)}`
         )
     }
     return view

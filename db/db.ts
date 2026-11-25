@@ -49,8 +49,10 @@ import {
     TagGraphTableName,
     ExplorersTableName,
     MultiDimDataPagesTableName,
+    MultiDimExplorerPresentation,
     OwidGdocMinimalAnnouncementInterface,
     DbRawPostGdoc,
+    UNLISTED_TAG_NAME,
 } from "@ourworldindata/types"
 import { gdocFromJSON } from "./model/Gdoc/GdocFactory.js"
 import { getCanonicalUrl } from "@ourworldindata/components"
@@ -296,7 +298,7 @@ export const getPublishedExplorersBySlug = async (
                 })
                 if (!includeUnlisted) {
                     processed = processed.filter(
-                        (row) => !row.tags.includes("Unlisted")
+                        (row) => !row.tags.includes(UNLISTED_TAG_NAME)
                     )
                 }
                 return _.keyBy(processed, "slug")
@@ -572,6 +574,28 @@ export const getNonGrapherExplorerViewCount = (
     ).then((res) => res?.count ?? 0)
 }
 
+/** Published multi-dim pages that present themselves as data explorers. */
+export const getMultiDimDataExplorerCount = (
+    knex: KnexReadonlyTransaction
+): Promise<number> => {
+    const pageType: MultiDimExplorerPresentation["pageType"] = "data-explorer"
+    return knexRawFirst<{ count: number }>(
+        knex,
+        `-- sql
+        SELECT
+            COUNT(*) AS count
+        FROM ${MultiDimDataPagesTableName}
+        WHERE published = TRUE
+            AND config ->> "$.presentation.pageType" = ?
+            -- Like explorers, unlisted ones aren't listed on /explorers
+            AND NOT JSON_CONTAINS(
+                COALESCE(config -> "$.topicTags", JSON_ARRAY()),
+                JSON_QUOTE(?)
+            )`,
+        [pageType, UNLISTED_TAG_NAME]
+    ).then((res) => Number(res?.count ?? 0))
+}
+
 export const getMultiDimViewCount = (
     knex: KnexReadonlyTransaction
 ): Promise<number> => {
@@ -742,10 +766,6 @@ export function getBestBreadcrumbs(
     return breadcrumbs
 }
 
-/**
- * All topic tags under the areas that the given topic tags belong to: the
- * pool for the topic-area fallback step.
- */
 export const getTopicTagIdsInSameAreas = async (
     knex: KnexReadonlyTransaction,
     topicTagIds: number[]

@@ -24,6 +24,7 @@ import {
     RelatedChartsTableName,
     TagGraphRootName,
     type LiteralsOnly,
+    UNLISTED_TAG_NAME,
 } from "@ourworldindata/types"
 import { parseAndMigrateChartConfig } from "./ChartConfigs.js"
 import type Anthropic from "@anthropic-ai/sdk"
@@ -660,15 +661,13 @@ export const getMostViewedGrapherIdsByChartType = async (
     return ids.map((row) => row.id)
 }
 
-// A published chart that isn't tagged Unlisted: the only charts eligible to appear
-// as a related-chart card. Expects the query to join `charts` and `chart_configs`
-// under those names.
+// Needs `charts` and `chart_configs` joined under those names
 const LISTED_CHART_CLAUSE = `-- sql
     chart_configs.config->>"$.isPublished" = "true"
     AND NOT EXISTS (
         SELECT 1 FROM chart_tags ct
         JOIN tags t ON ct.tagId = t.id
-        WHERE ct.chartId = charts.id AND t.name = 'Unlisted'
+        WHERE ct.chartId = charts.id AND t.name = '${UNLISTED_TAG_NAME}'
     )`
 
 // Currently only returns charts from ETL (i.e. with "production" as reviewer)
@@ -701,15 +700,7 @@ export const getRelatedChartsForChart = async (
     )
 }
 
-/**
- * Listed charts ranked by their aggregate coview score: the total score they
- * receive as a recommendation across all charts, i.e. how often readers of
- * other charts go on to view them. Used to fill related-chart cards on pages
- * with too few coview recommendations of their own.
- *
- * `tagIds` restricts candidates to charts tagged with any of those tags; leave
- * it undefined for a site-wide ranking.
- */
+/** Ranked by the coview score they receive; site-wide without tagIds */
 export const getChartsByAggregateCoviewScore = async (
     knex: db.KnexReadonlyTransaction,
     {
@@ -759,18 +750,20 @@ export const getChartsByAggregateCoviewScore = async (
     )
 }
 
+export interface ChartTopicTagIds {
+    primary?: number
+    others: number[]
+}
+
 /**
- * Topic tags for a data page's related-chart fallback, in priority order: the
- * indicator's own topic tags (as curated in its metadata, first one being the
- * primary topic), then any other topic tags on the chart itself. Only tags in
- * the topic graph below an area count, which leaves out Unlisted and other
- * bookkeeping tags.
+ * The primary topic is the indicator's first; the chart's own tags only ever
+ * count as other topics, since they have no meaningful order
  */
 export const getTopicTagIdsForChart = async (
     knex: db.KnexReadonlyTransaction,
     chartId: number,
     topicTagNames: string[]
-): Promise<number[]> => {
+): Promise<ChartTopicTagIds> => {
     const curatedClause =
         topicTagNames.length > 0 ? "t.name IN (:topicTagNames) OR" : ""
     const rows = await db.knexRaw<{
@@ -792,11 +785,17 @@ export const getTopicTagIdsForChart = async (
         { chartId, rootName: TagGraphRootName, topicTagNames }
     )
     const idByName = new Map(rows.map((r) => [r.name, r.id]))
-    const curated = lodash.compact(
-        topicTagNames.map((name) => idByName.get(name))
+    const primary = idByName.get(topicTagNames[0])
+    const otherCurated = lodash.compact(
+        topicTagNames.slice(1).map((name) => idByName.get(name))
     )
-    const onChartOnly = rows.filter((r) => r.onChart).map((r) => r.id)
-    return lodash.uniq([...curated, ...onChartOnly])
+    const onChart = rows.filter((r) => r.onChart).map((r) => r.id)
+    return {
+        primary,
+        others: lodash
+            .uniq([...otherCurated, ...onChart])
+            .filter((id) => id !== primary),
+    }
 }
 
 export const getRedirectsByChartId = async (

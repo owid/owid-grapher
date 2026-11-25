@@ -23,7 +23,7 @@
             "es2025.iterator" // Iterator helpers: `map`, `filter`, `reduce`, `some`, `every`, `find`, etc.
         ],
 
-        "types": ["@testing-library/jest-dom"],
+        "types": ["@testing-library/jest-dom/vitest"],
 
         "noImplicitReturns": true,
         "noUnusedLocals": true,

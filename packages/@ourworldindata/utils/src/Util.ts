@@ -548,17 +548,26 @@ export const TESTING_ONLY_disable_guid = (): boolean =>
 /** Decimal places a number keeps when it is written into an SVG attribute */
 export const SVG_PRECISION = 2
 
+const SVG_PRECISION_FACTOR = 10 ** SVG_PRECISION
+
+/**
+ * Note: Decimal ties round by their binary representation
+ * (1.005 is stored as 1.00499…, so it rounds to 1), which is invisible at
+ * SVG precision.
+ */
 export function roundForSvg(value: number): number {
-    return _.round(value, SVG_PRECISION)
+    // Many coordinates are already whole pixels
+    if (Number.isInteger(value)) return value
+    return Math.round(value * SVG_PRECISION_FACTOR) / SVG_PRECISION_FACTOR
 }
 
 /** Create an SVG path from an array of points */
 export const pointsToPath = (points: Point[]): string => {
-    let path = ""
-    for (let i = 0; i < points.length; i++) {
-        const x = roundForSvg(points[i].x)
-        const y = roundForSvg(points[i].y)
-        path += i === 0 ? `M${x} ${y}` : `L${x} ${y}`
+    if (points.length === 0) return ""
+    let path = `M${roundForSvg(points[0].x)} ${roundForSvg(points[0].y)}`
+    for (let i = 1; i < points.length; i++) {
+        const point = points[i]
+        path += `L${roundForSvg(point.x)} ${roundForSvg(point.y)}`
     }
     return path
 }
@@ -619,14 +628,6 @@ export const isTouchDevice = (): boolean =>
 // General type representing arbitrary json data; basically a non-nullable 'any'
 export interface Json {
     [x: string]: any
-}
-
-// Escape a function for storage in a csv cell
-export const csvEscape = (value: unknown): string => {
-    const valueStr = _.toString(value)
-    return valueStr.includes(",")
-        ? `"${valueStr.replace(/"/g, '""')}"`
-        : valueStr
 }
 
 // Removes all undefineds from an object.
@@ -1227,6 +1228,25 @@ export const isInIFrame = (): boolean => {
 }
 
 /**
+ * Whether the page is in an iframe whose parent page is on the same origin,
+ * i.e. embedded in one of our own pages (such as an archived article
+ * embedding an archived chart) rather than on another site.
+ *
+ * Browsers only let a frame read its parent's location when both share an
+ * origin; for a cross-origin parent the access throws.
+ */
+export const isInSameOriginIFrame = (): boolean => {
+    try {
+        return (
+            window.self !== window.parent &&
+            window.parent.location.origin === window.location.origin
+        )
+    } catch {
+        return false
+    }
+}
+
+/**
  * Attributes that make a link open in a new tab, to spread onto an `<a>`.
  * Only puts them when `openInNewTab` is truthy.
  *
@@ -1560,19 +1580,29 @@ export async function copyToClipboard(text: string): Promise<boolean> {
 }
 
 // Memoization for immutable getters. Run the function once for this instance and cache the result.
+// The result is stored as an own data property under the getter's name, shadowing the prototype
+// getter, so later reads are plain property reads that never call back into this function.
+//
+// Because of that shadowing, never read an @imemo getter through `super` from an override
+// that isn't @imemo itself: the first `super.x` read pins the base value onto the instance,
+// and the overriding getter is never called again for that instance. Likewise, a test spy
+// on an @imemo getter only sees the first read of each instance.
+//
+// Private getters (`get #x()`) aren't supported: a public property can't shadow a private name,
+// so the getter would run again on every read and fail to redefine the cached property.
 export const imemo = <Type, This extends Record<string, any>>(
     target: () => Type,
     context: ClassGetterDecoratorContext<This, Type>
 ) => {
     const { name } = context
-    const propName = `${String(name)}_memoized`
+    if (context.private)
+        throw new TypeError(
+            `@imemo can't decorate the private getter ${String(name)}`
+        )
 
     return function (this: This): Type {
-        if (propName in this) {
-            return this[propName]
-        }
         const value = target.call(this)
-        Object.defineProperty(this, propName, {
+        Object.defineProperty(this, name, {
             configurable: false,
             enumerable: false,
             writable: false,
@@ -1744,257 +1774,150 @@ export function traverseEnrichedBlock(
     callback: (x: OwidEnrichedGdocBlock) => void,
     spanCallback?: (x: Span) => void
 ): void {
-    match(node)
-        .with(
-            { type: P.union("sticky-right", "sticky-left", "side-by-side") },
-            (container) => {
-                callback(container)
-                container.left.forEach((leftNode) =>
-                    traverseEnrichedBlock(leftNode, callback, spanCallback)
-                )
-                container.right.forEach((rightNode) =>
-                    traverseEnrichedBlock(rightNode, callback, spanCallback)
-                )
-            }
-        )
-        .with({ type: "gray-section" }, (graySection) => {
-            callback(graySection)
-            graySection.items.forEach((node) =>
-                traverseEnrichedBlock(node, callback, spanCallback)
+    // A plain switch rather than ts-pattern's `match`: this runs for every
+    // block of every gdoc, several times per bake, and `match` builds all of
+    // its branch patterns and closures on each call.
+    const recurse = (child: OwidEnrichedGdocBlock): void =>
+        traverseEnrichedBlock(child, callback, spanCallback)
+    // Without a span callback there's nothing to do for spans, so skip
+    // walking them altogether.
+    const traverseSpan = spanCallback
+        ? (span: Span): void => traverseEnrichedSpan(span, spanCallback)
+        : (): void => undefined
+
+    switch (node.type) {
+        case "sticky-right":
+        case "sticky-left":
+        case "side-by-side":
+            callback(node)
+            node.left.forEach(recurse)
+            node.right.forEach(recurse)
+            return
+        case "gray-section":
+            callback(node)
+            node.items.forEach(recurse)
+            return
+        case "explore-data-section":
+        case "conditional-section":
+        case "expander":
+        case "guided-chart":
+        case "align":
+        case "data-callout":
+        case "data-callout-group":
+        case "pull-chart":
+            callback(node)
+            node.content.forEach(recurse)
+            return
+        case "key-insights":
+            callback(node)
+            node.insights.forEach((insight) => {
+                insight.asset?.forEach(recurse)
+                insight.content.forEach(recurse)
+            })
+            return
+        case "callout":
+            callback(node)
+            if (spanCallback) node.text.forEach(recurse)
+            return
+        case "aside":
+            callback(node)
+            node.caption.forEach(traverseSpan)
+            return
+        case "list":
+        case "numbered-list":
+            callback(node)
+            if (spanCallback) node.items.forEach(recurse)
+            return
+        case "text":
+            callback(node)
+            node.value.forEach(traverseSpan)
+            return
+        case "simple-text":
+            if (spanCallback) spanCallback(node.value)
+            return
+        case "additional-charts":
+            callback(node)
+            node.items.forEach((spans) => spans.forEach(traverseSpan))
+            return
+        case "heading":
+            callback(node)
+            node.text.forEach(traverseSpan)
+            return
+        case "expandable-paragraph":
+            callback(node)
+            node.items.forEach(recurse)
+            return
+        case "table":
+            callback(node)
+            node.rows.forEach((row) =>
+                row.cells.forEach((cell) => cell.content.forEach(recurse))
             )
-        })
-        .with({ type: "explore-data-section" }, (exploreDataSection) => {
-            callback(exploreDataSection)
-            exploreDataSection.content.forEach((node) =>
-                traverseEnrichedBlock(node, callback, spanCallback)
-            )
-        })
-        .with({ type: "conditional-section" }, (conditional) => {
-            callback(conditional)
-            conditional.content.forEach((node) =>
-                traverseEnrichedBlock(node, callback, spanCallback)
-            )
-        })
-        .with({ type: "key-insights" }, (keyInsights) => {
-            callback(keyInsights)
-            keyInsights.insights.forEach((insight) => {
-                insight.asset?.forEach((node) =>
-                    traverseEnrichedBlock(node, callback, spanCallback)
-                )
-                insight.content.forEach((node) =>
-                    traverseEnrichedBlock(node, callback, spanCallback)
-                )
-            })
-        })
-        .with({ type: "expander" }, (expander) => {
-            callback(expander)
-            expander.content.forEach((block) =>
-                traverseEnrichedBlock(block, callback, spanCallback)
-            )
-        })
-        .with({ type: "callout" }, (callout) => {
-            callback(callout)
-            if (spanCallback) {
-                callout.text.forEach((textBlock) =>
-                    traverseEnrichedBlock(textBlock, callback, spanCallback)
-                )
-            }
-        })
-        .with({ type: "aside" }, (aside) => {
-            callback(aside)
-            if (spanCallback) {
-                aside.caption.forEach((span) =>
-                    traverseEnrichedSpan(span, spanCallback)
-                )
-            }
-        })
-        .with({ type: "list" }, (list) => {
-            callback(list)
-            if (spanCallback) {
-                list.items.forEach((textBlock) =>
-                    traverseEnrichedBlock(textBlock, callback, spanCallback)
-                )
-            }
-        })
-        .with({ type: "numbered-list" }, (numberedList) => {
-            callback(numberedList)
-            if (spanCallback) {
-                numberedList.items.forEach((textBlock) =>
-                    traverseEnrichedBlock(textBlock, callback, spanCallback)
-                )
-            }
-        })
-        .with({ type: "text" }, (textNode) => {
-            callback(textNode)
-            if (spanCallback) {
-                textNode.value.forEach((span) => {
-                    traverseEnrichedSpan(span, spanCallback)
-                })
-            }
-        })
-        .with({ type: "simple-text" }, (simpleTextNode) => {
-            if (spanCallback) {
-                spanCallback(simpleTextNode.value)
-            }
-        })
-        .with({ type: "additional-charts" }, (additionalCharts) => {
-            callback(additionalCharts)
-            if (spanCallback) {
-                additionalCharts.items.forEach((spans) => {
-                    spans.forEach((span) =>
-                        traverseEnrichedSpan(span, spanCallback)
-                    )
-                })
-            }
-        })
-        .with({ type: "heading" }, (heading) => {
-            callback(heading)
-            if (spanCallback) {
-                heading.text.forEach((span) => {
-                    traverseEnrichedSpan(span, spanCallback)
-                })
-            }
-        })
-        .with({ type: "expandable-paragraph" }, (expandableParagraph) => {
-            callback(expandableParagraph)
-            expandableParagraph.items.forEach((textBlock) => {
-                traverseEnrichedBlock(textBlock, callback, spanCallback)
-            })
-        })
-        .with({ type: "guided-chart" }, (guidedChart) => {
-            callback(guidedChart)
-            guidedChart.content.forEach((block) => {
-                traverseEnrichedBlock(block, callback, spanCallback)
-            })
-        })
-        .with({ type: "align" }, (align) => {
-            callback(align)
-            align.content.forEach((node) => {
-                traverseEnrichedBlock(node, callback, spanCallback)
-            })
-        })
-        .with({ type: "table" }, (table) => {
-            callback(table)
-            table.rows.forEach((row) => {
-                row.cells.forEach((cell) => {
-                    cell.content.forEach((node) => {
-                        traverseEnrichedBlock(node, callback, spanCallback)
-                    })
-                })
-            })
-        })
-        .with({ type: "blockquote" }, (blockquote) => {
-            callback(blockquote)
-            blockquote.text.forEach((node) => {
-                traverseEnrichedBlock(node, callback, spanCallback)
-            })
-        })
-        .with(
-            {
-                type: "key-indicator",
-            },
-            (keyIndicator) => {
-                callback(keyIndicator)
-                keyIndicator.text.forEach((node) => {
-                    traverseEnrichedBlock(node, callback, spanCallback)
-                })
-            }
-        )
-        .with(
-            { type: "key-indicator-collection" },
-            (keyIndicatorCollection) => {
-                callback(keyIndicatorCollection)
-                keyIndicatorCollection.blocks.forEach((node) =>
-                    traverseEnrichedBlock(node, callback, spanCallback)
-                )
-            }
-        )
-        .with({ type: "people" }, (people) => {
-            callback(people)
-            for (const item of people.items) {
-                traverseEnrichedBlock(item, callback, spanCallback)
-            }
-        })
-        .with({ type: "people-rows" }, (peopleRows) => {
-            callback(peopleRows)
-            for (const person of peopleRows.people) {
-                traverseEnrichedBlock(person, callback, spanCallback)
-            }
-        })
-        .with({ type: "person" }, (person) => {
-            callback(person)
-            for (const node of person.text) {
-                traverseEnrichedBlock(node, callback, spanCallback)
-            }
-        })
-        .with({ type: "data-callout" }, (dataCallout) => {
-            callback(dataCallout)
-            for (const node of dataCallout.content) {
-                traverseEnrichedBlock(node, callback, spanCallback)
-            }
-        })
-        .with({ type: "data-callout-group" }, (dataCalloutGroup) => {
-            callback(dataCalloutGroup)
-            for (const node of dataCalloutGroup.content) {
-                traverseEnrichedBlock(node, callback, spanCallback)
-            }
-        })
-        .with({ type: "chart-rows" }, (block) => {
-            callback(block)
-            for (const row of block.rows) {
-                for (const node of row.content) {
-                    traverseEnrichedBlock(node, callback, spanCallback)
-                }
-            }
-        })
-        .with({ type: "pull-chart" }, (block) => {
-            callback(block)
-            for (const node of block.content) {
-                traverseEnrichedBlock(node, callback, spanCallback)
-            }
-        })
-        .with(
-            {
-                type: P.union(
-                    "chart-story",
-                    "chart",
-                    "narrative-chart",
-                    "code",
-                    "cookie-notice",
-                    "cta",
-                    "donors",
-                    "horizontal-rule",
-                    "html",
-                    "image",
-                    "video",
-                    "missing-data",
-                    "prominent-link",
-                    "pull-quote",
-                    "recirc",
-                    "subscribe-banner",
-                    "resource-panel",
-                    "research-and-writing",
-                    "sdg-grid",
-                    "sdg-toc",
-                    "ltp-toc",
-                    "topic-page-intro",
-                    "all-charts",
-                    "explorer-tiles",
-                    "pill-row",
-                    "homepage-search",
-                    "homepage-intro",
-                    "featured-metrics",
-                    "featured-data-insights",
-                    "latest-data-insights",
-                    "socials",
-                    "static-viz",
-                    "country-profile-selector",
-                    "bespoke-component"
-                ),
-            },
-            callback
-        )
-        .exhaustive()
+            return
+        case "blockquote":
+        case "key-indicator":
+        case "person":
+            callback(node)
+            node.text.forEach(recurse)
+            return
+        case "key-indicator-collection":
+            callback(node)
+            node.blocks.forEach(recurse)
+            return
+        case "people":
+            callback(node)
+            node.items.forEach(recurse)
+            return
+        case "people-rows":
+            callback(node)
+            node.people.forEach(recurse)
+            return
+        case "chart-rows":
+            callback(node)
+            node.rows.forEach((row) => row.content.forEach(recurse))
+            return
+        case "chart-story":
+        case "chart":
+        case "narrative-chart":
+        case "code":
+        case "cookie-notice":
+        case "cta":
+        case "donors":
+        case "horizontal-rule":
+        case "html":
+        case "image":
+        case "video":
+        case "missing-data":
+        case "prominent-link":
+        case "pull-quote":
+        case "recirc":
+        case "subscribe-banner":
+        case "resource-panel":
+        case "research-and-writing":
+        case "sdg-grid":
+        case "sdg-toc":
+        case "ltp-toc":
+        case "topic-page-intro":
+        case "all-charts":
+        case "explorer-tiles":
+        case "pill-row":
+        case "homepage-search":
+        case "homepage-intro":
+        case "featured-metrics":
+        case "featured-data-insights":
+        case "latest-data-insights":
+        case "socials":
+        case "static-viz":
+        case "country-profile-selector":
+        case "bespoke-component":
+            callback(node)
+            return
+    }
+    // Every case returns, so this is reached only for a block type the switch
+    // doesn't handle: a type error at compile time, a throw at runtime.
+    const unknownBlock: never = node
+    throw new Error(
+        `Unknown enriched block type: ${(unknownBlock as { type?: string }).type}`
+    )
 }
 
 /**

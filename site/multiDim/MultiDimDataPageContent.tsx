@@ -18,6 +18,8 @@ import {
     MultiDimDataPageConfig,
     extractMultiDimChoicesFromSearchParams,
     isInIFrame,
+    isInSameOriginIFrame,
+    isMultiDimDataExplorer,
 } from "@ourworldindata/utils"
 import {
     ArchiveContext,
@@ -34,7 +36,6 @@ import {
     PrimaryTopic,
 } from "@ourworldindata/types"
 import AboutThisData from "../AboutThisData.js"
-import TopicTags from "../TopicTags.js"
 import MetadataSection from "../MetadataSection.js"
 import DownloadSection from "../DownloadSection.js"
 import GrapherImage from "../GrapherImage.js"
@@ -58,6 +59,7 @@ import {
 
 export const OWID_DATAPAGE_CONTENT_ROOT_ID = "owid-datapageJson-root"
 const isIframe = isInIFrame()
+const isInOwnPage = isInSameOriginIFrame()
 
 const useTitleFragments = (config: MultiDimDataPageConfig) => {
     const title = config.config.title
@@ -71,7 +73,6 @@ export type MultiDimDataPageContentProps = {
     canonicalUrl: string
     slug: string | null
     config: MultiDimDataPageConfig
-    tagToSlugMap?: Record<string, string>
     faqEntries?: FaqEntryKeyedByGdocIdAndFragmentId
     primaryTopic?: PrimaryTopic
     relatedResearchCandidates: DataPageRelatedResearch[]
@@ -103,7 +104,6 @@ export function DataPageContent({
     faqEntries,
     primaryTopic,
     relatedResearchCandidates,
-    tagToSlugMap,
     imageMetadata,
     archiveContext,
     initialViewData,
@@ -135,6 +135,18 @@ export function DataPageContent({
         useState<MultiDimDataPageInitialViewData | null>(
             initialViewData ?? null
         )
+    // The view that varDatapageData belongs to. Used as a `key` to remount
+    // the view-specific sections instead of patching their text in place:
+    // browser translation (e.g. Chrome's) replaces React's text nodes with its
+    // own <font> elements, so in-place updates would leave the old, translated
+    // text behind and the descriptions would pile up. Set together with the
+    // data, not derived from the current settings, because the data arrives
+    // asynchronously after the settings change.
+    const [datapageViewId, setDatapageViewId] = useState<string | undefined>(
+        () =>
+            initialViewDimensions &&
+            config.findViewByDimensions(initialViewDimensions)?.fullConfigId
+    )
     const isClient = useIsClient()
 
     // Workaround to prevent a race condition when switching between views.
@@ -220,6 +232,7 @@ export function DataPageContent({
                         ...getDatapageDataV2(mergedMetadata, grapherConfig),
                         faqs: mergedMetadata.presentation?.faqs ?? [],
                     })
+                    setDatapageViewId(grapherConfigUuid)
 
                     const grapherConfigWithBase = {
                         ...grapherConfig,
@@ -379,8 +392,6 @@ export function DataPageContent({
         }
     }, [bounds])
 
-    const hasTopicTags = !!config.config.topicTags?.length
-
     const relatedResearch = useMemo(
         () =>
             processRelatedResearch(
@@ -445,8 +456,12 @@ export function DataPageContent({
             <div className="DataPageContent MultiDimDataPageContent grid grid-cols-12-full-width">
                 <div className="bg-blue-10 span-cols-14">
                     <div className="header__wrapper grid grid-cols-12-full-width">
-                        <div className="header__left col-start-2 span-cols-8 col-sm-start-2 span-sm-cols-12">
-                            <div className="header__supertitle">Data</div>
+                        <div className="header__left col-start-2 span-cols-12 col-sm-start-2 span-sm-cols-12">
+                            <div className="header__supertitle">
+                                {isMultiDimDataExplorer(config.config)
+                                    ? "Data explorer"
+                                    : "Data"}
+                            </div>
                             <h1 className="header__title">
                                 {config.config.title.title}
                             </h1>
@@ -454,19 +469,12 @@ export function DataPageContent({
                                 {titleFragments}
                             </div>
                         </div>
-                        {hasTopicTags && tagToSlugMap && (
-                            <TopicTags
-                                className="header__right col-start-10 span-cols-4 col-sm-start-2 span-sm-cols-12"
-                                topicTagsLinks={config.config.topicTags ?? []}
-                                tagToSlugMap={tagToSlugMap}
-                            />
-                        )}
                         <div className="settings-row__wrapper col-start-2 span-cols-12 col-sm-start-2 span-sm-cols-12">
                             <MultiDimSettingsPanel
                                 config={config}
                                 settings={displayedSettings}
                                 onChange={handleSettingsChange}
-                                disabled={isLoadingView}
+                                readOnly={isLoadingView}
                             />
                         </div>
                     </div>
@@ -506,6 +514,7 @@ export function DataPageContent({
                         </div>
                         {varDatapageData && (
                             <AboutThisData
+                                key={datapageViewId}
                                 datapageData={varDatapageData}
                                 hasFaq={!!faqEntriesForView?.length}
                             />
@@ -521,6 +530,7 @@ export function DataPageContent({
                 </div>
                 {varDatapageData && (
                     <MetadataSection
+                        key={datapageViewId}
                         attributionShort={varDatapageData.attributionShort}
                         attributions={varDatapageData.attributions}
                         canonicalUrl={canonicalUrl}
@@ -554,7 +564,6 @@ export function MultiDimDataPageContent({
     faqEntries,
     primaryTopic,
     relatedResearchCandidates,
-    tagToSlugMap,
     imageMetadata,
     archiveContext,
     initialViewData,
@@ -567,6 +576,15 @@ export function MultiDimDataPageContent({
             queryStr={location.search}
             archiveContext={archiveContext}
             isPreviewing={isPreviewing}
+            // Only on other sites, where nothing around the embed says which
+            // explorer it is. Our own pages either render MultiDim directly
+            // (live articles) or iframe it from the same origin (archived
+            // articles embedding archived pages).
+            explorerTitle={
+                isMultiDimDataExplorer(config.config) && !isInOwnPage
+                    ? config.config.title.title
+                    : undefined
+            }
         />
     ) : (
         <DataPageContent
@@ -577,7 +595,6 @@ export function MultiDimDataPageContent({
             faqEntries={faqEntries}
             primaryTopic={primaryTopic}
             relatedResearchCandidates={relatedResearchCandidates}
-            tagToSlugMap={tagToSlugMap}
             imageMetadata={imageMetadata}
             archiveContext={archiveContext}
             initialViewData={initialViewData}

@@ -7,10 +7,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { OwidGdocType, OwidGdocIndexItem } from "@ourworldindata/utils"
-import {
-    buildSearchWordsFromSearchString,
-    filterFunctionForSearchWords,
-} from "../adminShared/search.js"
+import { useListSearch } from "./useListSearch.js"
 import { Route, RouteComponentProps } from "react-router-dom"
 import { GdocsAdd } from "./GdocsAdd.js"
 import { GdocsList } from "./GdocsList.js"
@@ -139,8 +136,7 @@ function isGdocScheduled(gdoc: OwidGdocIndexItem, now: number): boolean {
 
 function filterGdocs(
     gdocs: OwidGdocIndexItem[],
-    filters: GdocsSearchFilters,
-    searchValue: string
+    filters: GdocsSearchFilters
 ): OwidGdocIndexItem[] {
     const { publishStatus, ...typeFilters } = filters
     const areAnyTypeFiltersActive = Object.values(typeFilters).some(Boolean)
@@ -169,39 +165,36 @@ function filterGdocs(
           })
         : gdocs
 
-    const searchWords = buildSearchWordsFromSearchString(searchValue)
-    const searched = searchWords.length
-        ? filteredByType.filter(
-              filterFunctionForSearchWords(searchWords, (gdoc) => [
-                  gdoc.title,
-                  gdoc.subtitle,
-                  gdoc.slug,
-                  gdoc.authors?.join(" "),
-                  gdoc.tags?.map(({ name }) => name).join(" "),
-                  gdoc.id,
-              ])
-          )
-        : filteredByType
-
     return publishStatus === GdocPublishStatus.Scheduled
-        ? [...searched].sort(
+        ? [...filteredByType].sort(
               (a, b) => getPublishedAtTimestamp(a) - getPublishedAtTimestamp(b)
           )
-        : searched
+        : filteredByType
 }
 
+const searchedText = (gdoc: OwidGdocIndexItem) => [
+    gdoc.title,
+    gdoc.subtitle,
+    gdoc.slug,
+    gdoc.authors?.join(" "),
+    gdoc.tags?.map(({ name }) => name).join(" "),
+    gdoc.id,
+]
+
 export function GdocsIndexPage(props: RouteComponentProps): React.ReactElement {
-    const [searchValue, setSearchValue] = React.useState("")
     const [filters, setFilters] =
         React.useState<GdocsSearchFilters>(DEFAULT_FILTERS)
     const [visibleResultCount, setVisibleResultCount] = React.useState(
         VISIBLE_RESULT_COUNT_INCREMENT
     )
-    const deferredSearchValue = React.useDeferredValue(searchValue)
-    const { data: gdocs = [] } = useGdocs()
+    const { data: gdocs } = useGdocs()
+    const { searchValue, setSearchValue, filtered } = useListSearch(
+        gdocs,
+        searchedText
+    )
     const gdocsToShow = React.useMemo(
-        () => filterGdocs(gdocs, filters, deferredSearchValue),
-        [gdocs, filters, deferredSearchValue]
+        () => filterGdocs(filtered, filters),
+        [filtered, filters]
     )
 
     const resetVisibleResults = (): void =>
@@ -236,7 +229,10 @@ export function GdocsIndexPage(props: RouteComponentProps): React.ReactElement {
                     <button
                         className="btn btn-primary text-nowrap"
                         onClick={() =>
-                            props.history.push(`${props.match.path}/add`)
+                            props.history.push({
+                                pathname: `${props.match.path}/add`,
+                                search: props.location.search,
+                            })
                         }
                     >
                         <FontAwesomeIcon icon={faCirclePlus} /> Add document
@@ -299,7 +295,12 @@ export function GdocsIndexPage(props: RouteComponentProps): React.ReactElement {
                     path={`${props.match.path}/add`}
                     render={() => (
                         <Modal
-                            onClose={() => props.history.push(props.match.path)}
+                            onClose={() =>
+                                props.history.push({
+                                    pathname: props.match.path,
+                                    search: props.location.search,
+                                })
+                            }
                         >
                             <GdocsAdd
                                 onAdd={(id) =>

@@ -14,6 +14,7 @@ import { Spinner } from "../../../../components/Spinner/Spinner.js"
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 import { Frame } from "../../../../components/Frame/Frame.js"
+import { BespokeMetadataProvider } from "../../../../components/MetadataModal/BespokeMetadataContext.js"
 
 export function CausesOfDeathCaptionedChart({
     data,
@@ -22,6 +23,8 @@ export function CausesOfDeathCaptionedChart({
     sex,
     entityName,
     year,
+    title,
+    subtitle,
     isLoading = false,
 }: {
     data: DataRow[]
@@ -30,6 +33,8 @@ export function CausesOfDeathCaptionedChart({
     sex: string
     entityName: EntityName
     year: Time
+    title?: string
+    subtitle?: string
     isLoading?: boolean
 }) {
     const entityData = useMemo(
@@ -43,30 +48,34 @@ export function CausesOfDeathCaptionedChart({
     )
 
     return (
-        <Frame className="causes-of-death-captioned-chart">
-            <CausesOfDeathHeader
-                ageGroup={ageGroup}
-                sex={sex}
-                entityName={entityName}
-                year={year}
-                numTotalDeaths={numTotalDeaths}
-                isLoading={isLoading}
-            />
-
-            <div className="causes-of-death-captioned-chart__chart-area">
-                {isLoading && <Spinner />}
-
-                <ResponsiveCausesOfDeathTreemap
-                    data={entityData}
-                    timeSeriesData={data}
-                    metadata={metadata}
+        <BespokeMetadataProvider metadata={metadata.provenance}>
+            <Frame className="causes-of-death-captioned-chart">
+                <CausesOfDeathHeader
+                    ageGroup={ageGroup}
+                    sex={sex}
                     entityName={entityName}
                     year={year}
-                    ageGroup={ageGroup}
+                    title={title}
+                    subtitle={subtitle}
+                    numTotalDeaths={numTotalDeaths}
+                    isLoading={isLoading}
                 />
-            </div>
-            <CausesOfDeathFooter metadata={metadata} />
-        </Frame>
+
+                <div className="causes-of-death-captioned-chart__chart-area">
+                    {isLoading && <Spinner />}
+
+                    <ResponsiveCausesOfDeathTreemap
+                        data={entityData}
+                        timeSeriesData={data}
+                        metadata={metadata}
+                        entityName={entityName}
+                        year={year}
+                        ageGroup={ageGroup}
+                    />
+                </div>
+                <CausesOfDeathFooter metadata={metadata} />
+            </Frame>
+        </BespokeMetadataProvider>
     )
 }
 
@@ -75,6 +84,8 @@ function CausesOfDeathHeader({
     year,
     ageGroup,
     sex,
+    title,
+    subtitle,
     numTotalDeaths,
     isLoading,
 }: {
@@ -82,6 +93,8 @@ function CausesOfDeathHeader({
     year: Time
     ageGroup: string
     sex: string
+    title?: string
+    subtitle?: string
     numTotalDeaths: number
     isLoading: boolean
 }) {
@@ -92,7 +105,7 @@ function CausesOfDeathHeader({
             ? "globally"
             : `in ${formatEntityNameForSentence(entityName)}`
 
-    const title =
+    const generatedTitle =
         entityName === "World"
             ? `What did ${ageGroupName} die from in ${year}?`
             : `What did ${ageGroupName} in ${formatEntityNameForSentence(entityName)} die from in ${year}?`
@@ -100,22 +113,25 @@ function CausesOfDeathHeader({
     return (
         <ChartHeader
             className="causes-of-death-header"
-            title={title}
+            title={title ?? generatedTitle}
             subtitle={
-                <>
-                    The size of the entire visualization represents the total
-                    number of deaths {location} in {year}:{" "}
-                    <span
-                        className={cx({
-                            "causes-of-death-header__value--loading": isLoading,
-                        })}
-                    >
-                        {formatCount(numTotalDeaths)}
-                        {isLoading && <Spinner inline />}
-                    </span>
-                    . Each rectangle within is proportional to the share of
-                    deaths due to a particular cause.
-                </>
+                subtitle ?? (
+                    <>
+                        The size of the entire visualization represents the
+                        total number of deaths {location} in {year}:{" "}
+                        <span
+                            className={cx({
+                                "causes-of-death-header__value--loading":
+                                    isLoading,
+                            })}
+                        >
+                            {formatCount(numTotalDeaths)}
+                            {isLoading && <Spinner inline />}
+                        </span>
+                        . Each rectangle within is proportional to the share of
+                        deaths due to a particular cause.
+                    </>
+                )
             }
         />
     )

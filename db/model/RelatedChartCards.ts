@@ -1,27 +1,20 @@
 import { RelatedChart, RelatedChartSource } from "@ourworldindata/types"
 import * as db from "../db.js"
 import {
+    ChartTopicTagIds,
     getChartsByAggregateCoviewScore,
     getRelatedChartsForChart,
     getTopicTagIdsForChart,
 } from "./Chart.js"
 
-/** Number of related-chart cards a data page shows */
 const RELATED_CHART_CARD_COUNT = 5
 
-/** One step of the selection: where its charts come from, and how to fetch them */
 export interface RelatedChartStage {
     source: RelatedChartSource
-    /** Fetch up to `limit` candidates, none of which are in `excludeChartIds` */
     fetch: (limit: number, excludeChartIds: number[]) => Promise<RelatedChart[]>
 }
 
-/**
- * Fill the related-chart cards stage by stage: each stage only runs if earlier
- * ones left slots empty, and is asked only for what is still missing. Charts are
- * never repeated and the page's own chart is never shown. Each card records the
- * stage that picked it.
- */
+/** Runs each stage only while slots remain, asking only for what's missing */
 export async function pickRelatedChartCards(
     chartId: number,
     stages: RelatedChartStage[],
@@ -44,20 +37,16 @@ export async function pickRelatedChartCards(
 }
 
 /**
- * The related-chart cards for a data page. Coview recommendations come first.
- * Pages with fewer than five (new pages, and the long tail) are topped up from
- * the page's primary topic, then its other topics, then the topic areas those
- * topics belong to, then site-wide. Fallback candidates are ranked by their
- * aggregate coview score, so the most-explored charts in a topic come first.
+ * Coviews, topped up from the primary topic, the other topics, their areas,
+ * then site-wide, each ranked by aggregate coview score
  */
 export async function getRelatedChartCards(
     knex: db.KnexReadonlyTransaction,
     chartId: number,
     topicTagNames: string[]
 ): Promise<RelatedChart[]> {
-    // Topic tag ids are only needed if coviews fall short, so resolve them lazily
-    let topicTagIds: Promise<number[]> | undefined
-    const getTopicTagIds = (): Promise<number[]> =>
+    let topicTagIds: Promise<ChartTopicTagIds> | undefined
+    const getTopicTagIds = (): Promise<ChartTopicTagIds> =>
         (topicTagIds ??= getTopicTagIdsForChart(knex, chartId, topicTagNames))
 
     const byScore =
@@ -79,17 +68,24 @@ export async function getRelatedChartCards(
         },
         {
             source: "primary-topic",
-            fetch: byScore(async () => (await getTopicTagIds()).slice(0, 1)),
+            fetch: byScore(async () => {
+                const { primary } = await getTopicTagIds()
+                return primary !== undefined ? [primary] : []
+            }),
         },
         {
             source: "other-topics",
-            fetch: byScore(async () => (await getTopicTagIds()).slice(1)),
+            fetch: byScore(async () => (await getTopicTagIds()).others),
         },
         {
             source: "topic-area",
-            fetch: byScore(async () =>
-                db.getTopicTagIdsInSameAreas(knex, await getTopicTagIds())
-            ),
+            fetch: byScore(async () => {
+                const { primary, others } = await getTopicTagIds()
+                return db.getTopicTagIdsInSameAreas(
+                    knex,
+                    primary !== undefined ? [primary, ...others] : others
+                )
+            }),
         },
         {
             source: "site-wide",

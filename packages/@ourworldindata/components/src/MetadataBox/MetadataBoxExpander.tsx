@@ -20,7 +20,6 @@ interface MetadataBoxExpanderProps {
     showMoreIcon?: IconDefinition
     showLessIcon?: IconDefinition
     detailsRef?: React.RefObject<HTMLDetailsElement | null>
-    /** Lets other controls point at the <details> with aria-controls */
     detailsId?: string
     onToggle?: (isOpen: boolean) => void
     className?: string

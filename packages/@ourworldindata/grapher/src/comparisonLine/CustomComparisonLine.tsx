@@ -1,12 +1,11 @@
 import * as React from "react"
 import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
-import { line as d3_line, curveLinear } from "d3-shape"
 import {
     guid,
     PointVector,
     makeFigmaId,
-    roundForSvg,
+    pointsToPath,
 } from "@ourworldindata/utils"
 import { CustomComparisonLineConfig } from "@ourworldindata/types"
 import { generateComparisonLinePoints } from "./ComparisonLineGenerator"
@@ -58,11 +57,13 @@ export class CustomComparisonLine extends React.Component<
     @computed private get linePath(): string | null {
         const { controlData } = this
         const { horizontalAxis, verticalAxis } = this.props.dualAxis
-        const line = d3_line()
-            .curve(curveLinear)
-            .x((d) => roundForSvg(horizontalAxis.place(d[0])))
-            .y((d) => roundForSvg(verticalAxis.place(d[1])))
-        return line(controlData)
+        if (controlData.length === 0) return null
+        return pointsToPath(
+            controlData.map(([x, y]) => ({
+                x: horizontalAxis.place(x),
+                y: verticalAxis.place(y),
+            }))
+        )
     }
 
     @computed private get placedLabel():

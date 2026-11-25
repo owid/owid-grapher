@@ -27,8 +27,7 @@ export default function LinkedAuthor({
     role?: string
 }) {
     const author = useLinkedAuthor(name)
-    // With initials to fall back on, a photo only counts if it can render, so
-    // archived pages (which leave photos out) show initials too
+    // Archived pages have no image metadata, so they get initials too
     const photoMetadata = useImage(author.featuredImage ?? undefined)
     const hasPhoto = includeInitials ? !!photoMetadata : !!author.featuredImage
 

@@ -1,5 +1,4 @@
 .indicator-metadata-box {
-    --indicator-sources-key-data-title: #{$blue-50};
     --indicator-metadata-box-padding: 24px;
     padding: var(--indicator-metadata-box-padding);
     background-color: $gray-5;
@@ -14,7 +13,7 @@
         margin-top: -56px;
         margin-right: -8px;
         margin-left: -8px;
-        margin-bottom: 32px;
+        margin-bottom: 16px;
         --indicator-metadata-box-padding: 16px;
     }
 }
@@ -43,7 +42,6 @@
         @include body-3-regular;
     }
 
-    // The remainder's margin spaces it from the preview
     li:last-child {
         margin-bottom: 0;
     }
@@ -65,20 +63,26 @@
     margin: 0 0 8px;
 }
 
+// Outranks the shared `align-self: start`, so the whole strip is clickable
+.indicator-metadata-box
+    .metadata-box-expander
+    details
+    .metadata-box-expander__summary {
+    align-self: stretch;
+}
+
 .indicator-metadata-box .metadata-box-expander__summary {
     @include body-3-medium;
     color: $blue-50;
-    padding: 12px 0;
-    margin-top: 12px;
-    margin-bottom: calc(-1 * var(--indicator-metadata-box-padding));
+    padding: 12px var(--indicator-metadata-box-padding);
+    margin: 12px calc(-1 * var(--indicator-metadata-box-padding))
+        calc(-1 * var(--indicator-metadata-box-padding));
 
     &:hover {
         color: $blue-90;
     }
 }
 
-// Nested lists sit 8px under their item, like the items around them, with
-// the same filled bullets
 .indicator-metadata-box .metadata-box-expander__prose,
 .indicator-metadata-box .indicator-metadata-box__producer-docs,
 .indicator-metadata-box .indicator-sources .source .description,
@@ -95,7 +99,6 @@
 
 .indicator-metadata-box .metadata-box-expander__chevron {
     font-size: 0.75rem;
-    // Centred in a 12px box, like the top toggle's caret
     width: 12px;
     margin-left: 4px;
     top: 0;
@@ -135,8 +138,6 @@
     margin: 0;
     color: $blue-90;
 
-    // On phones the variant stays beside the title when it fits, and
-    // otherwise moves under it whole, at its own tighter line height
     @include sm-only {
         display: flex;
         flex-wrap: wrap;
@@ -162,15 +163,44 @@
     }
 }
 
-// Phones toggle the box from the bottom only
-.indicator-metadata-box .metadata-box-toggle-button {
-    @include sm-only {
-        display: none;
+// The toggle button's hit area covers the whole title row
+.indicator-metadata-box__header {
+    position: relative;
+}
+
+.indicator-metadata-box .metadata-box-toggle-button::after {
+    content: "";
+    position: absolute;
+    inset: calc(-1 * var(--indicator-metadata-box-padding))
+        calc(-1 * var(--indicator-metadata-box-padding)) 0;
+}
+
+// On phones the label is for screen readers only (as .sr-only)
+@include sm-only {
+    .indicator-metadata-box .metadata-box-toggle-button > span {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+    }
+
+    .indicator-metadata-box__header {
+        gap: 0;
+    }
+
+    // With the label hidden, focus rings the row
+    .indicator-metadata-box .metadata-box-toggle-button:focus-visible {
+        outline: none;
+
+        &::after {
+            outline: 2px solid $blue-60;
+            outline-offset: -2px;
+        }
     }
 }
 
-// Phones show only the first item of "What you should know" until the box is
-// opened, so Show more is in view
+// Until the box opens, phones preview only the first key point
 @include sm-only {
     .indicator-metadata-box
         .metadata-box-expander:has(
@@ -223,40 +253,28 @@
     margin-top: 8px;
 }
 
-// A label and its value run on as one line, and a long value wraps back to
-// the start of the line rather than in a column beside the label
-@mixin key-data-row-inline {
-    display: block;
-
-    > .metadata-box-key-data__key {
-        display: inline;
-        margin-right: 4px;
-    }
-
-    > .metadata-box-key-data__value {
-        display: inline;
-    }
-}
-
-// On phones, only Data details: one pair per line
-@include sm-only {
-    .indicator-metadata-box
-        .indicator-metadata-box__data-details
-        .metadata-box-key-data__row {
-        @include key-data-row-inline;
-    }
-}
-
 @include sm-up {
+    .indicator-metadata-box .metadata-box-key-data {
+        align-items: baseline;
+    }
+
     .indicator-metadata-box
         .metadata-box-key-data__row:not(
             .metadata-box-key-data__row--full-width
         ) {
-        @include key-data-row-inline;
+        display: block;
+
+        > .metadata-box-key-data__key {
+            display: inline;
+            margin-right: 4px;
+        }
+
+        > .metadata-box-key-data__value {
+            display: inline;
+        }
     }
 
-    // Centre the label on the first line of managers, which the 24px photos
-    // make 24px tall
+    // Aligns the label with the 24px photos
     .indicator-metadata-box
         .metadata-box-key-data__row.indicator-metadata-box__managed-by {
         display: flex;
@@ -297,19 +315,18 @@
         padding-bottom: 0;
     }
 
-    // A blank line under the title, as between paragraphs
     &[open] > .ExpandableToggle__content {
         padding: 1.5em 16px 24px;
     }
 }
 
-// A line under each accordion only. The :has() variant outranks the shared
-// rule that drops the bottom border between neighbours.
 .indicator-metadata-box details.ExpandableToggle,
 .indicator-metadata-box .indicator-sources div.NonExpandable {
     border-top: none;
+    border-bottom: 1px solid var(--border);
 
-    &,
+    // Outranks the shared rule that drops the border between neighbours. Kept
+    // separate so browsers without :has() still apply the rule above.
     &:has(+ .ExpandableToggle, + .NonExpandable) {
         border-bottom: 1px solid var(--border);
     }
@@ -323,39 +340,50 @@
     text-wrap: balance;
 }
 
-// Links take the colour of the text they're in
 .indicator-metadata-box .ExpandableToggle__content a {
     @include owid-link-60;
 }
 
-.indicator-metadata-box .indicator-sources .source-key-data__content {
-    color: $blue-90;
-
-    a {
-        @include owid-link-90;
-        color: inherit;
-    }
-}
-
-// 24px from a source's description to its details, as between other blocks
-// in an accordion
 .indicator-metadata-box .indicator-sources .source .description {
     margin-bottom: 24px;
 }
 
-// Single sources have no toggle; match the toggles' inset
 .indicator-metadata-box .indicator-sources div.NonExpandable {
     padding: 16px;
 
-    // The same blank line under the title as in an open accordion
     .NonExpandable__title {
         margin-bottom: 21px;
         text-wrap: balance;
     }
 }
 
-// Free-form markdown: paragraphs a blank line (1.5em) apart, headings right
-// above their paragraph
+// Headings in FAQ answers (e.g. share-of-population-in-extreme-poverty)
+.indicator-metadata-box .metadata-box-section--faqs .ExpandableToggle__content {
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        @include body-3-bold;
+        color: $blue-90;
+        margin: 1.5em 0 0;
+
+        // The toggle's padding already spaces an answer that opens with one
+        &:first-child {
+            margin-top: 0;
+        }
+    }
+}
+
+.indicator-metadata-box .indicator-sources .source-key-data-blocks {
+    grid-template-columns: minmax(0, 1fr);
+
+    .source-key-data--span-2 {
+        grid-column: auto;
+    }
+}
+
 .indicator-metadata-box .indicator-metadata-box__producer-docs,
 .indicator-metadata-box .indicator-sources .source .description,
 .indicator-metadata-box .indicator-metadata-box__processing-notes {
@@ -383,8 +411,8 @@
         margin: 1.5em 0 0;
     }
 
-    // Restore list indentation lost to the global `ul, ol { padding: 0 }`
-    // reset (e.g. /grapher/co2-emissions-transport)
+    // Restores the indent the global `ul, ol { padding: 0 }` reset removes
+    // (e.g. co2-emissions-transport)
     ul,
     ol {
         padding-left: 1.5em;
@@ -399,7 +427,7 @@
         }
     }
 
-    // Loose markdown lists wrap each item in a paragraph
+    // Loose markdown lists wrap items in a paragraph (e.g. population-density)
     li > p {
         margin: 0;
     }

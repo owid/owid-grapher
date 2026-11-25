@@ -783,6 +783,7 @@ export {
     type MinimalTag,
     type TagGraphRole,
     TagsTableName,
+    UNLISTED_TAG_NAME,
 } from "./dbTypes/Tags.js"
 export {
     type DbPlainTagVariableTopicTag,
@@ -879,10 +880,14 @@ export type {
     MultiDimDataPageProps,
     MultiDimPageCompanion,
     MultiDimPageCompanionView,
+    MultiDimExplorerPresentation,
     FaqEntryKeyedByGdocIdAndFragmentId,
     Choice,
     ChoicesEnriched,
+    Dimension,
     DimensionEnriched,
+    DimensionPresentation,
+    DimensionPresentationType,
     MultiDimDimensionChoices,
     ExplorerRedirectTarget,
     View,

@@ -1,20 +1,16 @@
+import cx from "clsx"
 import { faCaretDown, faCaretUp } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { useEffect, useState } from "react"
 
 interface MetadataBoxToggleButtonProps {
     detailsRef: React.RefObject<HTMLDetailsElement | null>
-    /** The id of the <details> it opens and closes */
     detailsId?: string
 }
 
 /**
- * Opens and closes a MetadataBoxExpander from the top of the box.
- *
- * The visible label follows the <details> state through CSS, so it matches the
- * server render; `aria-expanded` follows it once hydrated. Without JavaScript
- * the button can't do anything, so it's hidden and the expander's own
- * <summary> remains.
+ * Toggles a MetadataBoxExpander from the top of the box. Before hydration the
+ * label follows the <details> through CSS :has(); hidden without JS.
  */
 export function MetadataBoxToggleButton({
     detailsRef,
@@ -34,7 +30,10 @@ export function MetadataBoxToggleButton({
     return (
         <button
             type="button"
-            className="metadata-box-toggle-button js--hide-if-js-disabled"
+            className={cx(
+                "metadata-box-toggle-button js--hide-if-js-disabled",
+                { "metadata-box-toggle-button--open": isOpen }
+            )}
             data-track-note="metadata_box_top_toggle"
             aria-controls={detailsId}
             aria-expanded={isOpen}

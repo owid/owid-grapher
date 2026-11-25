@@ -1,0 +1,48 @@
+name: GitHub Actions checks
+on:
+  pull_request:
+    paths:
+      - ".github/**"
+  push:
+    branches:
+      - master
+    paths:
+      - ".github/**"
+
+permissions:
+  contents: read
+
+jobs:
+  zizmor:
+    runs-on: ubuntu-slim
+
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Run zizmor
+        uses: zizmorcore/zizmor-action@v0.8.1
+        with:
+          # Avanced Security mode is a bit too complicated for our use case, but
+          # we might want to switch to it in the future.
+          advanced-security: false
+
+  # Fails when .github/workflows/actions.lock is out of sync with the workflows
+  # or a locked pin no longer verifies upstream. Run `gh actions-lock` to fix.
+  actions-lockfile:
+    runs-on: ubuntu-slim
+    env:
+      GH_TOKEN: ${{ github.token }}
+
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Verify actions.lock is complete and up to date
+        run: |
+          gh extension install github/gh-actions-lock --pin v0.4.1
+          gh actions-lock --verify

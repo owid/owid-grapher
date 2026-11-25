@@ -175,8 +175,6 @@ class QuickAddSection extends React.Component<{
 
     @action.bound async onSetDataRange() {
         const { grapherState } = this
-        const dataColumn = grapherState.table.get(grapherState.yColumnSlug)
-        if (!dataColumn || dataColumn.isMissing || dataColumn.isEmpty) return
 
         const additionalDataLoaderFn = grapherState.additionalDataLoaderFn
         if (!additionalDataLoaderFn) return
@@ -190,7 +188,9 @@ class QuickAddSection extends React.Component<{
         const entities = await selectPeerCountries({
             peerCountryStrategy: PeerCountryStrategy.DataRange,
             availableEntities,
-            dataColumn,
+            dataColumn: grapherState.table.get(grapherState.yColumnSlug),
+            endTime: grapherState.endTime,
+            isSingleTimeChart: grapherState.isSingleTimeSelectionActive,
             additionalDataLoaderFn,
             targetCount,
             randomize: true,
@@ -380,14 +380,13 @@ class AddPeersSection extends React.Component<{
         if (!this.effectiveTargetCountry) return
 
         const { grapherState } = this
-        const dataColumn = grapherState.table.get(grapherState.yColumnSlug)
-
-        const availableEntities = prepareEntitiesForPeerSelection(grapherState)
         const peers = await selectPeerCountries({
             peerCountryStrategy: PeerCountryStrategy.DataRange,
             targetCountry: this.effectiveTargetCountry,
-            availableEntities,
-            dataColumn,
+            availableEntities: prepareEntitiesForPeerSelection(grapherState),
+            dataColumn: grapherState.table.get(grapherState.yColumnSlug),
+            endTime: grapherState.endTime,
+            isSingleTimeChart: grapherState.isSingleTimeSelectionActive,
             additionalDataLoaderFn: grapherState.additionalDataLoaderFn,
             randomize: false,
         })

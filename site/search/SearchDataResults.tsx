@@ -1,4 +1,10 @@
-import { queryCharts, searchQueryKeys } from "./queries.js"
+import { useQuery } from "@tanstack/react-query"
+import {
+    getFeaturedVizFiltersForState,
+    queryCharts,
+    queryFeaturedViz,
+    searchQueryKeys,
+} from "./queries.js"
 import { useSelectedRegionNames, useInfiniteSearch } from "./searchHooks.js"
 import { SearchResultHeader } from "./SearchResultHeader.js"
 import { SearchChartHit } from "@ourworldindata/types"
@@ -7,13 +13,14 @@ import { SearchChartHitComponent } from "./SearchChartHitComponent.js"
 import { SearchClosestMatchesNotice } from "./SearchClosestMatchesNotice.js"
 import { SearchHorizontalDivider } from "./SearchHorizontalDivider.js"
 import { useSearchContext } from "./SearchContext.js"
+import { SearchFeaturedVizHit } from "./SearchFeaturedVizHit.js"
 
 export const SearchDataResults = ({
     isFirstChartLarge,
 }: {
     isFirstChartLarge: boolean
 }) => {
-    const { analytics } = useSearchContext()
+    const { analytics, state, liteSearchClient } = useSearchContext()
     const selectedRegionNames = useSelectedRegionNames()
 
     const query = useInfiniteSearch({
@@ -21,7 +28,16 @@ export const SearchDataResults = ({
         queryFn: queryCharts,
     })
 
-    const { hits, totalResults, isLoading, isClosestMatches } = query
+    const featuredVizQuery = useQuery({
+        queryKey: searchQueryKeys.featuredViz(state),
+        queryFn: () => queryFeaturedViz(liteSearchClient, state),
+        enabled: getFeaturedVizFiltersForState(state) !== null,
+    })
+    const featuredVizHit = featuredVizQuery.data
+
+    const { hits, isClosestMatches } = query
+    const isLoading = query.isLoading || featuredVizQuery.isLoading
+    const totalResults = query.totalResults + (featuredVizHit ? 1 : 0)
 
     function handleClick(
         hit: SearchChartHit,
@@ -47,6 +63,17 @@ export const SearchDataResults = ({
                         <SearchResultHeader count={totalResults}>
                             Data
                         </SearchResultHeader>
+                        {featuredVizHit && (
+                            <SearchFeaturedVizHit
+                                hit={featuredVizHit}
+                                onClick={() =>
+                                    analytics.logSearchResultClick(
+                                        featuredVizHit,
+                                        { position: 1, source: "search" }
+                                    )
+                                }
+                            />
+                        )}
                         {isClosestMatches && <SearchClosestMatchesNotice />}
                         <ul className="search-data-results__list">
                             {hits.map((hit, hitIndex) => {

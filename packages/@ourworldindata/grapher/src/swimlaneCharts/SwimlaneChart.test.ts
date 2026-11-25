@@ -110,11 +110,9 @@ describe("legend", () => {
 
         expect(chart["ordinalLegendState"]).toBeDefined()
         expect(chart["categoricalLegendState"]).toBeUndefined()
-        expect(findLegendLabels(chart)).toEqual([
-            "No data",
-            "Republic",
-            "Monarchy",
-        ])
+        expect(
+            chart["ordinalLegendState"]!.labels.map((label) => label.bin.text)
+        ).toEqual(["No data", "Republic", "Monarchy"])
     })
 
     it("labels every category of an ordinal indicator with long labels at a narrow size", () => {
@@ -175,7 +173,7 @@ describe("legend", () => {
             },
         })
 
-        expect(findLegendLabels(chart)).toEqual(["No data", "Regime"])
+        expect(findLegendLabels(chart)).toEqual(["Regime", "No data"])
     })
 
     it.each([ColumnTypeNames.String, ColumnTypeNames.Ordinal])(
@@ -187,7 +185,7 @@ describe("legend", () => {
                 },
             })
 
-            expect(findLegendLabels(chart)).toEqual(["No data", "Republic"])
+            expect(findLegendLabels(chart)).toEqual(["Republic", "No data"])
         }
     )
 })
@@ -204,12 +202,12 @@ describe("interaction", () => {
         })
         const legendBins = chart["categoricalLegendBins"]
         expect(legendBins.map((bin) => bin.value)).toEqual([
-            "No data",
             "Monarchy",
             "Republic",
+            "No data",
         ])
 
-        chart["onLegendMouseOver"](legendBins[2])
+        chart["onLegendMouseOver"](legendBins[1])
 
         expect(findSegmentEmphases(chart, "France")).toEqual([
             Muted,
@@ -234,7 +232,7 @@ describe("interaction", () => {
         {
             interaction: "a legend category is hovered",
             interact: (chart: SwimlaneChart): void => {
-                chart["onLegendMouseOver"](chart["categoricalLegendBins"][1])
+                chart["onLegendMouseOver"](chart["categoricalLegendBins"][0])
             },
         },
     ])("clears the author's focus when $interaction", ({ interact }) => {

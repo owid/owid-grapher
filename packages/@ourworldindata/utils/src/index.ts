@@ -37,7 +37,6 @@ export {
     isMobile,
     isTouchDevice,
     type Json,
-    csvEscape,
     trimObject,
     fetchText,
     fetchJson,
@@ -70,6 +69,7 @@ export {
     getClosestTimePairs,
     omitUndefinedValues,
     isInIFrame,
+    isInSameOriginIFrame,
     openLinkInNewTabAttrs,
     differenceObj,
     findDOMParent,
@@ -260,6 +260,7 @@ export {
     getRegionAlternativeNames,
     mappableCountries,
     checkIsCountry,
+    checkIsCountryName,
     checkIsOwidContinent,
     checkIsIncomeGroup,
     checkIsAggregate,
@@ -274,6 +275,7 @@ export {
     getSiblingRegions,
     getContinentForCountry,
     articulateEntity,
+    checkHasDefiniteArticle,
 } from "./regions/index.js"
 export {
     instantiateProfile,
@@ -377,6 +379,8 @@ export {
 
 export { isAndroid, isIOS } from "./BrowserUtils.js"
 
+export { registerKeyboardShortcuts } from "./keyboardShortcuts.js"
+
 export {
     diffGrapherConfigs,
     mergeGrapherConfigs,
@@ -387,6 +391,9 @@ export {
     MultiDimDataPageConfig,
     extractMultiDimChoicesFromSearchParams,
     getMultiDimPageTitle,
+    isMultiDimDataExplorer,
+    MultiDimViewNotFoundError,
+    resolveDimensionPresentationType,
     searchParamsToMultiDimView,
 } from "./MultiDimDataPageConfig.js"
 
@@ -418,6 +425,9 @@ export {
     EXPERIMENT_PREFIX,
     LATEST_STICKY_FILTERS_EXPERIMENT_ID,
     LATEST_STICKY_FILTERS_ARMS,
+    LATEST_DATA_INSIGHTS_EXPERIMENT_ID,
+    LATEST_DATA_INSIGHTS_ARMS,
+    type LatestDataInsightsArm,
 } from "./experiments/constants.js"
 
 export {
@@ -449,6 +459,17 @@ export {
 } from "./search/searchTopicPages.js"
 
 export { isEmptyQuerySearchPayload } from "./search/emptyQuerySearchPayload.js"
+export {
+    type AlgoliaHostOption,
+    getAlgoliaBaseUrl,
+    getAlgoliaHostClientOptions,
+} from "./search/algoliaHost.js"
+
+export {
+    PINNED_SEARCHES_ATTRIBUTE,
+    normalizePinnedSearch,
+    parsePinnedSearches,
+} from "./search/pinnedSearch.js"
 
 export { placeGrapherTabsInLargeVariantGrid } from "./search/LargeVariantRichDataHelpers.js"
 export { placeGrapherTabsInMediumVariantGridLayout } from "./search/MediumVariantRichDataHelpers.js"
