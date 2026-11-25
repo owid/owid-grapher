@@ -607,10 +607,12 @@ const measureTabWidth = (label: string, secondary?: string): number => {
 /** Key shared by indicators whose tabs differ in nothing but a parseable date range */
 const makeTabMergeKey = (label: string, column: CoreColumn): string => {
     const { timespan, ...content } = getSourceContent(column)
+    const hasDateRange = parseTimespan(timespan ?? "") !== undefined
     return JSON.stringify([
         label,
         content,
-        parseTimespan(timespan ?? "") ? undefined : timespan,
+        hasDateRange,
+        hasDateRange ? undefined : timespan,
     ])
 }
 
@@ -669,8 +671,7 @@ const mergeTimespans = (
     const years = excludeUndefined(
         timespans.map((timespan) => parseTimespan(timespan ?? ""))
     )
-    if (timespans.length === 1 || years.length < timespans.length)
-        return timespans[0]
+    if (timespans.length === 1 || years.length === 0) return timespans[0]
     const firstYear = _.min(years.map((y) => y.firstYear))
     const lastYear = _.max(years.map((y) => y.lastYear))
     return `${firstYear}-${lastYear}`
