@@ -7,7 +7,7 @@ An experimental charts index in [turbopuffer](https://turbopuffer.com), next to 
 - `indexChartsToTurbopuffer.ts` builds the same records as the Algolia charts index (charts, explorer views, multi-dim views) through `getScoredChartIndexRecords` in `baker/algolia/utils/chartIndexRecords.ts`, which the Algolia indexer also calls, and writes them to the `owid-charts-spike-v2` namespace in `aws-eu-central-1` (v1, the first load without stemming and with a shorter `search_text`, is kept as a baseline).
 - `queryChartsInTurbopuffer.ts` runs a few queries through the query shapes (T0–T4 below) and runs post-load checks.
 - `chartsNamespace.ts` holds the schema and the record-to-row mapping.
-- The query shapes live in `packages/@ourworldindata/utils/src/search/turbopufferCharts.ts`, shared with `/api/search`: `?type=charts&engine=tpuf&arm=T2` answers from this namespace and adds an `engine` object with turbopuffer's server time. `arm` defaults to T1; `midpoint` overrides the popularity midpoint; `synonyms=1`, `fuzzy=1` and `pool=<n>` switch on the query tuning below; `model` picks T4's rerank model. It needs `TURBOPUFFER_API_KEY` in the functions' `.dev.vars`.
+- The query shapes live in `packages/@ourworldindata/utils/src/search/turbopufferCharts.ts`, shared with `/api/search`: `?type=charts&engine=tpuf&arm=T2` answers from this namespace and adds an `engine` object with turbopuffer's server time. `arm` defaults to T1; `midpoint` overrides the popularity midpoint; `synonyms=1`, `fuzzy=1` and `pool=<n>` switch on the query tuning below; `model` picks T4's rerank model, and `rsyn=1` and `popw=<w>` tune its rerank. It needs `TURBOPUFFER_API_KEY` in the functions' `.dev.vars`.
 
 ```bash
 # needs TURBOPUFFER_API_KEY in .env; STAGING=<branch> reads that staging server's database
@@ -53,6 +53,8 @@ Each arm runs as one call to turbopuffer, which embeds the query, runs the sub-q
 - `fuzzy=1` adds T2's whole-query fuzzy match.
 - `pool=<n>` is how many rows each T3/T4 sub-query contributes (default: the page size plus one). The rerank needs a pool deeper than the page.
 - `model` is T4's rerank model: `zeroentropy/zerank-2` (default), `voyage/rerank-3` or `voyage/rerank-3-lite`, the ones turbopuffer serves in our region.
+- `rsyn=1` gives T4's rerank model the query with its synonyms in parentheses ("pib (gdp, gross domestic product, …)").
+- `popw=<w>` adds `w` times the row's saturated popularity (the text half's `Saturate` term, 0–1) to the rerank model's score, re-sorting every reranked candidate before the page is cut. Rerank scores of relevant charts sit within a few hundredths of each other on broad queries ("energy": 0.666–0.685), so 0.05 lets popularity break those near-ties without overriding a clearer relevance gap.
 
 All arms return one row per `chart_key` (`limit.per`). With FM copies left out, every row has its own `chart_key`, so this is a no-op today; it matters once FM rows come back. The reranked arms (turbopuffer's `rerank_by` models, or our own rerank on a turbopuffer pool) are left to the search evaluator.
 
@@ -107,6 +109,19 @@ Judged head to head in one run on the 600 queries, T4 (Voyage) served 84.1% and 
 - **Where T4 loses**, the rerank model's score replaces everything else: broad one-word queries ("energy", "agriculture", "economy") get narrower charts instead of the popular broad ones, since popularity no longer counts, and abbreviations ("rni", "pib", "sdg 7") lose because the model scores the bare query against `search_text` without the synonyms that brought the right charts into the pool. `clef-flash` reorders Algolia's own hits, so it almost never loses what production finds.
 - **A T4 call** takes about 200 ms of server time, nearly all of it the rerank, and bills about 4,700 rerank tokens (≈ $0.0002 with voyage/rerank-3, half with zerank-2) plus 2.56 GB queried (two sub-queries at the 1.28 GB minimum each). The rerank dominates: about $240 per million searches with voyage/rerank-3 and $120 with zerank-2, against about $3 for the queried bytes at turbopuffer's listed ≤ $1 per PB.
 - **turbopuffer rate-limits model reranking** to 2,500 candidate documents per second per organization and model (burst 10,000); T4 sends up to 100 per search, so about 25 searches per second.
+
+### Follow-ups on T4's losses
+
+Three ideas against the two loss patterns above, each judged head to head against T4 (Voyage, `pool=50`) on the 600-query sample. The patterns were read off these same queries, so none of it is held out.
+
+| Variant against T4                                                 | T4    | Variant | Difference (95% CI) | Fixes | Breaks | Round trip p50 |
+| ------------------------------------------------------------------ | ----- | ------- | ------------------- | ----- | ------ | -------------- |
+| `rsyn=1`                                                           | 83.0% | 83.5%   | +0.5 (−0.9, +1.9)   | 2.0%  | 1.5%   | 297 ms         |
+| `rsyn=1&popw=0.05`                                                 | 83.2% | 85.0%   | +1.8 (−0.8, +4.8)   | 3.9%  | 2.2%   | 314 ms         |
+| `clef-flash` over T3's top 30 (#7869's rerank; not on this branch) | 85.0% | 84.7%   | −0.4 (−4.1, +2.7)   | 4.9%  | 5.3%   | 264 ms         |
+
+- **None beats T4 by more than the noise.** Synonyms in the rerank query fix the abbreviations they were aimed at ("pib", "bip", "gdp in ch") and lose about as many others. The popularity blend adds the broad queries ("energy", "economy") and loses others ("income", "deforestation"); its +1.8 rests on a tuned constant.
+- **`clef-flash` over turbopuffer's candidates trades rather than adds:** it wins broad and odd queries ("economy", "population by country", "sdg 7") and loses short and foreign-language ones that T4's model gets ("sugar", "rni", "sur corea", "produit interieur brut"). It matches T4 with one model call fewer, at Workers AI's price instead of the rerank tokens.
 
 ## Open items
 
