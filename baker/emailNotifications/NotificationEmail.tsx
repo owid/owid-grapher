@@ -355,7 +355,9 @@ function DataInsightCard({ item }: { item: NotificationEmailItem }) {
     const imageUrlsByFilename = item.imageUrlsByFilename ?? {}
     return (
         <Section
-            className="card"
+            // Padded evenly on all sides, so on mobile the vertical padding
+            // shrinks along with the horizontal
+            className="card card--even-padding"
             style={{ backgroundColor: COLORS.card, padding: 24 }}
         >
             {leadImage && (

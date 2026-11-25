@@ -62,6 +62,10 @@ const RESPONSIVE_STYLES = `
         padding-left: ${MOBILE_CARD_PADDING}px !important;
         padding-right: ${MOBILE_CARD_PADDING}px !important;
     }
+    .card--even-padding {
+        padding-top: ${MOBILE_CARD_PADDING}px !important;
+        padding-bottom: ${MOBILE_CARD_PADDING}px !important;
+    }
     .header-image {
         line-height: ${MOBILE_HEADER_IMAGE_HEIGHT}px !important;
     }
