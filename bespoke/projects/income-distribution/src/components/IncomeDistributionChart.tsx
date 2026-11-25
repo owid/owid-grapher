@@ -91,6 +91,8 @@ export interface IncomeDistributionChartEmphasis {
     /** Labels at either end of the x axis, e.g. "Poorest" and "Richest" */
     axisEndLabels?: { left: string; right: string }
     annotations?: ChartAnnotation[]
+    /** A lighter line under the poverty line's label, e.g. how to move it */
+    povertyLineHint?: string
     /**
      * Whether hovering shows the tooltip and a click sets the line; default
      * true. Dragging an existing line works either way.
@@ -225,6 +227,8 @@ interface PovertyLineText {
     /** Bold first line; without it, `label` is the bold line */
     title?: string
     label: string
+    /** A lighter, italic line below */
+    hint?: string
 }
 
 interface AxisTick {
@@ -256,6 +260,7 @@ function IncomeDistributionChartContent({
     showSeriesLabels = true,
     axisEndLabels,
     annotations,
+    povertyLineHint,
     isInteractive = true,
     width,
     height,
@@ -428,8 +433,15 @@ function IncomeDistributionChartContent({
                   : {
                         income: povertyLine,
                         label: `Poverty line: ${formatIncome(povertyLine, currency, timeInterval, { short: true })}`,
+                        hint: povertyLineHint,
                     },
-        [povertyLine, isInternationalPovertyLine, currency, timeInterval]
+        [
+            povertyLine,
+            isInternationalPovertyLine,
+            currency,
+            timeInterval,
+            povertyLineHint,
+        ]
     )
 
     // While the line is dragged, the country labels keep clear of its label
@@ -448,6 +460,7 @@ function IncomeDistributionChartContent({
             width,
             title: lineForLabels.title,
             label: lineForLabels.label,
+            hint: lineForLabels.hint,
             hasClear: hasClearButton,
             obstacles,
         })
@@ -951,6 +964,7 @@ function IncomeDistributionChartContent({
                         obstacles={obstacles}
                         title={povertyLineText.title}
                         label={povertyLineText.label}
+                        hint={povertyLineText.hint}
                         valueNow={povertyLine}
                         valueMin={minIncome}
                         valueMax={maxIncome}
@@ -1238,6 +1252,7 @@ function PovertyLine({
     obstacles,
     title,
     label,
+    hint,
     valueNow,
     valueMin,
     valueMax,
@@ -1257,6 +1272,8 @@ function PovertyLine({
     /** Bold first line; without it, `label` is the bold line */
     title?: string
     label: string
+    /** A lighter, italic line below */
+    hint?: string
     /** Int-$/day, for assistive tech */
     valueNow: number
     valueMin: number
@@ -1280,6 +1297,7 @@ function PovertyLine({
         width,
         title,
         label,
+        hint,
         hasClear: !!onClear,
         obstacles,
     })
@@ -1361,6 +1379,23 @@ function PovertyLine({
                         pointerEvents="none"
                     >
                         {label}
+                    </text>
+                )}
+                {hint && (
+                    <text
+                        x={textX}
+                        y={ballY + (title ? 2 : 1) * lineHeight}
+                        dominantBaseline="central"
+                        textAnchor={fitsRight ? "start" : "end"}
+                        fontSize={fontSize}
+                        fontStyle="italic"
+                        fill={GRAY_70}
+                        stroke={GRAPHER_BACKGROUND}
+                        strokeWidth={3}
+                        paintOrder="stroke"
+                        pointerEvents="none"
+                    >
+                        {hint}
                     </text>
                 )}
             </g>

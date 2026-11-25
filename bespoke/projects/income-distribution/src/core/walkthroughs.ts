@@ -74,6 +74,7 @@ export interface WalkthroughSlide {
         fillBelowLine?: boolean
         showSeriesLabels?: boolean
         axisEndLabels?: { left: string; right: string }
+        povertyLineHint?: string
     }
     annotations?: SlideAnnotation[]
 }
@@ -165,21 +166,10 @@ export const WALKTHROUGHS: Walkthrough[] = [
                     ...MONTHLY_INT_DOLLARS,
                 },
                 legend: "auto",
-                annotations: [
-                    {
-                        text: "Drag to try your own poverty line",
-                        isHint: true,
-                        target: { income: "povertyLine", y: { plot: 0 } },
-                        textOffset: { dx: -76, dy: 12 },
-                        textAnchor: "top-right",
-                        width: 240,
-                        arrow: {
-                            from: { dx: -84, dy: 8 },
-                            startHandle: { dx: 30, dy: -16 },
-                            gap: 10,
-                        },
-                    },
-                ],
+                // Under the line's label, so it moves with the line
+                emphasis: {
+                    povertyLineHint: "Drag to try your own poverty line",
+                },
             },
             {
                 text: "To compare countries with different costs of living, incomes are measured in **international dollars — this tells us what incomes could buy at US prices.**",

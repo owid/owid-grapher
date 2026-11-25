@@ -26,9 +26,10 @@ export interface PovertyLineLabelLayout {
 /**
  * Lays out the label at the top of the poverty line: the ball at (`x`,
  * `ballY`), then the bold first line (`title`, or `label` without one), the ×
- * when there is one, and `label` below a title. It goes right of the ball, or
- * left of it when it would overflow `width` or run into an obstacle. Shared by
- * the line's drawing and the curve labels that keep clear of it.
+ * when there is one, `label` below a title, and a lighter `hint` below that.
+ * It goes right of the ball, or left of it when it would overflow `width` or
+ * run into an obstacle. Shared by the line's drawing and the curve labels
+ * that keep clear of it.
  */
 export function layoutPovertyLineLabel({
     x,
@@ -36,6 +37,7 @@ export function layoutPovertyLineLabel({
     width,
     title,
     label,
+    hint,
     hasClear,
     obstacles = [],
 }: {
@@ -44,6 +46,7 @@ export function layoutPovertyLineLabel({
     width: number
     title?: string
     label: string
+    hint?: string
     hasClear: boolean
     obstacles?: LabelBox[]
 }): PovertyLineLabelLayout {
@@ -54,15 +57,21 @@ export function layoutPovertyLineLabel({
         fontSize,
         fontWeight: 700,
     }).width
-    const textWidth = title
-        ? Math.max(
-              titleWidth,
-              Bounds.forText(label, { fontSize, fontWeight: 400 }).width
-          )
-        : titleWidth
+    const textWidth = Math.max(
+        titleWidth,
+        title ? Bounds.forText(label, { fontSize, fontWeight: 400 }).width : 0,
+        hint
+            ? Bounds.forText(hint, {
+                  fontSize,
+                  fontWeight: 400,
+                  isItalic: true,
+              }).width
+            : 0
+    )
+    const extraLines = (title ? 1 : 0) + (hint ? 1 : 0)
 
     const top = ballY - clearSize / 2
-    const bottom = ballY + clearSize / 2 + (title ? lineHeight : 0)
+    const bottom = ballY + clearSize / 2 + extraLines * lineHeight
     const rightStart = x + ballRadius + gap
     const rightEnd = rightStart + textWidth + clearSpace
     const fitsRight =
