@@ -8,6 +8,7 @@
 // Variables only; these partials emit no CSS
 @import "../../../../../packages/@ourworldindata/components/src/styles/colors.scss";
 @import "../../../../../packages/@ourworldindata/components/src/styles/variables.scss";
+@import "../../../../../packages/@ourworldindata/components/src/styles/typography-constants.scss";
 @import "../../../../../packages/@ourworldindata/grapher/src/core/variables.scss";
 
 @import "../../../../components/Switcher/Switcher.scss";
@@ -22,11 +23,18 @@
     width: 290px;
 }
 
+// Typography follows Grapher's own small-UI scale (grapher_label-2-* and the
+// dropdown's options: Lato 13px on a 16px line for labels and options, 12px
+// for notes, -text for secondary copy), written out rather than
+// imported, as the typography partials would carry all their classes into
+// this inline sheet.
+//
 // One 16px gutter throughout; sections are separated by the divider
 .income-distribution-unit-picker__panel {
     padding: 14px 0 16px;
-    font-size: 13px;
-    line-height: 1.35;
+    color: $dark-text;
+    font: 400 13px/16px $sans-serif-font-stack;
+    letter-spacing: 0.01em;
 
     // The shared dropdown heading, on the panel's gutter
     .group-heading {
@@ -35,13 +43,10 @@
 }
 
 .income-distribution-unit-picker__intro {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin: 0 16px 10px;
-    font-size: 12px;
-    line-height: 1.45;
-    color: $gray-70;
+    margin: 0 16px 12px;
+    color: $light-text;
+    font-size: 13px;
+    line-height: 1.4;
 
     p {
         margin: 0;
@@ -49,8 +54,10 @@
 
     // "Convert to:" introduces the options below, so it reads as a label
     p:last-child {
-        margin-top: 2px;
-        color: $gray-90;
+        margin-top: 12px;
+        color: $dark-text;
+        font-weight: 500;
+        line-height: 16px;
     }
 }
 
@@ -59,9 +66,9 @@
     grid-template-columns: 16px minmax(0, 1fr);
     gap: 10px;
     align-items: start;
-    padding: 9px 16px;
+    padding: 8px 16px;
     cursor: pointer;
-    color: $gray-90;
+    color: $dark-text;
 
     &:hover {
         background: $gray-10;
@@ -89,15 +96,22 @@
 
 .income-distribution-unit-picker__choice-detail {
     display: block;
-    margin-top: 3px;
+    margin-top: 2px;
     font-size: 12px;
     line-height: 1.4;
-    color: $gray-70;
+    color: $light-text;
+}
+
+// The checked option's note keeps its contrast on the blue
+.income-distribution-unit-picker__choice--checked
+    .income-distribution-unit-picker__choice-detail {
+    color: $active-text;
+    opacity: 0.8;
 }
 
 .income-distribution-unit-picker__loading {
     padding: 8px 16px 8px 42px;
-    color: $gray-70;
+    color: $light-text;
 }
 
 // Indented to the options' text column
@@ -127,7 +141,8 @@
 }
 
 .income-distribution-unit-picker__option {
-    padding: 7px 10px;
+    padding: 8px 10px;
+    line-height: 16px;
     cursor: pointer;
     outline: none;
 
@@ -143,12 +158,13 @@
 }
 
 .income-distribution-unit-picker__empty {
-    padding: 7px 10px;
-    color: $gray-70;
+    padding: 8px 10px;
+    line-height: 16px;
+    color: $light-text;
 }
 
 .income-distribution-unit-picker__divider {
-    margin: 14px 16px;
+    margin: 16px 16px 14px;
     border-top: 1px solid $gray-20;
 }
 
