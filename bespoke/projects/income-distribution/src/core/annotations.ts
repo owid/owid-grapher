@@ -29,8 +29,6 @@ export interface AnnotationPlacement {
     textAnchor?: "top-left" | "top-right" | "bottom-left" | "bottom-right"
     /** Width of the text block, in px */
     width: number
-    /** Italic hint rather than plain annotation text */
-    isHint?: boolean
     /** An arrow from `from` to just short of the target, bent by the handles */
     arrow?: {
         from: ChartOffset

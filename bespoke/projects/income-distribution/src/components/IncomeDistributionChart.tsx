@@ -1022,14 +1022,10 @@ function IncomeDistributionChartContent({
                 />
             )}
 
-            {placedAnnotations.map(({ key, content, isHint, style }) => (
+            {placedAnnotations.map(({ key, content, style }) => (
                 <div
                     key={key}
-                    className={
-                        isHint
-                            ? "income-distribution-chart__annotation income-distribution-chart__annotation--hint"
-                            : "income-distribution-chart__annotation"
-                    }
+                    className="income-distribution-chart__annotation"
                     style={style}
                 >
                     {content}
@@ -1909,7 +1905,6 @@ function annotationTargetPoint(
 interface PlacedAnnotation {
     key: string
     content: React.ReactNode
-    isHint: boolean
     /** Of the text block, absolutely positioned in the chart's container */
     style: React.CSSProperties
     arrow?: Pick<
@@ -1978,7 +1973,6 @@ function placeAnnotation(
     return {
         key: annotation.key,
         content: annotation.content,
-        isHint: annotation.isHint ?? false,
         style,
         arrow: placedArrow,
     }
