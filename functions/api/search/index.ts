@@ -31,8 +31,10 @@ import {
 
 // Experimental: `engine=tpuf` answers type=charts from turbopuffer, with
 // `arm` choosing the query shape, `midpoint` the popularity midpoint, and
-// `synonyms=1`, `fuzzy=1` and `pool` switching on query tuning, and `model`
-// choosing T4's rerank model (see turbopufferSearch.ts)
+// `synonyms=1`, `fuzzy=1` and `pool` switching on query tuning, `model`
+// choosing T4's rerank model, and `rsyn=1` (synonyms in the rerank query) and
+// `popw` (popularity blended into the rerank score) tuning T4's rerank (see
+// turbopufferSearch.ts)
 const TURBOPUFFER_PARAMS = [
     "engine",
     "arm",
@@ -41,6 +43,8 @@ const TURBOPUFFER_PARAMS = [
     "fuzzy",
     "pool",
     "model",
+    "rsyn",
+    "popw",
 ]
 
 /** The most rows a T3 sub-query may contribute to the fusion */
@@ -160,6 +164,13 @@ function searchWithTurbopuffer(
         throw new SearchValidationError(
             `Invalid model "${rerankModel}". Valid models: ${TURBOPUFFER_RERANK_MODELS.join(", ")}`
         )
+    const popwParam = params.get("popw")
+    const rerankPopularityWeight = popwParam ? Number(popwParam) : undefined
+    if (
+        rerankPopularityWeight !== undefined &&
+        !(rerankPopularityWeight >= 0 && rerankPopularityWeight <= 1)
+    )
+        throw new SearchValidationError("popw must be a number from 0 to 1")
     return searchChartsTurbopuffer(
         env.TURBOPUFFER_API_KEY,
         state,
@@ -170,6 +181,8 @@ function searchWithTurbopuffer(
             fuzzy: params.get("fuzzy") === "1",
             poolSize,
             rerankModel,
+            rerankSynonyms: params.get("rsyn") === "1",
+            rerankPopularityWeight,
         },
         page,
         hitsPerPage,

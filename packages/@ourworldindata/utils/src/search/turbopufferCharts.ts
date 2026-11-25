@@ -92,6 +92,13 @@ export interface TurbopufferChartsQuery {
     poolSize?: number
     /** T4's rerank model */
     rerankModel?: TurbopufferRerankModel
+    /** T4 asks the rerank model about the query with its synonyms in parentheses */
+    rerankSynonyms?: boolean
+    /**
+     * T4 adds this weight times the row's saturated popularity to the rerank
+     * model's score, so popularity breaks near-ties between relevant charts
+     */
+    rerankPopularityWeight?: number
 }
 
 /** The query shape and tuning switches, without the query and its filters */
@@ -103,13 +110,28 @@ export type TurbopufferTuning = Pick<
     | "fuzzy"
     | "poolSize"
     | "rerankModel"
+    | "rerankSynonyms"
+    | "rerankPopularityWeight"
 >
 
 let synonymMap: SynonymMap | undefined
-const querySynonyms = (query: string): string => {
+const findSynonyms = (query: string): string[] => {
     synonymMap ??= buildSynonymMap()
-    return findQuerySynonyms(query, synonymMap).join(" ")
+    return findQuerySynonyms(query, synonymMap)
 }
+const querySynonyms = (query: string): string => findSynonyms(query).join(" ")
+
+/** The query as T4's rerank model reads it */
+function rerankQuery(params: TurbopufferChartsQuery): string {
+    const synonyms = params.rerankSynonyms ? findSynonyms(params.query) : []
+    return synonyms.length > 0
+        ? `${params.query} (${synonyms.join(", ")})`
+        : params.query
+}
+
+/** Saturating 0–1 popularity, as the text half's `Saturate` term computes it */
+const saturatedPopularity = (popularity: number, midpoint: number): number =>
+    popularity / (popularity + midpoint)
 
 /** One result per chart, like Algolia's `distinct` on `id` */
 const groupedLimit = (total: number): Limit => ({
@@ -269,11 +291,29 @@ function buildTurbopufferHybridQuery(
             ? {
                   model: params.rerankModel ?? TURBOPUFFER_RERANK_MODELS[0],
                   attribute: "search_text",
-                  query: params.query,
+                  query: rerankQuery(params),
               }
             : ["RRF"],
-        limit,
+        // A popularity blend re-sorts every reranked candidate before the cut
+        limit: blendsPopularity(params) ? 2 * poolSize : limit,
     }
+}
+
+const blendsPopularity = (params: TurbopufferChartsQuery): boolean =>
+    params.arm === "T4" && (params.rerankPopularityWeight ?? 0) > 0
+
+/** T4's rows re-sorted by model score plus weighted popularity, cut to `limit` */
+function blendPopularity(rows: Row[], params: TurbopufferChartsQuery): Row[] {
+    const weight = params.rerankPopularityWeight ?? 0
+    const midpoint = params.popularityMidpoint ?? DEFAULT_POPULARITY_MIDPOINT
+    const score = (row: Row): number =>
+        Number(row.$dist ?? 0) +
+        weight * saturatedPopularity(Number(row.popularity ?? 0), midpoint)
+    return rows
+        .map((row) => ({ row, score: score(row) }))
+        .sort((a, b) => b.score - a.score)
+        .slice(0, params.limit ?? 30)
+        .map(({ row }) => row)
 }
 
 export interface TurbopufferChartsResult {
@@ -315,8 +355,12 @@ export async function queryTurbopufferCharts(
     const json = (await response.json()) as
         | NamespaceQueryResponse
         | NamespaceMultiQueryResponse
+    const rows = ("results" in json ? json.results[0]?.rows : json.rows) ?? []
     return {
-        rows: ("results" in json ? json.results[0]?.rows : json.rows) ?? [],
+        rows:
+            hybrid && blendsPopularity(params)
+                ? blendPopularity(rows, params)
+                : rows,
         performance: json.performance,
         billing: json.billing,
     }

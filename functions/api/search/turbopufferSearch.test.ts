@@ -194,7 +194,41 @@ describe("engine=tpuf", () => {
         expect(textQuery).toContain("Fuzzy")
     })
 
+    it("tunes T4's rerank with the query's synonyms and a popularity blend", async () => {
+        const [life, covid] = turbopufferResponse.rows
+        fetchMock.mockResolvedValue(
+            new Response(
+                JSON.stringify({
+                    ...turbopufferResponse,
+                    rows: undefined,
+                    // The model's order: a near-tie the more popular chart wins after the blend
+                    results: [
+                        {
+                            rows: [
+                                { ...covid, $dist: 0.6, popularity: 0 },
+                                { ...life, $dist: 0.58, popularity: 9000 },
+                            ],
+                        },
+                    ],
+                })
+            )
+        )
+        const json = await searchJson(
+            "q=defense&engine=tpuf&arm=T4&pool=50&synonyms=1&rsyn=1&popw=0.05"
+        )
+
+        const body = JSON.parse(fetchMock.mock.calls[0][1].body)
+        expect(body.rerank_by.query).toMatch(/^defense \(.*military.*\)$/)
+        // Every candidate comes back to be re-sorted before the page is cut
+        expect(body.limit).toBe(100)
+        expect(json.results.map((hit) => hit.slug)).toEqual([
+            "life-expectancy",
+            "covid",
+        ])
+    })
+
     it("rejects an unknown arm, model or pool, a non-finite midpoint and a missing key", async () => {
+        expect((await search("q=life&engine=tpuf&popw=2")).status).toBe(400)
         expect((await search("q=life&engine=tpuf&arm=T9")).status).toBe(400)
         expect(
             (await search("q=life&engine=tpuf&arm=T4&model=gpt")).status
