@@ -105,12 +105,12 @@ The variants were tuned on those 300 queries, so the two reranked ones were also
 Judged head to head in one run on the 600 queries, T4 (Voyage) served 84.1% and `clef-flash` 80.2% (+3.8, interval 0.0 to +7.5; on the held-out queries +5.1, interval +0.8 to +9.8). Round trips were similar: p50 288 ms for T4, 256 ms for `clef-flash`.
 
 - **Where T4 loses**, the rerank model's score replaces everything else: broad one-word queries ("energy", "agriculture", "economy") get narrower charts instead of the popular broad ones, since popularity no longer counts, and abbreviations ("rni", "pib", "sdg 7") lose because the model scores the bare query against `search_text` without the synonyms that brought the right charts into the pool. `clef-flash` reorders Algolia's own hits, so it almost never loses what production finds.
-- **A T4 call** takes about 200 ms of server time, nearly all of it the rerank, and bills about 4,700 rerank tokens (≈ $0.0002 with voyage/rerank-3, half with zerank-2) plus 2.56 GB queried (two sub-queries at the 1.28 GB minimum each).
-- **turbopuffer rate-limits model reranking** to 2,500 candidate documents per second per organization and model (burst 10,000); T4 sends up to 100 per search.
+- **A T4 call** takes about 200 ms of server time, nearly all of it the rerank, and bills about 4,700 rerank tokens (≈ $0.0002 with voyage/rerank-3, half with zerank-2) plus 2.56 GB queried (two sub-queries at the 1.28 GB minimum each). The rerank dominates: about $240 per million searches with voyage/rerank-3 and $120 with zerank-2, against about $3 for the queried bytes at turbopuffer's listed ≤ $1 per PB.
+- **turbopuffer rate-limits model reranking** to 2,500 candidate documents per second per organization and model (burst 10,000); T4 sends up to 100 per search, so about 25 searches per second.
 
 ## Open items
 
-- Cost of T4 at production volume: the queried-bytes price, the rerank tokens and the rate limit above.
+- T4 at production volume: multiply the per-search cost above by our searches per day, and check our peak search rate against the rerank rate limit.
 
 - Facet counts: `/latest` (pages-chronological index) and the tag list in `functions/api/search/searchApi.ts` use Algolia facet counts. Neither is part of the charts spike.
 - Pages and data insights are not indexed.
