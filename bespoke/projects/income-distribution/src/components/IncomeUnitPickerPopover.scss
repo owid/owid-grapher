@@ -111,8 +111,11 @@
     margin: 0 0 6px;
 }
 
+// A fixed height, not a maximum: the list shrinks as a search narrows it,
+// and a popover that changes size while you type gets repositioned under
+// your pointer
 .income-distribution-unit-picker__listbox {
-    max-height: 240px;
+    height: 240px;
     overflow-y: auto;
     border: 1px solid $gray-20;
     border-radius: 4px;
@@ -120,7 +123,7 @@
 
 .income-distribution-unit-picker__popover--narrow
     .income-distribution-unit-picker__listbox {
-    max-height: 180px;
+    height: 180px;
 }
 
 .income-distribution-unit-picker__option {
