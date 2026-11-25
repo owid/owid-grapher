@@ -209,6 +209,9 @@ export const POSTMARK_SERVER_TOKEN: string =
 // emails during development without sending anything.
 export const POSTMARK_API_BASE_URL: string =
     serverSettings.POSTMARK_API_BASE_URL || "https://api.postmarkapp.com"
+// Only for moving the Mailchimp RSS newsletters to email notifications
+// (baker/emailNotifications/mailchimpMigration).
+export const MAILCHIMP_API_KEY: string = serverSettings.MAILCHIMP_API_KEY || ""
 
 export const OWID_ASSETS_R2_ACCESS_KEY: string =
     serverSettings.OWID_ASSETS_R2_ACCESS_KEY || ""

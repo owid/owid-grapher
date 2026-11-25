@@ -29,6 +29,7 @@
         "lerna": "echo 'Lerna is not needed anymore; this script is here for compatibility with ops, remove it after the merge!'",
         "runRegionsUpdater": "tsx --tsconfig tsconfig.tsx.json devTools/regionsUpdater/update.ts",
         "sendEmailNotifications": "tsx --tsconfig tsconfig.tsx.json baker/emailNotifications/sendEmailNotifications.ts",
+        "migrateMailchimpSubscribers": "tsx --tsconfig tsconfig.tsx.json baker/emailNotifications/mailchimpMigration/migrateMailchimpSubscribers.ts",
         "postmarkCatcher": "tsx --tsconfig tsconfig.tsx.json devTools/postmarkCatcher/postmarkCatcher.ts",
         "resetEmailNotificationsTestState": "tsx --tsconfig tsconfig.tsx.json devTools/resetEmailNotificationsTestState.ts",
         "runDbMigrations": "tsx --tsconfig tsconfig.tsx.json node_modules/typeorm/cli.js migration:run -d db/dataSource.ts",

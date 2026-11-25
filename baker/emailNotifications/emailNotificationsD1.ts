@@ -25,6 +25,16 @@ export interface D1Client {
 
 export interface D1Statement {
     sql: string
+    /**
+     * D1 allows at most 100 bound parameters per statement, so to write or
+     * match many rows at once, pass them as one JSON array parameter and turn
+     * it back into rows with `json_each(?1)`, reading fields with
+     * `value ->> '$.field'`:
+     * https://developers.cloudflare.com/d1/sql-api/query-json/#expand-arrays-for-in-queries
+     *
+     * A parameter can be up to 2 MB:
+     * https://developers.cloudflare.com/d1/platform/limits/
+     */
     params?: D1Param[]
 }
 
