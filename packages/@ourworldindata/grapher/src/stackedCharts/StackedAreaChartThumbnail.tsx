@@ -112,7 +112,8 @@ export class StackedAreaChartThumbnail
     }
 
     @computed private get labelsRange(): [number, number] {
-        return this.bounds.expand(this.manager.chartAreaPadding ?? 0).yRange()
+        const padding = this.manager.chartAreaPadding ?? 0
+        return [this.bounds.bottom + padding, this.bounds.top - padding]
     }
 
     @computed private get labelsMaxWidth(): number {
