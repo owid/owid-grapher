@@ -31,7 +31,7 @@ export type ChartRow = {
     containerTitle: string
     tags: string[]
     availableEntities: string[]
-    /** Title and the start of the subtitle: embedded, fuzzy-matched, and the text a reranker would score */
+    /** Title, variant, container, the start of the subtitle and tags: embedded, fuzzy-matched, and the text a reranker would score */
     search_text: string
     /**
      * The record's score above the floor it is scaled to, so proportional to
@@ -42,17 +42,20 @@ export type ChartRow = {
     indexed_at: number
 }
 
+// Plurals and other word forms match, like Algolia's `ignorePlurals`
+const STEMMED = { stemming: true }
+
 export const CHARTS_SCHEMA: Record<string, AttributeSchema> = {
     chart_key: "string",
     type: "string",
     slug: { type: "string", filterable: false },
     queryParams: { type: "string", filterable: false },
-    title: { type: "string", full_text_search: true },
-    subtitle: { type: "string", full_text_search: true },
-    variantName: { type: "string", full_text_search: true },
-    containerTitle: { type: "string", full_text_search: true },
+    title: { type: "string", full_text_search: STEMMED },
+    subtitle: { type: "string", full_text_search: STEMMED },
+    variantName: { type: "string", full_text_search: STEMMED },
+    containerTitle: { type: "string", full_text_search: STEMMED },
     // Full-text attributes aren't filterable by default, but tags are also a topic filter
-    tags: { type: "[]string", full_text_search: true, filterable: true },
+    tags: { type: "[]string", full_text_search: STEMMED, filterable: true },
     availableEntities: "[]string",
     search_text: {
         type: "string",
@@ -69,12 +72,25 @@ function rowId(objectID: string): string {
     return `sha256-${createHash("sha256").update(objectID).digest("hex").slice(0, 48)}`
 }
 
-export function makeSearchText(
-    title: string,
-    subtitle: string | undefined
-): string {
-    const cut = (subtitle ?? "").slice(0, SUBTITLE_CHARS_IN_SEARCH_TEXT).trim()
-    return cut ? `${title}. ${cut}` : title
+/**
+ * Everything that says what a chart is about, for the embedding: a bare title
+ * like "Population" embeds close to every query, so the vector half returned
+ * such charts for queries nothing matches
+ */
+export function makeSearchText(record: ChartRecord): string {
+    const { title, variantName, containerTitle, subtitle, tags } = record
+    const parts = [
+        variantName && variantName !== title
+            ? `${title} (${variantName})`
+            : title,
+        containerTitle,
+        (subtitle ?? "").slice(0, SUBTITLE_CHARS_IN_SEARCH_TEXT).trim(),
+        tags.length > 0 ? `Topics: ${tags.join(", ")}` : undefined,
+    ]
+    return parts
+        .filter((part): part is string => Boolean(part))
+        .map((part) => part.replace(/\.$/, ""))
+        .join(". ")
 }
 
 /**
@@ -94,7 +110,7 @@ export function toChartRow(record: ChartRecord, indexedAt: number): ChartRow {
         containerTitle: record.containerTitle ?? "",
         tags: record.tags,
         availableEntities: record.availableEntities,
-        search_text: makeSearchText(record.title, record.subtitle),
+        search_text: makeSearchText(record),
         // Explorer views downranked as near-duplicates have negative scores; none do today
         popularity: Math.max(0, record.score - MIN_SCALED_RECORD_SCORE),
         indexed_at: indexedAt,

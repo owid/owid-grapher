@@ -88,7 +88,7 @@ describe("engine=tpuf", () => {
 
         const [url, init] = fetchMock.mock.calls[0]
         expect(url).toBe(
-            "https://aws-eu-central-1.turbopuffer.com/v2/namespaces/owid-charts-spike-v1/query"
+            "https://aws-eu-central-1.turbopuffer.com/v2/namespaces/owid-charts-spike-v2/query"
         )
         expect(init.headers.Authorization).toBe("Bearer tpuf_test")
         const body = JSON.parse(init.body)
@@ -163,8 +163,43 @@ describe("engine=tpuf", () => {
         expect(json.results).toHaveLength(2)
     })
 
-    it("rejects an unknown arm, a non-finite midpoint and a missing key", async () => {
+    it("sends T4 as the same two queries over a deeper pool, scored by a rerank model", async () => {
+        fetchMock.mockResolvedValue(
+            new Response(
+                JSON.stringify({
+                    ...turbopufferResponse,
+                    rows: undefined,
+                    results: [{ rows: turbopufferResponse.rows }],
+                })
+            )
+        )
+        await search(
+            "q=defense&engine=tpuf&arm=T4&pool=50&synonyms=1&fuzzy=1&model=voyage/rerank-3"
+        )
+
+        const body = JSON.parse(fetchMock.mock.calls[0][1].body)
+        expect(body.rerank_by).toEqual({
+            model: "voyage/rerank-3",
+            attribute: "search_text",
+            query: "defense",
+        })
+        expect(body.limit).toBe(21)
+        for (const query of body.queries) {
+            expect(query.limit.total).toBe(50)
+            expect(query.include_attributes).toContain("search_text")
+        }
+        // The text query also matches the synonyms ("military") and the fuzzy query
+        const textQuery = JSON.stringify(body.queries[0])
+        expect(textQuery).toContain("military")
+        expect(textQuery).toContain("Fuzzy")
+    })
+
+    it("rejects an unknown arm, model or pool, a non-finite midpoint and a missing key", async () => {
         expect((await search("q=life&engine=tpuf&arm=T9")).status).toBe(400)
+        expect(
+            (await search("q=life&engine=tpuf&arm=T4&model=gpt")).status
+        ).toBe(400)
+        expect((await search("q=life&engine=tpuf&pool=1000")).status).toBe(400)
         expect(
             (await search("q=life&engine=tpuf&midpoint=Infinity")).status
         ).toBe(400)

@@ -10,6 +10,8 @@ import type {
     RankByText,
     Row,
 } from "@turbopuffer/turbopuffer"
+import type { SynonymMap } from "@ourworldindata/types"
+import { buildSynonymMap, findQuerySynonyms } from "./synonyms.js"
 
 /**
  * Query shapes for the experimental turbopuffer charts index (see
@@ -19,7 +21,7 @@ import type {
  * The namespace is a spike: bump its suffix for a schema change instead of
  * patching the schema in place.
  */
-export const TURBOPUFFER_CHARTS_NAMESPACE = "owid-charts-spike-v1"
+export const TURBOPUFFER_CHARTS_NAMESPACE = "owid-charts-spike-v2"
 export const TURBOPUFFER_REGION = "aws-eu-central-1"
 
 /**
@@ -51,11 +53,24 @@ const BM25_FIELDS = [
     ["containerTitle", 1],
 ] as const
 
-export const TURBOPUFFER_ARMS = ["T0", "T1", "T2", "T3"] as const
+export const TURBOPUFFER_ARMS = ["T0", "T1", "T2", "T3", "T4"] as const
 export type TurbopufferArm = (typeof TURBOPUFFER_ARMS)[number]
 
 export const isTurbopufferArm = (value: string): value is TurbopufferArm =>
     (TURBOPUFFER_ARMS as readonly string[]).includes(value)
+
+/** turbopuffer's rerank models that serve our region (aws-eu-central-1) */
+export const TURBOPUFFER_RERANK_MODELS = [
+    "zeroentropy/zerank-2",
+    "voyage/rerank-3",
+    "voyage/rerank-3-lite",
+] as const
+export type TurbopufferRerankModel = (typeof TURBOPUFFER_RERANK_MODELS)[number]
+
+export const isTurbopufferRerankModel = (
+    value: string
+): value is TurbopufferRerankModel =>
+    (TURBOPUFFER_RERANK_MODELS as readonly string[]).includes(value)
 
 export interface TurbopufferChartsQuery {
     query: string
@@ -69,6 +84,31 @@ export interface TurbopufferChartsQuery {
     popularityMidpoint?: number
     popularityWeight?: number
     limit?: number
+    /** Also match the query's synonyms from `synonyms.ts`, as Algolia does */
+    expandSynonyms?: boolean
+    /** Add T2's whole-query fuzzy match to T1 and to T3's text half */
+    fuzzy?: boolean
+    /** Rows each T3/T4 sub-query contributes to the fusion or rerank (default: `limit`) */
+    poolSize?: number
+    /** T4's rerank model */
+    rerankModel?: TurbopufferRerankModel
+}
+
+/** The query shape and tuning switches, without the query and its filters */
+export type TurbopufferTuning = Pick<
+    TurbopufferChartsQuery,
+    | "arm"
+    | "popularityMidpoint"
+    | "expandSynonyms"
+    | "fuzzy"
+    | "poolSize"
+    | "rerankModel"
+>
+
+let synonymMap: SynonymMap | undefined
+const querySynonyms = (query: string): string => {
+    synonymMap ??= buildSynonymMap()
+    return findQuerySynonyms(query, synonymMap).join(" ")
 }
 
 /** One result per chart, like Algolia's `distinct` on `id` */
@@ -77,13 +117,13 @@ const groupedLimit = (total: number): Limit => ({
     per: { attributes: ["chart_key"], limit: 1 },
 })
 
-const bm25Terms = (query: string): RankByText[] =>
+const bm25Terms = (query: string, lastAsPrefix = true): RankByText[] =>
     BM25_FIELDS.map(([field, weight]): RankByText => {
         const clause: RankByText = [
             field,
             "BM25",
             query,
-            { last_as_prefix: true },
+            { last_as_prefix: lastAsPrefix },
         ]
         return weight === 1 ? clause : ["Product", weight, clause]
     })
@@ -139,9 +179,8 @@ const combine = (filters: Filter[]): Filter | undefined =>
 
 /**
  * T0 BM25 only; T1 adds popularity; T2 adds a whole-query Fuzzy match on
- * `search_text`.
+ * `search_text`. Also builds T3's text half, like T1.
  */
-/** T0–T2, and T3's text half (built like T1) */
 function buildTurbopufferSingleQuery(
     params: TurbopufferChartsQuery
 ): NamespaceQueryParams {
@@ -162,6 +201,13 @@ function buildTurbopufferSingleQuery(
         }
 
     const terms = bm25Terms(query)
+    const matchFilters = tokenFilters(query)
+    // Synonyms match like the query's own words, without the prefix match
+    const synonyms = params.expandSynonyms ? querySynonyms(query) : ""
+    if (synonyms) {
+        terms.push(...bm25Terms(synonyms, false))
+        matchFilters.push(...tokenFilters(synonyms))
+    }
     if (arm !== "T0")
         terms.push([
             "Product",
@@ -172,15 +218,14 @@ function buildTurbopufferSingleQuery(
                 { midpoint: popularityMidpoint },
             ],
         ])
-    if (arm === "T2") terms.push(fuzzyMatch(query))
+    if (arm === "T2" || params.fuzzy) {
+        terms.push(fuzzyMatch(query))
+        matchFilters.push(fuzzyMatch(query))
+    }
 
     // BM25 alone scores non-matching rows zero, which drops them. A summed
-    // popularity term gives every row a score, so T1 and T2 keep out rows
-    // that match neither a query token nor (T2) the fuzzy query.
-    const matchFilters =
-        arm === "T2"
-            ? [...tokenFilters(query), fuzzyMatch(query)]
-            : tokenFilters(query)
+    // popularity term gives every row a score, so the other arms keep out
+    // rows that match neither a query token nor the fuzzy query.
     const filters = [...facetFilters(params)]
     if (arm !== "T0") filters.push(["Or", matchFilters])
 
@@ -192,22 +237,41 @@ function buildTurbopufferSingleQuery(
     }
 }
 
-/** T3: T1 and a vector query on `search_text`, fused with reciprocal rank fusion */
+/**
+ * T3: T1 and a vector query on `search_text`, fused with reciprocal rank
+ * fusion. T4: the same two queries, with their candidates scored by a rerank
+ * model on `search_text` instead.
+ */
 function buildTurbopufferHybridQuery(
     params: TurbopufferChartsQuery
 ): NamespaceMultiQueryParams {
     const limit = params.limit ?? 30
+    const poolSize = params.poolSize ?? limit
+    const reranked = params.arm === "T4"
+    // The rerank model reads `search_text`, which must come back from every query
+    const include_attributes = reranked
+        ? [...TURBOPUFFER_CHART_ATTRIBUTES, "search_text"]
+        : [...TURBOPUFFER_CHART_ATTRIBUTES]
     return {
         queries: [
-            buildTurbopufferSingleQuery(params),
+            {
+                ...buildTurbopufferSingleQuery({ ...params, limit: poolSize }),
+                include_attributes,
+            },
             {
                 rank_by: ["search_text", "ANN", ["Embed", params.query]],
                 filters: combine(facetFilters(params)),
-                limit: groupedLimit(limit),
-                include_attributes: [...TURBOPUFFER_CHART_ATTRIBUTES],
+                limit: groupedLimit(poolSize),
+                include_attributes,
             },
         ],
-        rerank_by: ["RRF"],
+        rerank_by: reranked
+            ? {
+                  model: params.rerankModel ?? TURBOPUFFER_RERANK_MODELS[0],
+                  attribute: "search_text",
+                  query: params.query,
+              }
+            : ["RRF"],
         limit,
     }
 }
@@ -227,7 +291,9 @@ export async function queryTurbopufferCharts(
     params: TurbopufferChartsQuery,
     namespace: string = TURBOPUFFER_CHARTS_NAMESPACE
 ): Promise<TurbopufferChartsResult> {
-    const hybrid = params.arm === "T3" && params.query.trim() !== ""
+    const hybrid =
+        (params.arm === "T3" || params.arm === "T4") &&
+        params.query.trim() !== ""
     const body = hybrid
         ? buildTurbopufferHybridQuery(params)
         : buildTurbopufferSingleQuery(params)

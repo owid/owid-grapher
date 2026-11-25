@@ -34,10 +34,9 @@ import { SearchTemplatesAll } from "./SearchTemplatesAll.js"
 import { SearchTemplatesData } from "./SearchTemplatesData.js"
 import { SearchTemplatesWriting } from "./SearchTemplatesWriting.js"
 import { SearchNoResults } from "./SearchNoResults.js"
-import { buildSynonymMap } from "./synonymUtils.js"
+import { buildSynonymMap, listedRegionsNames } from "@ourworldindata/utils"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 import { PoweredBy } from "react-instantsearch"
-import { listedRegionsNames } from "@ourworldindata/utils"
 
 const analytics = new SiteAnalytics()
 

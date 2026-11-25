@@ -18,16 +18,33 @@ import {
     ALL_GDOC_TYPES,
     TagGraphRoot,
 } from "@ourworldindata/types"
-import { isTurbopufferArm, TURBOPUFFER_ARMS } from "@ourworldindata/utils"
+import {
+    isTurbopufferArm,
+    isTurbopufferRerankModel,
+    TURBOPUFFER_ARMS,
+    TURBOPUFFER_RERANK_MODELS,
+} from "@ourworldindata/utils"
 import {
     searchChartsTurbopuffer,
     TurbopufferSearchApiResponse,
 } from "./turbopufferSearch.js"
 
 // Experimental: `engine=tpuf` answers type=charts from turbopuffer, with
-// `arm` choosing the query shape and `midpoint` the popularity midpoint
-// (see turbopufferSearch.ts)
-const TURBOPUFFER_PARAMS = ["engine", "arm", "midpoint"]
+// `arm` choosing the query shape, `midpoint` the popularity midpoint, and
+// `synonyms=1`, `fuzzy=1` and `pool` switching on query tuning, and `model`
+// choosing T4's rerank model (see turbopufferSearch.ts)
+const TURBOPUFFER_PARAMS = [
+    "engine",
+    "arm",
+    "midpoint",
+    "synonyms",
+    "fuzzy",
+    "pool",
+    "model",
+]
+
+/** The most rows a T3 sub-query may contribute to the fusion */
+const MAX_TURBOPUFFER_POOL = 200
 
 const DEFAULT_HITS_PER_PAGE = 20
 const MAX_HITS_PER_PAGE = 100
@@ -125,11 +142,35 @@ function searchWithTurbopuffer(
     const midpoint = midpointParam ? Number(midpointParam) : undefined
     if (midpoint !== undefined && !(Number.isFinite(midpoint) && midpoint > 0))
         throw new SearchValidationError("midpoint must be a positive number")
+    const poolParam = params.get("pool")
+    const poolSize = poolParam ? Number(poolParam) : undefined
+    if (
+        poolSize !== undefined &&
+        !(
+            Number.isInteger(poolSize) &&
+            poolSize > 0 &&
+            poolSize <= MAX_TURBOPUFFER_POOL
+        )
+    )
+        throw new SearchValidationError(
+            `pool must be an integer from 1 to ${MAX_TURBOPUFFER_POOL}`
+        )
+    const rerankModel = params.get("model") || undefined
+    if (rerankModel !== undefined && !isTurbopufferRerankModel(rerankModel))
+        throw new SearchValidationError(
+            `Invalid model "${rerankModel}". Valid models: ${TURBOPUFFER_RERANK_MODELS.join(", ")}`
+        )
     return searchChartsTurbopuffer(
         env.TURBOPUFFER_API_KEY,
         state,
-        arm,
-        midpoint,
+        {
+            arm,
+            popularityMidpoint: midpoint,
+            expandSynonyms: params.get("synonyms") === "1",
+            fuzzy: params.get("fuzzy") === "1",
+            poolSize,
+            rerankModel,
+        },
         page,
         hitsPerPage,
         baseUrl

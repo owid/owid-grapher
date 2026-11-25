@@ -3,6 +3,7 @@ import {
     getFilterNamesOfType,
     queryTurbopufferCharts,
     TurbopufferArm,
+    type TurbopufferTuning,
 } from "@ourworldindata/utils"
 import {
     chartHitUrl,
@@ -45,8 +46,7 @@ const RETURNED_ATTRIBUTES = [
 export async function searchChartsTurbopuffer(
     apiKey: string,
     state: SearchState,
-    arm: TurbopufferArm,
-    popularityMidpoint: number | undefined,
+    tuning: TurbopufferTuning,
     page: number,
     hitsPerPage: number,
     baseUrl: string
@@ -61,12 +61,11 @@ export async function searchChartsTurbopuffer(
         MAX_TURBOPUFFER_RESULTS
     )
     const { rows, performance } = await queryTurbopufferCharts(apiKey, {
+        ...tuning,
         query: state.query,
-        arm,
         countries,
         requireAllCountries: state.requireAllCountries,
         topic,
-        popularityMidpoint,
         limit,
     })
 
@@ -94,7 +93,7 @@ export async function searchChartsTurbopuffer(
         hitsPerPage,
         engine: {
             name: "turbopuffer",
-            arm,
+            arm: tuning.arm,
             serverMs: performance.server_total_ms,
             embeddingMs: performance.embedding_ms,
             cacheTemperature: performance.cache_temperature,

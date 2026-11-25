@@ -463,12 +463,21 @@ export {
 
 export { isEmptyQuerySearchPayload } from "./search/emptyQuerySearchPayload.js"
 export {
+    synonyms,
+    buildSynonymMap,
+    findQuerySynonyms,
+} from "./search/synonyms.js"
+export {
     TURBOPUFFER_CHARTS_NAMESPACE,
     TURBOPUFFER_REGION,
     DEFAULT_POPULARITY_MIDPOINT,
     TURBOPUFFER_ARMS,
     type TurbopufferArm,
+    type TurbopufferTuning,
     isTurbopufferArm,
+    TURBOPUFFER_RERANK_MODELS,
+    type TurbopufferRerankModel,
+    isTurbopufferRerankModel,
     queryTurbopufferCharts,
 } from "./search/turbopufferCharts.js"
 export {

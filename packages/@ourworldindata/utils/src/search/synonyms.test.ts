@@ -1,5 +1,5 @@
 import { expect, it, describe, beforeEach } from "vitest"
-import { buildSynonymMap } from "./synonymUtils.js"
+import { buildSynonymMap, findQuerySynonyms } from "./synonyms.js"
 import { SynonymMap } from "@ourworldindata/types"
 
 describe(buildSynonymMap, () => {
@@ -55,5 +55,26 @@ describe(buildSynonymMap, () => {
     it("should handle unicode characters correctly", () => {
         const co2Synonyms = synonymMap.get("co2")
         expect(co2Synonyms).toContain("co₂")
+    })
+})
+
+describe(findQuerySynonyms, () => {
+    const synonymMap = buildSynonymMap()
+
+    it("finds synonyms of single words and multi-word phrases", () => {
+        expect(findQuerySynonyms("defense", synonymMap)).toContain("military")
+        expect(
+            findQuerySynonyms("rate of natural increase", synonymMap)
+        ).toContain("rni")
+    })
+
+    it("leaves out phrases the query already contains", () => {
+        const found = findQuerySynonyms("defense military", synonymMap)
+        expect(found).not.toContain("military")
+        expect(found).not.toContain("defense")
+    })
+
+    it("returns nothing for a query without synonyms", () => {
+        expect(findQuerySynonyms("tangerines", synonymMap)).toEqual([])
     })
 })

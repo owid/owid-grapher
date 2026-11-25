@@ -1,6 +1,7 @@
-import { countries, excludeUndefined } from "@ourworldindata/utils"
 import * as R from "remeda"
 import { SynonymMap } from "@ourworldindata/types"
+import { countries } from "../regions/index.js"
+import { excludeUndefined } from "../Util.js"
 
 export const synonyms = [
     // Organizations
@@ -526,4 +527,25 @@ export function buildSynonymMap(): SynonymMap {
     }
 
     return synonymMap
+}
+
+/**
+ * The synonyms of every phrase in the query (any run of its words), minus
+ * phrases the query already contains. Search engines without a synonym
+ * dictionary expand the query with these, as Algolia does with `synonyms`.
+ */
+export function findQuerySynonyms(
+    query: string,
+    synonymMap: SynonymMap
+): string[] {
+    const words = query.toLowerCase().split(/\s+/).filter(Boolean)
+    const phrases = new Set<string>()
+    for (let start = 0; start < words.length; start++)
+        for (let end = start + 1; end <= words.length; end++)
+            phrases.add(words.slice(start, end).join(" "))
+    const found = new Set<string>()
+    for (const phrase of phrases)
+        for (const synonym of synonymMap.get(phrase) ?? [])
+            if (!phrases.has(synonym)) found.add(synonym)
+    return [...found]
 }
