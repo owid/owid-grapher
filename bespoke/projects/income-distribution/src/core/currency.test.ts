@@ -36,6 +36,8 @@ describe(combinedFactor, () => {
     })
 })
 
+// The symbols and spacing are en-US ICU's (narrow symbols for SEK, PLN and the
+// like), as the formatter asks for; another locale's data would differ
 describe(formatIncome, () => {
     const intDollars = (value: number, short?: boolean): string =>
         formatIncome(value, INTERNATIONAL_DOLLAR, "daily", { short })

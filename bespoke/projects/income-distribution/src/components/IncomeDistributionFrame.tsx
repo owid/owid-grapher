@@ -258,6 +258,7 @@ export function IncomeDistributionFrame({
             availableCountries={availableCountries}
             selectedCountries={selectedCountries}
             onChange={onSelectedCountriesChange}
+            // TODO(feed welfare_type)
             welfareTypeOf={placeholderWelfareType}
             isNarrow={isNarrow}
             appearance={appearance}
@@ -270,7 +271,7 @@ export function IncomeDistributionFrame({
         view === "countries"
             ? welfareTypeSentence(
                   model.series.map((series) => series.key),
-                  placeholderWelfareType
+                  placeholderWelfareType // TODO(feed welfare_type)
               )
             : undefined
 

@@ -1,5 +1,4 @@
 import { useCallback, useMemo } from "react"
-import * as R from "remeda"
 import {
     parseAsArrayOf,
     parseAsFloat,
@@ -18,7 +17,6 @@ import type { IncomeDistributionConfig } from "../index.js"
 import {
     DEFAULT_COUNTRIES,
     INTERNATIONAL_DOLLAR,
-    MAX_SELECTED_COUNTRIES,
     USER_LOCATION_SENTINEL,
 } from "./constants.js"
 import {
@@ -28,6 +26,7 @@ import {
     useIncomeDistributionYear,
 } from "./data.js"
 import { resolveCurrency } from "./currency.js"
+import { resolveSelectedCountries } from "./resolveSelectedCountries.js"
 import {
     Currency,
     IncomeDistributionYear,
@@ -79,10 +78,13 @@ export interface IncomeDistributionState {
 }
 
 /**
- * The chart's URL state (unprefixed keys `view`, `countries`, `povertyLine`,
- * `timeInterval`, `currency`, defaulting to the config), the data queries,
- * and the state resolved against the data: the selection's "userLocation"
- * sentinel and the currency key. Shared by every variant.
+ * The chart's URL state, the data queries, and the state resolved against
+ * the data: the selection's "userLocation" sentinel and the currency key.
+ * Shared by every variant.
+ *
+ * The URL keys are deliberately unprefixed (`view`, `countries`,
+ * `povertyLine`, `timeInterval`, `currency`), not namespaced by project as
+ * other bespoke charts' are; keep them so. They default to the config.
  */
 export function useIncomeDistributionState(
     config: IncomeDistributionConfig,
@@ -161,24 +163,14 @@ export function useIncomeDistributionState(
             ? (suggestedCurrency ?? INTERNATIONAL_DOLLAR)
             : resolveCurrency(currencyKey, currencies)
 
-    // Resolve the sentinel and drop names the data doesn't have; the state
-    // keeps them so a shared link survives a data update
-    const selectedCountries = useMemo(() => {
-        if (!yearData) return []
-        return R.pipe(
-            countries,
-            R.flatMap((name) =>
-                name === USER_LOCATION_SENTINEL
-                    ? userCountryInfo
-                        ? [userCountryInfo.name]
-                        : []
-                    : [name]
-            ),
-            R.filter((name) => yearData.byName.has(name)),
-            R.unique(),
-            R.take(MAX_SELECTED_COUNTRIES)
-        )
-    }, [countries, userCountryInfo, yearData])
+    const userCountryName = userCountryInfo?.name
+    const selectedCountries = useMemo(
+        () =>
+            yearData
+                ? resolveSelectedCountries(countries, userCountryName, yearData)
+                : [],
+        [countries, userCountryName, yearData]
+    )
 
     const chartState = useMemo(
         (): ChartState => ({

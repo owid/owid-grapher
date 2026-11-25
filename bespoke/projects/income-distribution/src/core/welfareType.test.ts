@@ -27,6 +27,7 @@ const COUNTRY_NAMES = [
     "Vietnam",
 ]
 
+// TODO(feed welfare_type): goes with the placeholder
 describe(placeholderWelfareType, () => {
     it("gives a country the same value every time", () => {
         const first = COUNTRY_NAMES.map(placeholderWelfareType)

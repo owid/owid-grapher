@@ -1,10 +1,11 @@
 import { WELFARE_TYPES, type WelfareType } from "./types.js"
 
 /**
- * PLACEHOLDER until the feed carries PIP's `welfare_type` for each country:
- * picks income or consumption pseudo-randomly from a hash of the country's
- * name, so a country keeps its value across renders and sessions. Replace
- * with the feed's value; nothing here reflects the real data.
+ * TODO(feed welfare_type): PLACEHOLDER until the feed carries PIP's
+ * `welfare_type` for each country. Picks income or consumption
+ * pseudo-randomly from a hash of the country's name, so a country keeps its
+ * value across renders and sessions. Replace with the feed's value, at every
+ * call site marked with the same token; nothing here reflects the real data.
  */
 export function placeholderWelfareType(countryName: string): WelfareType {
     // 32-bit FNV-1a

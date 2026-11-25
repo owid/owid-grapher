@@ -110,6 +110,7 @@ export function SlideFrame({
                     availableCountries={availableCountries}
                     selectedCountries={chartState.selectedCountries}
                     onChange={setters.setSelectedCountries}
+                    // TODO(feed welfare_type)
                     welfareTypeOf={placeholderWelfareType}
                     isNarrow
                 />
