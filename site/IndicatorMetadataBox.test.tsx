@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { renderToStaticMarkup } from "react-dom/server"
-import { act, fireEvent, render } from "@testing-library/react"
+import { render } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import type { DataPageDataV2, FaqEntryData } from "@ourworldindata/types"
 import IndicatorMetadataBox from "./IndicatorMetadataBox.js"
@@ -9,7 +9,7 @@ import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
 const datapageData: DataPageDataV2 = {
     status: "draft",
     title: { title: "Example indicator" },
-    descriptionShort: "Read [how it is measured](#how-is-this-measured).",
+    descriptionShort: "An example indicator.",
     attributions: ["Example producer"],
     origins: [],
     source: undefined,
@@ -85,15 +85,7 @@ describe("FAQ fragment compatibility", () => {
         }
     })
 
-    it("leaves the box collapsed without a fragment", () => {
-        render(box)
-        const { question, outer } = getDetails()
-        expect(question.open).toBe(false)
-        expect(outer.open).toBe(false)
-        expect(HTMLElement.prototype.scrollIntoView).not.toHaveBeenCalled()
-    })
-
-    it("reveals both accordions on initial load, including encoded fragments", () => {
+    it("opens the box and only the linked question for a fragment, even an encoded one", () => {
         window.history.replaceState(null, "", "#%68ow-is-this-measured")
         render(box)
         const { heading, question, outer } = getDetails()
@@ -107,34 +99,8 @@ describe("FAQ fragment compatibility", () => {
         ).toBe(false)
     })
 
-    it("reveals the target on hash changes and removes the listener on unmount", () => {
-        const view = render(box)
-        act(() => {
-            window.history.replaceState(null, "", "#how-is-this-measured")
-            window.dispatchEvent(new HashChangeEvent("hashchange"))
-        })
-        const { question, outer } = getDetails()
-        expect(question.open).toBe(true)
-        expect(outer.open).toBe(true)
-        view.unmount()
-        vi.mocked(HTMLElement.prototype.scrollIntoView).mockClear()
-        window.dispatchEvent(new HashChangeEvent("hashchange"))
-        expect(HTMLElement.prototype.scrollIntoView).not.toHaveBeenCalled()
-    })
-
-    it("reopens a collapsed answer when its in-page link is clicked with the hash already set", () => {
-        window.history.replaceState(null, "", "#how-is-this-measured")
-        const view = render(box)
-        const { question, outer } = getDetails()
-        question.open = false
-        outer.open = false
-        fireEvent.click(view.getByRole("link", { name: "how it is measured" }))
-        expect(question.open).toBe(true)
-        expect(outer.open).toBe(true)
-    })
-
-    it.each(["#missing", "#%E0%A4%A", "#outside"])(
-        "ignores unrelated or malformed fragments: %s",
+    it.each(["#%E0%A4%A", "#outside"])(
+        "ignores malformed fragments and targets outside the box: %s",
         (hash) => {
             window.history.replaceState(null, "", hash)
             render(

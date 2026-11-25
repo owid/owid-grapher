@@ -92,6 +92,7 @@ function revealMetadataTarget(root: Element, hash: string): HTMLElement | null {
     return target
 }
 
+// For links to the fragment already in the URL, which fire no hashchange
 function openDetailsAroundLinkTarget(event: React.MouseEvent): void {
     const link = (event.target as Element).closest("a")
     const href = link?.getAttribute("href")
