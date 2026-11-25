@@ -72,6 +72,17 @@ describe(formatIncome, () => {
         expect(formatIncome(1000, atPar("SEK"), "daily")).toBe("SEK\u00a01k")
     })
 
+    it("can leave out a currency that has no symbol, for axis ticks", () => {
+        const axis = { short: true, dropCode: true }
+        expect(formatIncome(1000, atPar("SEK"), "daily", axis)).toBe("1k")
+        expect(formatIncome(950, atPar("CHF"), "daily", axis)).toBe("950")
+        expect(formatIncome(1234, atPar("not-a-code"), "daily", axis)).toBe(
+            "1.2k"
+        )
+        // A symbol stays
+        expect(formatIncome(950, atPar("EUR"), "daily", axis)).toBe("€950")
+    })
+
     it("falls back to the code for a currency Intl rejects", () => {
         expect(formatIncome(1234, atPar("not-a-code"), "daily")).toBe(
             "not-a-code 1.2k"

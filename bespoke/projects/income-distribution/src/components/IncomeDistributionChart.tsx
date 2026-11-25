@@ -1554,6 +1554,8 @@ function computeAxisTicks(
                 label: labelledMultipliers.includes(multiplier)
                     ? formatIncome(value, currency, timeInterval, {
                           short: true,
+                          // The axis label names the currency
+                          dropCode: true,
                       })
                     : undefined,
             })

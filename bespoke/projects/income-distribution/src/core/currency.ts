@@ -15,9 +15,11 @@ export function combinedFactor(
  * Formats a daily international-$ amount in `currency` per `interval`, e.g.
  * "$3", "$3.20", "$1.2k", "€950", "₹10k", "¥1.5M". Two significant figures
  * are enough for an axis or a poverty line; `short` drops trailing zeros and
- * cents for whole amounts (axis ticks). Uses Intl.NumberFormat for real
- * currencies (en-US locale) and a plain "$" prefix for the international
- * dollar.
+ * cents for whole amounts (axis ticks); `dropCode` leaves out a currency
+ * that has no symbol and would be written as its code ("SEK\u00a01k" → "1k"),
+ * for axis ticks whose axis names the currency. Uses Intl.NumberFormat for
+ * real currencies (en-US locale) and a plain "$" prefix for the
+ * international dollar.
  */
 /**
  * The amount `formatIncome` shows for a daily international-$ figure, in the
@@ -51,7 +53,7 @@ export function formatIncome(
     dailyIntDollars: number,
     currency: Currency,
     interval: TimeInterval,
-    options: { short?: boolean } = {}
+    options: { short?: boolean; dropCode?: boolean } = {}
 ): string {
     const amount = displayedAmount(dailyIntDollars, currency, interval)
     // Below 10, show cents ("$3.20"), unless a short label can do without
@@ -62,11 +64,27 @@ export function formatIncome(
         return "$" + formatPlainAmount(amount, fractionDigits)
 
     const formatter = getCurrencyFormatter(currency.code, fractionDigits)
-    if (!formatter)
-        return `${currency.code} ${formatPlainAmount(amount, fractionDigits)}`
+    if (!formatter) {
+        const plain = formatPlainAmount(amount, fractionDigits)
+        return options.dropCode ? plain : `${currency.code} ${plain}`
+    }
+    const parts = formatter.formatToParts(amount)
+    const writtenAsCode = parts.some(
+        (part) => part.type === "currency" && part.value === currency.code
+    )
+    const text =
+        options.dropCode && writtenAsCode
+            ? parts
+                  .filter(
+                      (part) =>
+                          part.type !== "currency" && part.type !== "literal"
+                  )
+                  .map((part) => part.value)
+                  .join("")
+            : formatter.format(amount)
     // Match the lower-case "k" of the international-$ labels: only the
     // compact suffix after the digits, not a "K" in the currency code (SEK)
-    return formatter.format(amount).replace(/(\d)K\b/, "$1k")
+    return text.replace(/(\d)K\b/, "$1k")
 }
 
 /** "1.2k", "15M", "950", "3.20" */
