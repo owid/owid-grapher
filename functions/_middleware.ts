@@ -3,6 +3,7 @@ import * as Sentry from "@sentry/cloudflare"
 import { Env } from "./_common/env.js"
 import { analyticsMiddleware } from "./_common/analytics.js"
 import { asnDataLayerMiddleware } from "./_common/asnDataLayer.js"
+import { errorResponseMiddleware } from "./_common/errorHandling.js"
 import { experimentsMiddleware } from "./_common/experiments.js"
 import { isolateDiagMiddleware } from "./_common/isolateDiag.js"
 
@@ -16,6 +17,8 @@ export const onRequest = [
         environment: context.env.ENV,
         tracesSampleRate: 0.01,
     })),
+    // Inside Sentry, so that the errors it reports carry the request context
+    errorResponseMiddleware,
     analyticsMiddleware,
     experimentsMiddleware,
     asnDataLayerMiddleware,
