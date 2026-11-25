@@ -1,28 +1,18 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import cx from "clsx"
-import { QueryClientProvider } from "@tanstack/react-query"
-import { NuqsAdapter } from "nuqs/adapters/react"
 import { parseAsInteger, parseAsString } from "nuqs"
+import { faArrowRightFromBracket } from "@fortawesome/free-solid-svg-icons"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import type { BespokeVariantProps } from "owid-bespoke-types"
 
-import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
-import { ChartSkeleton } from "../../../../components/ChartSkeleton/ChartSkeleton.js"
-import { ChartError } from "../../../../components/ChartError/ChartError.js"
 import { useContainerWidth } from "../../../../hooks/useContainerWidth.js"
 import { useUrlState } from "../../../../hooks/useUrlState.js"
-import type {
-    BespokeComponentDataUrls,
-    BespokeVariantProps,
-} from "owid-bespoke-types"
 
 import type { IncomeDistributionConfig } from "../index.js"
 import { NARROW_BREAKPOINT } from "../core/constants.js"
-import { queryClient } from "../core/data.js"
-import { chartSubtitle, chartTitle } from "../core/chartText.js"
-import {
-    useIncomeDistributionState,
-    type ChartState,
-    type ChartStateSetters,
-    type IncomeDistributionState,
+import type {
+    ChartState,
+    ChartStateSetters,
 } from "../core/useIncomeDistributionState.js"
 import {
     clampSlide,
@@ -31,15 +21,14 @@ import {
     WALKTHROUGHS,
     type SlideChartField,
 } from "../core/walkthroughs.js"
-import type { IncomeDistributionYear } from "../core/types.js"
+import { useIncomeDistributionControlsProps } from "../components/IncomeDistributionControls.js"
 import {
-    IncomeDistributionControls,
-    useIncomeDistributionControlsProps,
-} from "../components/IncomeDistributionControls.js"
-import { faArrowRightFromBracket } from "@fortawesome/free-solid-svg-icons"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { ConfigureDrawer } from "../components/ConfigureDrawer.js"
-import { IncomeDistributionFrame } from "../components/IncomeDistributionFrame.js"
+    FetchingIncomeDistributionVariant,
+    hidesControls,
+    ReaderFrame,
+    VariantControls,
+    type CaptionedVariantProps,
+} from "../components/VariantScaffold.js"
 import {
     WalkthroughPills,
     WalkthroughRail,
@@ -63,39 +52,14 @@ const STICKY_FIELDS: ReadonlySet<SlideChartField> = new Set([
     "currency",
     "timeInterval",
 ])
-export function TutorialVariant({
-    config,
-    urls,
-}: BespokeVariantProps<IncomeDistributionConfig>): React.ReactElement {
+
+export function TutorialVariant(
+    props: BespokeVariantProps<IncomeDistributionConfig>
+): React.ReactElement {
     return (
-        <NuqsAdapter>
-            <QueryClientProvider client={queryClient}>
-                <FetchingTutorialVariant config={config} urls={urls} />
-            </QueryClientProvider>
-        </NuqsAdapter>
-    )
-}
-
-function FetchingTutorialVariant({
-    config,
-    urls,
-}: {
-    config: IncomeDistributionConfig
-    urls: BespokeComponentDataUrls
-}): React.ReactElement {
-    const state = useIncomeDistributionState(config, urls)
-
-    if (state.status === "pending")
-        return <ChartSkeleton className="income-distribution-chart-box" />
-    if (state.status === "error" || !state.metadata || !state.yearData)
-        return <ChartError className="income-distribution-chart-box" />
-
-    return (
-        <CaptionedTutorialVariant
-            config={config}
-            state={state}
-            metadata={state.metadata}
-            yearData={state.yearData}
+        <FetchingIncomeDistributionVariant
+            {...props}
+            captioned={CaptionedTutorialVariant}
         />
     )
 }
@@ -111,17 +75,10 @@ interface SlideLocalState {
     released: ReadonlySet<SlideChartField>
 }
 
-function CaptionedTutorialVariant({
-    config,
-    state,
-    metadata,
-    yearData,
-}: {
-    config: IncomeDistributionConfig
-    state: IncomeDistributionState
-    metadata: NonNullable<IncomeDistributionState["metadata"]>
-    yearData: IncomeDistributionYear
-}): React.ReactElement {
+function CaptionedTutorialVariant(
+    props: CaptionedVariantProps
+): React.ReactElement {
+    const { config, state, metadata, yearData } = props
     const { width, node, ref } = useContainerWidth()
     const hasRail = width >= RAIL_BREAKPOINT
     const columnWidth = hasRail ? width - RAIL_WIDTH - RAIL_GAP : width
@@ -307,8 +264,7 @@ function CaptionedTutorialVariant({
         isNarrow,
     })
 
-    const shouldHideControls =
-        config.hideControls || !!config.title || !!config.subtitle
+    const hideControls = hidesControls(config)
     const progress: WalkthroughProgress = {
         activeId: walkthrough?.id ?? null,
         slide: slideNumber,
@@ -330,13 +286,12 @@ function CaptionedTutorialVariant({
             Exit tutorial &amp; explore
         </button>
     ) : (
-        !shouldHideControls && (
-            <ConfigureDrawer container={node}>
-                <IncomeDistributionControls
-                    {...controlsProps}
-                    layout="drawer"
-                />
-            </ConfigureDrawer>
+        !hideControls && (
+            <VariantControls
+                layout="drawer"
+                container={node}
+                controlsProps={controlsProps}
+            />
         )
     )
 
@@ -355,14 +310,18 @@ function CaptionedTutorialVariant({
         >
             {hasRail ? (
                 <>
-                    {!shouldHideControls && (
+                    {!hideControls && (
                         // Kept in place while a walkthrough plays, so the
                         // chart doesn't jump up
                         <div
                             className="income-distribution-tutorial__controls"
                             inert={!!walkthrough}
                         >
-                            <IncomeDistributionControls {...controlsProps} />
+                            <VariantControls
+                                layout="card"
+                                container={node}
+                                controlsProps={controlsProps}
+                            />
                         </div>
                     )}
                     <WalkthroughRail
@@ -405,35 +364,7 @@ function CaptionedTutorialVariant({
                         onClose={close}
                     />
                 ) : (
-                    <IncomeDistributionFrame
-                        metadata={metadata}
-                        yearData={yearData}
-                        chartState={readerState}
-                        onSetPovertyLine={setters.setPovertyLine}
-                        onSelectedCountriesChange={setters.setSelectedCountries}
-                        canClearPovertyLine={!shouldHideControls}
-                        editCountries={shouldHideControls ? "hidden" : "auto"}
-                        isLoading={state.isLoading}
-                        isNarrow={isNarrow}
-                        header={
-                            <ChartHeader
-                                title={
-                                    config.title ??
-                                    chartTitle(
-                                        readerState.view,
-                                        readerState.selectedCountries
-                                    )
-                                }
-                                subtitle={
-                                    config.subtitle ??
-                                    chartSubtitle(
-                                        yearData.year,
-                                        readerState.currency
-                                    )
-                                }
-                            />
-                        }
-                    />
+                    <ReaderFrame {...props} isNarrow={isNarrow} />
                 )}
             </div>
         </div>

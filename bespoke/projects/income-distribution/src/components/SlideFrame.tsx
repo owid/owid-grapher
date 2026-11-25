@@ -3,10 +3,10 @@ import * as R from "remeda"
 
 import { REGION_COLORS } from "../core/constants.js"
 import { assignCountryColors } from "../core/chartModel.js"
+import type { IncomeDistributionMetadata } from "../core/data.js"
 import type {
     ChartState,
     ChartStateSetters,
-    IncomeDistributionState,
 } from "../core/useIncomeDistributionState.js"
 import {
     resolveSlideText,
@@ -52,7 +52,7 @@ export function SlideFrame({
     walkthrough: Walkthrough
     slide: WalkthroughSlide
     slideNumber: number
-    metadata: NonNullable<IncomeDistributionState["metadata"]>
+    metadata: IncomeDistributionMetadata
     yearData: IncomeDistributionYear
     chartState: ChartState
     setters: ChartStateSetters
