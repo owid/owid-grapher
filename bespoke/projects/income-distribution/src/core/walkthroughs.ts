@@ -70,7 +70,7 @@ export interface WalkthroughSlide {
     /** How the chart emphasises parts of itself; see IncomeDistributionChartEmphasis */
     emphasis?: {
         ghostSeries?: boolean
-        outlineTotal?: { label?: string; peakMarker?: boolean }
+        outlineTotal?: { label?: string }
         fillBelowLine?: boolean
         showSeriesLabels?: boolean
         axisEndLabels?: { left: string; right: string }
@@ -137,10 +137,7 @@ export const WALKTHROUGHS: Walkthrough[] = [
                 legend: "hidden",
                 emphasis: {
                     ghostSeries: true,
-                    outlineTotal: {
-                        label: "Global distribution of income",
-                        peakMarker: true,
-                    },
+                    outlineTotal: { label: "Global distribution of income" },
                     axisEndLabels: { left: "Poorest", right: "Richest" },
                 },
             },

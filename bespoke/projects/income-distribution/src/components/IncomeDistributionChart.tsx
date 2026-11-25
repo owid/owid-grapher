@@ -83,7 +83,7 @@ export interface IncomeDistributionChartEmphasis {
     /** Draw the areas very faded, as a backdrop */
     ghostSeries?: boolean
     /** Global view: outline the top of the stack, optionally labelled at its peak */
-    outlineTotal?: { label?: string; peakMarker?: boolean }
+    outlineTotal?: { label?: string }
     /** Global view, with a poverty line: fill the whole stack below the line */
     fillBelowLine?: boolean
     /** Label the regions in their bands, or the countries above their curves; default true */
@@ -881,16 +881,6 @@ function IncomeDistributionChartContent({
                         />
                         {/* Once the outline has drawn itself */}
                         <g className="income-distribution-chart__outline-extras">
-                            {outlineTotal.peakMarker && (
-                                <line
-                                    x1={totalPeak.x}
-                                    x2={totalPeak.x}
-                                    y1={totalPeak.y}
-                                    y2={plotBottom}
-                                    stroke={GRAY_70}
-                                    strokeWidth={1}
-                                />
-                            )}
                             {outlineTotal.label && (
                                 <text
                                     className="income-distribution-chart__outline-label"

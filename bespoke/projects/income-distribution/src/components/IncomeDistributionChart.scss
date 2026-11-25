@@ -107,7 +107,7 @@
     font-weight: 500;
 }
 
-// The outline's label and peak marker fade in as the outline finishes
+// The outline's label fades in as the outline finishes
 // drawing itself (OUTLINE_DRAW_MS in IncomeDistributionChart.tsx)
 @keyframes income-distribution-chart-fade-in {
     from {
