@@ -34,7 +34,7 @@ export interface IncomeDistributionControlsProps {
     currencies: Currency[] | undefined
     /** The reader's local currency, if known */
     suggestedCurrency?: Currency
-    /** Read off the poverty line, see `povertyLineMode` in core/currency.ts */
+    /** Read off the poverty line, see useIncomeDistributionControlsProps */
     povertyLineMode: PovertyLineMode
     setPovertyLineMode: (mode: PovertyLineMode) => void
     isNarrow: boolean
@@ -46,10 +46,10 @@ export interface IncomeDistributionControlsProps {
 }
 
 /**
- * Two overlapping distributions, one filled and one outlined, sized like the
- * globe next to it and coloured by the switcher through currentColor
+ * A mountain of stacked bands, echoing the global view's stacked regions,
+ * sized like the globe next to it and coloured by the switcher through
+ * currentColor
  */
-/** A mountain of stacked bands, echoing the global view's stacked regions */
 function StackedMountainIcon(): React.ReactElement {
     return (
         <svg
@@ -72,6 +72,7 @@ function StackedMountainIcon(): React.ReactElement {
     )
 }
 
+/** Two overlapping distributions, one filled and one outlined, as StackedMountainIcon */
 function TwoDistributionsIcon(): React.ReactElement {
     return (
         <svg

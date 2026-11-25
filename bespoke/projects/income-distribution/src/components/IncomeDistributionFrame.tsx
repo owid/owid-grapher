@@ -43,8 +43,8 @@ import {
     LegendEntry,
 } from "./IncomeDistributionLegend.js"
 
-/** Top of the overlays over the plot without the button, and the gap between them (DistributionVariant.scss) */
-const OVERLAY_TOP = 30
+/** Top of the overlays over the plot without the button, and the gap between them (.income-distribution-captioned-chart__overlays in IncomeDistributionFrame.scss) */
+const OVERLAY_TOP = 38
 const OVERLAY_GAP = 8
 
 /**

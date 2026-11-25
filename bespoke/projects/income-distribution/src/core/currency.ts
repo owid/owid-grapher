@@ -12,17 +12,6 @@ export function combinedFactor(
 }
 
 /**
- * Formats a daily international-$ amount in `currency` per `interval`, e.g.
- * "$3", "$3.20", "$1.2k", "€950", "₹10k", "¥1.5M". Two significant figures
- * are enough for an axis or a poverty line; `short` drops trailing zeros and
- * cents for whole amounts (axis ticks). Uses Intl.NumberFormat for real
- * currencies (en-US locale) and a plain "$" prefix for the international
- * dollar. A currency en-US only knows by its code (SEK, ZAR, PLN) gets its
- * narrow symbol instead ("kr", "R", "zł"); where there is none either, the
- * code stays (CHF), unless `dropCode` asks for the bare number, for axis
- * ticks whose neighbour or axis names the currency.
- */
-/**
  * The amount `formatIncome` shows for a daily international-$ figure, in the
  * chart's units: two significant figures, so e.g. 999.7 becomes 1k
  */
@@ -50,6 +39,17 @@ export function roundIncomeAsDisplayed(
     )
 }
 
+/**
+ * Formats a daily international-$ amount in `currency` per `interval`, e.g.
+ * "$3", "$3.20", "$1.2k", "€950", "₹10k", "¥1.5M". Two significant figures
+ * are enough for an axis or a poverty line; `short` drops trailing zeros and
+ * cents for whole amounts (axis ticks). Uses Intl.NumberFormat for real
+ * currencies (en-US locale) and a plain "$" prefix for the international
+ * dollar. A currency en-US only knows by its code (SEK, ZAR, PLN) gets its
+ * narrow symbol instead ("kr", "R", "zł"); where there is none either, the
+ * code stays (CHF), unless `dropCode` asks for the bare number, for axis
+ * ticks whose neighbour or axis names the currency.
+ */
 export function formatIncome(
     dailyIntDollars: number,
     currency: Currency,

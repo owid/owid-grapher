@@ -178,7 +178,7 @@
 }
 
 // Floats over the plot's top-right corner, which the mountains leave mostly
-// empty (see showOverlayLegend in DistributionVariant.tsx); it's positioned by
+// empty (see showOverlayLegend in IncomeDistributionFrame.tsx); it's positioned by
 // .income-distribution-captioned-chart__overlays. It stays put when a line is
 // set, so the plot never moves
 .income-distribution-legend--overlay {
