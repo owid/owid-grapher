@@ -20,6 +20,7 @@ import {
 } from "@ourworldindata/utils"
 import {
     getMultiDimDataPageById,
+    getMultiDimDataPageByIdForUpdate,
     getMultiDimDataPageByCatalogPath,
 } from "../../db/model/MultiDimDataPage.js"
 import { redirectWithSourceExists } from "../../db/model/Redirect.js"
@@ -512,7 +513,7 @@ export async function handlePatchMultiDim(
     trx: db.KnexReadWriteTransaction
 ) {
     const id = expectInt(req.params.id)
-    let multiDim = await getMultiDimDataPageById(trx, id)
+    let multiDim = await getMultiDimDataPageByIdForUpdate(trx, id)
     if (!multiDim) {
         throw new JsonError(`Multi-dimensional data page not found`, 404)
     }
@@ -571,7 +572,7 @@ export async function handleDeleteMultiDim(
     trx: db.KnexReadWriteTransaction
 ) {
     const id = expectInt(req.params.id)
-    const multiDim = await getMultiDimDataPageById(trx, id)
+    const multiDim = await getMultiDimDataPageByIdForUpdate(trx, id)
     if (!multiDim) {
         throw new JsonError("Multi-dimensional data page not found", 404)
     }
