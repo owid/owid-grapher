@@ -437,6 +437,8 @@ function PublishedSwitch({
         setIsToggling(true)
         try {
             await onToggle(chart)
+        } catch {
+            // Admin's error modal has already shown the failure
         } finally {
             setIsToggling(false)
         }
@@ -706,7 +708,7 @@ export class ChartList extends React.Component<ChartListProps> {
         const patch: GrapherInterface = await admin.getJSON(
             `/api/charts/${chart.id}.patchConfig.json`
         )
-        const json = await admin.requestJSON(
+        await admin.requestJSON(
             `/api/charts/${chart.id}`,
             publish
                 ? {
@@ -717,7 +719,6 @@ export class ChartList extends React.Component<ChartListProps> {
                 : lodash.omit(patch, "isPublished"),
             "PUT"
         )
-        if (!json.success) return
 
         const now = new Date().toISOString()
         const updatedChart: ChartListItem = {
