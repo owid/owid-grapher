@@ -255,7 +255,7 @@ export async function searchCharts(
 }
 
 // Minimal set of attributes needed for page search
-const PAGE_ATTRIBUTES = [
+export const PAGE_ATTRIBUTES = [
     "title",
     "thumbnailUrl",
     "date",
@@ -266,12 +266,15 @@ const PAGE_ATTRIBUTES = [
     "modifiedDate",
 ]
 
+/** What type=pages searches without a `pageTypes` param: the site's writing section */
+export const DEFAULT_PAGE_TYPES = ["article", "about-page"]
+
 export async function searchPages(
     config: AlgoliaConfig,
     query: string,
     offset: number = 0,
     length: number = 10,
-    pageTypes: string[] = ["article", "about-page"],
+    pageTypes: string[] = DEFAULT_PAGE_TYPES,
     baseUrl: string = "https://ourworldindata.org"
 ): Promise<SearchPagesApiResponse> {
     const indexName = getIndexName(SearchIndexName.Pages, config.indexPrefix)
@@ -339,6 +342,21 @@ export async function searchTopicPages(
     }
 }
 
+/**
+ * A page hit's URL from its slug and type: gdoc types bake to different path
+ * prefixes (data insights to /data-insights/, profiles to /profile/), and
+ * getCanonicalUrl is what the baker itself uses.
+ */
+export function pageHitUrl(
+    hit: { slug: string; type: string },
+    baseUrl: string
+): string {
+    return getCanonicalUrl(baseUrl, {
+        slug: hit.slug,
+        content: { type: hit.type as OwidGdocType },
+    })
+}
+
 /** Strips Algolia's internal attributes from page hits and adds the page URL. */
 function enrichPageHits(
     hits: SearchPageHit[],
@@ -352,20 +370,6 @@ function enrichPageHits(
             ...cleanHit
         } = hit as any
 
-        // Construct URL based on slug + type: different gdoc types bake to
-        // different path prefixes (e.g. data-insights -> /data-insights/,
-        // profiles -> /profile/) — getCanonicalUrl/getPrefixedGdocPath is the
-        // single source of truth the baker itself uses, so newly-exposed
-        // pageTypes (beyond the original article/about-page) resolve to
-        // working links instead of a bare `${baseUrl}/${slug}` guess.
-        const url = getCanonicalUrl(baseUrl, {
-            slug: cleanHit.slug,
-            content: { type: cleanHit.type as OwidGdocType },
-        })
-
-        return {
-            ...cleanHit,
-            url,
-        }
+        return { ...cleanHit, url: pageHitUrl(cleanHit, baseUrl) }
     })
 }

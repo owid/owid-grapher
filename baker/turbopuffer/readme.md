@@ -1,24 +1,29 @@
 # turbopuffer (spike)
 
-An experimental charts index in [turbopuffer](https://turbopuffer.com), next to the Algolia one in `baker/algolia/`. It exists to test whether turbopuffer's BM25, vector search and managed rerank in one service can replace Algolia plus the topic embedding and rerank steps of `/api/search`. Nothing on the site reads from it.
+Experimental charts and pages indexes in [turbopuffer](https://turbopuffer.com), next to the Algolia ones in `baker/algolia/`. They exist to test whether turbopuffer's BM25, vector search and managed rerank in one service can replace Algolia plus the topic embedding and rerank steps of `/api/search`. Nothing on the site reads from them.
 
 ## What's here
 
-- `indexChartsToTurbopuffer.ts` builds the same records as the Algolia charts index (charts, explorer views, multi-dim views) through `getScoredChartIndexRecords` in `baker/algolia/utils/chartIndexRecords.ts`, which the Algolia indexer also calls, and writes them to the `owid-charts-spike-v2` namespace in `aws-eu-central-1` (v1, the first load without stemming and with a shorter `search_text`, is kept as a baseline).
-- `queryChartsInTurbopuffer.ts` runs a few queries through the query shapes (T0–T4 below) and runs post-load checks.
-- `chartsNamespace.ts` holds the schema and the record-to-row mapping.
-- The query shapes live in `packages/@ourworldindata/utils/src/search/turbopufferCharts.ts`, shared with `/api/search`: `?type=charts&engine=tpuf&arm=T2` answers from this namespace and adds an `engine` object with turbopuffer's server time. `arm` defaults to T1; `midpoint` overrides the popularity midpoint; `synonyms=1`, `fuzzy=1` and `pool=<n>` switch on the query tuning below; `model` picks T4's rerank model, and `rsyn=1` and `popw=<w>` tune its rerank. It needs `TURBOPUFFER_API_KEY` in the functions' `.dev.vars`.
+- `indexToTurbopuffer.ts --index charts` builds the same records as the Algolia charts index (charts, explorer views, multi-dim views) through `getScoredChartIndexRecords` in `baker/algolia/utils/chartIndexRecords.ts`, which the Algolia indexer also calls, and writes them to the `owid-charts-spike-v2` namespace (v1, the first load without stemming and with a shorter `search_text`, is kept in Frankfurt as a baseline).
+- `indexToTurbopuffer.ts --index pages` does the same for the Algolia pages index's records (`getPagesRecords` in `baker/algolia/utils/pages.ts`: articles, data insights, topic, about and profile pages, one record per 1,000-character content chunk) and the `owid-pages-spike-v1` namespace.
+- `queryTurbopuffer.ts` runs a few queries through the query shapes (T0–T4 below) and runs post-load checks.
+- `namespaces.ts` holds the schemas and the record-to-row mappings.
+- The query shapes live in `packages/@ourworldindata/utils/src/search/turbopuffer.ts`, shared with `/api/search`: `?type=charts&engine=tpuf&arm=T2` and `?type=pages&engine=tpuf&arm=T4` answer from these namespaces and add an `engine` object with the region and turbopuffer's server time. `arm` defaults to T1; `midpoint` overrides the popularity midpoint; `synonyms=1`, `fuzzy=1` and `pool=<n>` switch on the query tuning below; `model` picks T4's rerank model, and `rsyn=1` and `popw=<w>` tune its rerank; `region` overrides the region. It needs `TURBOPUFFER_API_KEY` in the functions' `.dev.vars`.
 
 ```bash
 # needs TURBOPUFFER_API_KEY in .env; STAGING=<branch> reads that staging server's database
-STAGING=master yarn indexChartsToTurbopuffer --dry-run        # rows + stats to tmp/, no upload
-yarn indexChartsToTurbopuffer --from-file tmp/owid-charts-spike-v2.json --batches 1
-yarn indexChartsToTurbopuffer --from-file tmp/owid-charts-spike-v2.json
-yarn queryChartsInTurbopuffer --check
-yarn queryChartsInTurbopuffer "co2" "poulation" --arms T1,T2
+STAGING=master yarn indexToTurbopuffer --index pages --dry-run   # rows + stats to tmp/, no upload
+yarn indexToTurbopuffer --index pages --from-file tmp/owid-pages-spike-v1.json --batches 1 --regions aws-eu-central-1
+yarn indexToTurbopuffer --index pages --from-file tmp/owid-pages-spike-v1.json   # every region
+yarn queryTurbopuffer --index pages --check
+yarn queryTurbopuffer --index charts --region aws-us-east-1 "co2" "poulation" --arms T1,T2
 ```
 
-A full run upserts every row (re-embedding it) and then deletes rows an earlier run wrote, like Algolia's `replaceAllObjects`.
+A full run upserts every row (re-embedding it) and then deletes rows an earlier run wrote, like Algolia's `replaceAllObjects`, in each region in turn.
+
+## Regions
+
+Each namespace exists in Frankfurt (`aws-eu-central-1`) and N. Virginia (`aws-us-east-1`); turbopuffer has no cross-region replication, so the indexer writes both. `/api/search` queries N. Virginia for readers Cloudflare places in North or South America (`request.cf.continent`) and Frankfurt for everyone else. Both regions serve `baai/bge-m3`, zerank-2 and the Voyage rerank models. A second region doubles the storage and write cost (cents per full run) but not the query cost, since each search goes to one region.
 
 ## Rows
 
@@ -37,6 +42,12 @@ One row per record, with featured-metric (FM) copies left out: typed searches al
 | `search_text`                                        | `baai/bge-m3` embedding, fuzzy | title (variant), container title, the first 300 characters of the subtitle, and tags; also the text T4's rerank model scores |
 | `popularity`                                         |                                | record score minus the 1000 floor it is scaled to, clamped to ≥ 0                                                            |
 
+### Pages
+
+One row per record of the Algolia pages index (a page's content chunk), 18,302 rows for 2,014 pages on 2026-11-25, 10,169 of them profile pages instantiated per country. `path` groups a page's chunks, like Algolia's `distinct` on `path` (a data insight and an article can share a slug). `title`, `excerpt`, `content` and `tags` are full-text and stemmed, `authors` full-text. `search_text` is the title, excerpt and chunk, embedded with `baai/bge-m3` and scored by T4's rerank model. `popularity` is the record score (1,000 × importance + 7-day views), with p75 241 for articles and 42 for data insights; the index reuses the charts' midpoint, 126, between the two.
+
+The two halves of T3 and T4 can return different chunks of one page, so hybrid queries fetch every candidate and keep each page's first row after the fusion or rerank, before cutting the page.
+
 ## Query shapes
 
 | Arm | Shape                                                                                              |
@@ -50,9 +61,9 @@ One row per record, with featured-metric (FM) copies left out: typed searches al
 Each arm runs as one call to turbopuffer, which embeds the query, runs the sub-queries and fuses or reranks them. The tuning switches apply to every arm's text query:
 
 - `synonyms=1` expands the query with the synonyms from `synonyms.ts` (in `@ourworldindata/utils`, the list Algolia's index also gets): their words are matched and scored like the query's, without the prefix match.
-- `fuzzy=1` adds T2's whole-query fuzzy match.
+- `fuzzy=1` adds T2's whole-query fuzzy match. Pages run without it: matching the whole query against 1,000-character chunks added 150–350 ms of server time, and typo queries ("poverity", "vacines", "life expectency", "renewable enrgy") returned the same top results without it, since the vector half finds them.
 - `pool=<n>` is how many rows each T3/T4 sub-query contributes (default: the page size plus one). The rerank needs a pool deeper than the page.
-- `model` is T4's rerank model: `zeroentropy/zerank-2` (default), `voyage/rerank-3` or `voyage/rerank-3-lite`, the ones turbopuffer serves in our region.
+- `model` is T4's rerank model: `zeroentropy/zerank-2` (default), `voyage/rerank-3` or `voyage/rerank-3-lite`, the ones turbopuffer serves in both our regions.
 - `rsyn=1` gives T4's rerank model the query with its synonyms in parentheses ("pib (gdp, gross domestic product, …)").
 - `popw=<w>` adds `w` times the row's saturated popularity (the text half's `Saturate` term, 0–1) to the rerank model's score, re-sorting every reranked candidate before the page is cut. Rerank scores of relevant charts sit within a few hundredths of each other on broad queries ("energy": 0.666–0.685), so 0.05 lets popularity break those near-ties without overriding a clearer relevance gap.
 
@@ -123,12 +134,27 @@ Three ideas against the two loss patterns above, each judged head to head agains
 - **None beats T4 by more than the noise.** Synonyms in the rerank query fix the abbreviations they were aimed at ("pib", "bip", "gdp in ch") and lose about as many others. The popularity blend adds the broad queries ("energy", "economy") and loses others ("income", "deforestation"); its +1.8 rests on a tuned constant.
 - **`clef-flash` over turbopuffer's candidates trades rather than adds:** it wins broad and odd queries ("economy", "population by country", "sdg 7") and loses short and foreign-language ones that T4's model gets ("sugar", "rni", "sur corea", "produit interieur brut"). It matches T4 with one model call fewer, at Workers AI's price instead of the rerank tokens.
 
+## Final comparison with production
+
+T4 with zerank-2 on every section, against production Algolia on fresh volume-weighted samples (2026-11-25). Charts use `synonyms=1&fuzzy=1&pool=50`, pages `synonyms=1&pool=20` with the site's page types (`article`, `about-page`) or `data-insight`.
+
+| Section       | Queries | Production | T4    | Difference (95% CI)  | Breaks | Fixes | NDCG@5        |
+| ------------- | ------- | ---------- | ----- | -------------------- | ------ | ----- | ------------- |
+| Charts        | 539     | 67.2%      | 82.0% | +14.8 (+10.9, +19.0) | 4.6%   | 19.4% | 0.801 → 0.933 |
+| Articles      | 318     | 44.9%      | 63.1% | +18.2 (+11.6, +25.1) | 6.1%   | 24.3% | 0.779 → 0.901 |
+| Data insights | 318     | 45.6%      | 60.7% | +15.2 (+10.2, +20.5) | 4.1%   | 19.3% | 0.715 → 0.926 |
+
+- **Losses:** abbreviations and other languages ("pib", "rni", "bip"), broad one-word queries ("population pyramid", "weather"), articles found at rank 2 instead of 1 ("literacy rate", "life expectancy"), and author queries, since the rerank text has no authors.
+- **Latency** from a laptop in Europe to Frankfurt, median: production (Algolia, called directly) 63–65 ms; T4 through the function 224 ms for charts, 277 ms for articles, 238 ms for data insights, of which 186–265 ms is turbopuffer's server time. A results page queries its sections in parallel, so it waits for the slowest. From America, Frankfurt adds roughly 60–80 ms.
+- **Cost** at ~7,700 searches/day: the three reranks bill ~16,500 tokens per search, ≈ $96/month with zerank-2; queries ≈ $2; a full reindex of both namespaces is $0.40 per region (≤ $12/month if daily). About $100–115/month in one region, which covers the $16 plan minimum.
+
 ## Open items
 
-- T4 at production volume: multiply the per-search cost above by our searches per day, and check our peak search rate against the rerank rate limit.
-
+- **Cost gate before production:** `pool`, `model` and `arm` come from the request, so with the key in production anyone could make each search cost more (`pool=200`, voyage on pages). Fix them server-side, or keep `engine=tpuf` off production.
+- `--namespace` on the indexer deletes rows the run didn't write, so pointing it at another index's namespace would empty that namespace.
+- Peak search rate against the rerank rate limit (2,500 candidates per second per model; a search page sends up to ~180 across its three sections, so about 14 searches per second).
 - Facet counts: `/latest` (pages-chronological index) and the tag list in `functions/api/search/searchApi.ts` use Algolia facet counts. Neither is part of the charts spike.
-- Pages and data insights are not indexed.
+- Topic-page recommendations (`type=topics`), profiles and featured-viz pins still read Algolia; the pages namespace holds their records but no backend queries them.
 - FM records and empty-query topic browsing need their own design.
 - The `engine=tpuf` backend lacks Algolia's closest matches, topic validation, and `availableTabs` and dates on hits; `nbHits` counts only the rows returned (at most 100).
 - Highlights and snippets (beta in turbopuffer) are not used.

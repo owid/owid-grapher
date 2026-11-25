@@ -1,7 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { onRequestGet } from "./index.js"
 import type { Env } from "../../_common/env.js"
-import type { TurbopufferSearchApiResponse } from "./turbopufferSearch.js"
+import type {
+    TurbopufferPagesApiResponse,
+    TurbopufferSearchApiResponse,
+} from "./turbopufferSearch.js"
 
 const env = {
     ALGOLIA_ID: "test-app-id",
@@ -135,6 +138,7 @@ describe("engine=tpuf", () => {
         expect(json.engine).toEqual({
             name: "turbopuffer",
             arm: "T1",
+            region: "aws-eu-central-1",
             serverMs: 21,
             embeddingMs: 8,
             cacheTemperature: "hot",
@@ -183,7 +187,8 @@ describe("engine=tpuf", () => {
             attribute: "search_text",
             query: "defense",
         })
-        expect(body.limit).toBe(21)
+        // Every candidate comes back, to be collapsed to one row per chart before the page is cut
+        expect(body.limit).toBe(100)
         for (const query of body.queries) {
             expect(query.limit.total).toBe(50)
             expect(query.include_attributes).toContain("search_text")
@@ -219,16 +224,120 @@ describe("engine=tpuf", () => {
 
         const body = JSON.parse(fetchMock.mock.calls[0][1].body)
         expect(body.rerank_by.query).toMatch(/^defense \(.*military.*\)$/)
-        // Every candidate comes back to be re-sorted before the page is cut
-        expect(body.limit).toBe(100)
         expect(json.results.map((hit) => hit.slug)).toEqual([
             "life-expectancy",
             "covid",
         ])
     })
 
-    it("rejects an unknown arm, model or pool, a non-finite midpoint and a missing key", async () => {
+    it("queries the copy nearer the reader, unless the request names a region", async () => {
+        const fromContinent = async (
+            continent: string,
+            params = "q=life&engine=tpuf"
+        ): Promise<string> => {
+            fetchMock.mockClear()
+            const request = Object.assign(
+                new Request(`http://localhost/api/search?${params}`),
+                { cf: { continent } }
+            )
+            await onRequestGet({ request, env } as any)
+            return new URL(fetchMock.mock.calls[0][0]).host
+        }
+        expect(await fromContinent("NA")).toBe("aws-us-east-1.turbopuffer.com")
+        expect(await fromContinent("SA")).toBe("aws-us-east-1.turbopuffer.com")
+        expect(await fromContinent("EU")).toBe(
+            "aws-eu-central-1.turbopuffer.com"
+        )
+        expect(await fromContinent("AS")).toBe(
+            "aws-eu-central-1.turbopuffer.com"
+        )
+        expect(
+            await fromContinent(
+                "NA",
+                "q=life&engine=tpuf&region=aws-eu-central-1"
+            )
+        ).toBe("aws-eu-central-1.turbopuffer.com")
+    })
+
+    it("searches pages of the requested types, one hit per page", async () => {
+        const chunk = {
+            type: "data-insight",
+            slug: "vaccines-saved-lives",
+            path: "/data-insights/vaccines-saved-lives",
+            title: "Vaccines saved lives",
+            thumbnailUrl: "https://example.org/thumb.png",
+            date: "2026-01-01T00:00:00.000Z",
+            authors: ["A. Author"],
+            excerpt: "",
+            popularity: 40,
+            search_text: "Vaccines saved lives. …",
+        }
+        fetchMock.mockResolvedValue(
+            new Response(
+                JSON.stringify({
+                    ...turbopufferResponse,
+                    rows: undefined,
+                    // The text and vector halves found different chunks of one page
+                    results: [
+                        {
+                            rows: [
+                                { ...chunk, id: "a-c0", content: "First" },
+                                {
+                                    ...chunk,
+                                    id: "b-c0",
+                                    slug: "measles",
+                                    path: "/data-insights/measles",
+                                    title: "Measles",
+                                    content: "Measles",
+                                },
+                                { ...chunk, id: "a-c1", content: "Second" },
+                            ],
+                        },
+                    ],
+                })
+            )
+        )
+        const response = await search(
+            "type=pages&q=vaccines&engine=tpuf&arm=T4&pool=20&pageTypes=data-insight"
+        )
+        expect(response.status).toBe(200)
+        const json = await response.json<
+            TurbopufferPagesApiResponse & { warnings?: string[] }
+        >()
+
+        const [url, init] = fetchMock.mock.calls[0]
+        expect(url).toContain("/v2/namespaces/owid-pages-spike-v1/query")
+        const body = JSON.parse(init.body)
+        expect(body.queries[1].filters).toEqual([
+            "type",
+            "In",
+            ["data-insight"],
+        ])
+        expect(body.queries[1].limit.per.attributes).toEqual(["path"])
+        expect(json.warnings).toBeUndefined()
+        expect(json.results).toEqual([
+            {
+                type: "data-insight",
+                slug: "vaccines-saved-lives",
+                title: "Vaccines saved lives",
+                thumbnailUrl: "https://example.org/thumb.png",
+                date: "2026-01-01T00:00:00.000Z",
+                authors: ["A. Author"],
+                content: "First",
+                url: "http://localhost/data-insights/vaccines-saved-lives",
+            },
+            expect.objectContaining({
+                slug: "measles",
+                url: "http://localhost/data-insights/measles",
+            }),
+        ])
+    })
+
+    it("rejects an unknown arm, model, pool or region, a non-finite midpoint and a missing key", async () => {
         expect((await search("q=life&engine=tpuf&popw=2")).status).toBe(400)
+        expect((await search("q=life&engine=tpuf&region=mars")).status).toBe(
+            400
+        )
         expect((await search("q=life&engine=tpuf&arm=T9")).status).toBe(400)
         expect(
             (await search("q=life&engine=tpuf&arm=T4&model=gpt")).status

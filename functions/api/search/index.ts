@@ -2,6 +2,7 @@ import * as Sentry from "@sentry/cloudflare"
 import { Env } from "../../_common/env.js"
 import { getAlgoliaConfig } from "./algoliaClient.js"
 import {
+    DEFAULT_PAGE_TYPES,
     searchCharts,
     searchPages,
     searchTopicPages,
@@ -20,16 +21,23 @@ import {
 } from "@ourworldindata/types"
 import {
     isTurbopufferArm,
+    isTurbopufferRegion,
     isTurbopufferRerankModel,
     TURBOPUFFER_ARMS,
+    TURBOPUFFER_REGIONS,
     TURBOPUFFER_RERANK_MODELS,
+    turbopufferRegionForContinent,
 } from "@ourworldindata/utils"
 import {
     searchChartsTurbopuffer,
+    searchPagesTurbopuffer,
+    TurbopufferPagesApiResponse,
+    TurbopufferRequest,
     TurbopufferSearchApiResponse,
 } from "./turbopufferSearch.js"
 
-// Experimental: `engine=tpuf` answers type=charts from turbopuffer, with
+// Experimental: `engine=tpuf` answers type=charts and type=pages from
+// turbopuffer, from the region nearer the reader unless `region` names one, with
 // `arm` choosing the query shape, `midpoint` the popularity midpoint, and
 // `synonyms=1`, `fuzzy=1` and `pool` switching on query tuning, `model`
 // choosing T4's rerank model, and `rsyn=1` (synonyms in the rerank query) and
@@ -45,6 +53,7 @@ const TURBOPUFFER_PARAMS = [
     "model",
     "rsyn",
     "popw",
+    "region",
 ]
 
 /** The most rows a T3 sub-query may contribute to the fusion */
@@ -89,7 +98,8 @@ const PARAMS_BY_TYPE = new Map<string, readonly SearchType[]>([
     [SearchUrlParam.REQUIRE_ALL_COUNTRIES, ["charts", "topics"]],
     ["pageTypes", ["pages"]],
     ...TURBOPUFFER_PARAMS.map(
-        (param) => [param, ["charts"]] as [string, readonly SearchType[]]
+        (param) =>
+            [param, ["charts", "pages"]] as [string, readonly SearchType[]]
     ),
 ])
 
@@ -126,14 +136,12 @@ async function fetchTagGraph(env: Env, baseUrl: string): Promise<TagGraphRoot> {
     return response.json()
 }
 
-function searchWithTurbopuffer(
+/** The `engine=tpuf` parameters: the region to query and the arm and its tuning */
+function parseTurbopufferRequest(
     env: Env,
     params: URLSearchParams,
-    state: SearchState,
-    page: number,
-    hitsPerPage: number,
-    baseUrl: string
-): Promise<TurbopufferSearchApiResponse> {
+    continent: string | undefined
+): TurbopufferRequest {
     // A client error, so requests to a deployment without the key don't reach Sentry
     if (!env.TURBOPUFFER_API_KEY)
         throw new SearchValidationError("engine=tpuf isn't available here")
@@ -171,10 +179,16 @@ function searchWithTurbopuffer(
         !(rerankPopularityWeight >= 0 && rerankPopularityWeight <= 1)
     )
         throw new SearchValidationError("popw must be a number from 0 to 1")
-    return searchChartsTurbopuffer(
-        env.TURBOPUFFER_API_KEY,
-        state,
-        {
+    const region =
+        params.get("region") || turbopufferRegionForContinent(continent)
+    if (!isTurbopufferRegion(region))
+        throw new SearchValidationError(
+            `Invalid region "${region}". Valid regions: ${TURBOPUFFER_REGIONS.join(", ")}`
+        )
+    return {
+        apiKey: env.TURBOPUFFER_API_KEY,
+        region,
+        tuning: {
             arm,
             popularityMidpoint: midpoint,
             expandSynonyms: params.get("synonyms") === "1",
@@ -184,10 +198,7 @@ function searchWithTurbopuffer(
             rerankSynonyms: params.get("rsyn") === "1",
             rerankPopularityWeight,
         },
-        page,
-        hitsPerPage,
-        baseUrl
-    )
+    }
 }
 
 const hasSearchEnvVars = (env: Env): boolean => {
@@ -387,15 +398,27 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         // Extract base URL from request (for staging/preview deployments)
         const baseUrl = `${url.protocol}//${url.host}`
 
+        const tpuf =
+            url.searchParams.get("engine") === "tpuf"
+                ? parseTurbopufferRequest(
+                      env,
+                      url.searchParams,
+                      request.cf?.continent
+                  )
+                : undefined
+
         const search = (): Promise<
-            SearchApiResponse | SearchPagesApiResponse | SearchTopicsApiResponse
+            | SearchApiResponse
+            | SearchPagesApiResponse
+            | SearchTopicsApiResponse
+            | TurbopufferSearchApiResponse
+            | TurbopufferPagesApiResponse
         > => {
             switch (searchType) {
                 case "charts":
-                    if (url.searchParams.get("engine") === "tpuf")
-                        return searchWithTurbopuffer(
-                            env,
-                            url.searchParams,
+                    if (tpuf)
+                        return searchChartsTurbopuffer(
+                            tpuf,
                             searchState,
                             page,
                             hitsPerPage,
@@ -409,6 +432,15 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                         baseUrl
                     )
                 case "pages":
+                    if (tpuf)
+                        return searchPagesTurbopuffer(
+                            tpuf,
+                            query,
+                            page * hitsPerPage,
+                            hitsPerPage,
+                            pageTypes ?? DEFAULT_PAGE_TYPES,
+                            baseUrl
+                        )
                     return searchPages(
                         algoliaConfig,
                         query,

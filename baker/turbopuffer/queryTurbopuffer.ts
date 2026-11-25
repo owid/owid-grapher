@@ -1,14 +1,19 @@
 import { parseArgs } from "node:util"
 import type { Row } from "@turbopuffer/turbopuffer"
 import {
-    DEFAULT_POPULARITY_MIDPOINT,
     isTurbopufferArm,
-    queryTurbopufferCharts,
+    isTurbopufferRegion,
+    queryTurbopuffer,
+    DEFAULT_TURBOPUFFER_REGION,
     TURBOPUFFER_ARMS,
-    TURBOPUFFER_CHARTS_NAMESPACE,
+    TURBOPUFFER_INDEXES,
+    TURBOPUFFER_REGIONS,
+    type TurbopufferIndex,
+    type TurbopufferRegion,
+    type TurbopufferIndexName,
 } from "@ourworldindata/utils"
 import { TURBOPUFFER_API_KEY } from "../../settings/serverSettings.js"
-import { getTurbopufferClient } from "./chartsNamespace.js"
+import { getTurbopufferClient } from "./namespaces.js"
 
 const DEFAULT_QUERIES = [
     "co2",
@@ -17,29 +22,35 @@ const DEFAULT_QUERIES = [
     "poulation", // typo
 ]
 
-const USAGE = `Usage: yarn queryChartsInTurbopuffer [options] [query ...]
+const USAGE = `Usage: yarn queryTurbopuffer [options] [query ...]
 
-Runs each query through the first-stage arms against "${TURBOPUFFER_CHARTS_NAMESPACE}"
+Runs each query through the arms against an index's namespace
 and prints the top hits with turbopuffer's timings and billing.
 Default queries: ${DEFAULT_QUERIES.join(", ")}
 
 Options:
   --arms <list>      Comma-separated arms (default ${TURBOPUFFER_ARMS.join(",")})
-                     T0 BM25; T1 + popularity; T2 + fuzzy; T3 T1 + vector, RRF
-  --midpoint <n>     Saturate midpoint for popularity (default ${DEFAULT_POPULARITY_MIDPOINT})
+                     T0 BM25; T1 + popularity; T2 + fuzzy; T3 T1 + vector, RRF;
+                     T4 T3's candidates reranked by a model
+  --index <name>     charts (default) or pages
+  --region <region>  ${TURBOPUFFER_REGIONS.join(" or ")} (default ${DEFAULT_TURBOPUFFER_REGION})
+  --midpoint <n>     Saturate midpoint for popularity (default: the index's)
   --top <n>          Hits to print per arm (default 5)
   --check            Run the post-load checks instead of queries
   --namespace <name> Query another namespace
 `
 
-function formatHit(row: Row): string {
+function formatHit(row: Row, index: TurbopufferIndex): string {
     const variant = row.variantName ? ` [${String(row.variantName)}]` : ""
     const dist = typeof row.$dist === "number" ? row.$dist.toFixed(3) : "-"
-    return `${String(row.type).padEnd(12)} ${dist.padStart(7)}  ${String(row.title)}${variant}  (${String(row.chart_key)}, popularity ${String(row.popularity)})`
+    return `${String(row.type).padEnd(12)} ${dist.padStart(7)}  ${String(row.title)}${variant}  (${String(row[index.distinctBy])}, popularity ${String(row.popularity)})`
 }
 
-async function postLoadChecks(namespace: string): Promise<void> {
-    const ns = getTurbopufferClient().namespace(namespace)
+async function postLoadChecks(
+    index: TurbopufferIndex,
+    region: TurbopufferRegion
+): Promise<void> {
+    const ns = getTurbopufferClient(region).namespace(index.namespace)
     const metadata = await ns.metadata()
     console.log(
         `Rows: ${metadata.approx_row_count}, logical bytes: ${metadata.approx_logical_bytes}, index: ${JSON.stringify(metadata.index)}`
@@ -57,11 +68,11 @@ async function postLoadChecks(namespace: string): Promise<void> {
     const bm25 = await ns.query({
         rank_by: ["title", "BM25", "gdp per capita"],
         limit: 3,
-        include_attributes: ["chart_key", "title"],
+        include_attributes: [index.distinctBy, "title"],
     })
     console.log("Title BM25 for 'gdp per capita':")
     for (const row of bm25.rows ?? [])
-        console.log(`  ${String(row.title)} (${String(row.chart_key)})`)
+        console.log(`  ${String(row.title)} (${String(row[index.distinctBy])})`)
 }
 
 const main = async (): Promise<void> => {
@@ -72,10 +83,9 @@ const main = async (): Promise<void> => {
             midpoint: { type: "string" },
             top: { type: "string", default: "5" },
             check: { type: "boolean", default: false },
-            namespace: {
-                type: "string",
-                default: TURBOPUFFER_CHARTS_NAMESPACE,
-            },
+            index: { type: "string", default: "charts" },
+            region: { type: "string", default: DEFAULT_TURBOPUFFER_REGION },
+            namespace: { type: "string" },
             help: { type: "boolean", default: false },
         },
     })
@@ -83,9 +93,19 @@ const main = async (): Promise<void> => {
         console.log(USAGE)
         return
     }
-    const namespace = values.namespace
+    if (!Object.hasOwn(TURBOPUFFER_INDEXES, values.index))
+        throw new Error(
+            `--index must be one of: ${Object.keys(TURBOPUFFER_INDEXES)}`
+        )
+    const baseIndex = TURBOPUFFER_INDEXES[values.index as TurbopufferIndexName]
+    const index = values.namespace
+        ? { ...baseIndex, namespace: values.namespace }
+        : baseIndex
+    const region = values.region
+    if (!isTurbopufferRegion(region))
+        throw new Error(`--region must be one of: ${TURBOPUFFER_REGIONS}`)
     if (values.check) {
-        await postLoadChecks(namespace)
+        await postLoadChecks(index, region)
         return
     }
 
@@ -106,10 +126,11 @@ const main = async (): Promise<void> => {
         console.log(`=== ${query}`)
         for (const arm of arms) {
             const started = performance.now()
-            const result = await queryTurbopufferCharts(
+            const result = await queryTurbopuffer(
                 TURBOPUFFER_API_KEY,
+                index,
                 { query, arm, popularityMidpoint },
-                namespace
+                region
             )
             const clientMs = performance.now() - started
             const { performance: perf } = result
@@ -123,7 +144,7 @@ const main = async (): Promise<void> => {
                     `, client ${clientMs.toFixed(0)} ms, cache ${perf.cache_temperature}`
             )
             for (const row of result.rows.slice(0, top))
-                console.log(`      ${formatHit(row)}`)
+                console.log(`      ${formatHit(row, index)}`)
         }
         console.log()
     }

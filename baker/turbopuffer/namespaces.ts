@@ -1,7 +1,10 @@
 import { createHash } from "node:crypto"
 import { Turbopuffer, type AttributeSchema } from "@turbopuffer/turbopuffer"
-import { ChartRecord } from "@ourworldindata/types"
-import { TURBOPUFFER_REGION } from "@ourworldindata/utils"
+import { ChartRecord, PageRecord } from "@ourworldindata/types"
+import {
+    DEFAULT_TURBOPUFFER_REGION,
+    type TurbopufferRegion,
+} from "@ourworldindata/utils"
 import { TURBOPUFFER_API_KEY } from "../../settings/serverSettings.js"
 import { MIN_SCALED_RECORD_SCORE } from "../algolia/utils/shared.js"
 
@@ -9,12 +12,11 @@ const EMBEDDING_MODEL = "baai/bge-m3"
 const SUBTITLE_CHARS_IN_SEARCH_TEXT = 300
 const MAX_ID_BYTES = 64
 
-export function getTurbopufferClient(): Turbopuffer {
+export function getTurbopufferClient(
+    region: TurbopufferRegion = DEFAULT_TURBOPUFFER_REGION
+): Turbopuffer {
     if (!TURBOPUFFER_API_KEY) throw new Error("Missing TURBOPUFFER_API_KEY")
-    return new Turbopuffer({
-        apiKey: TURBOPUFFER_API_KEY,
-        region: TURBOPUFFER_REGION,
-    })
+    return new Turbopuffer({ apiKey: TURBOPUFFER_API_KEY, region })
 }
 
 // A type alias, not an interface, so it satisfies the SDK's indexed `Row` type
@@ -116,3 +118,74 @@ export function toChartRow(record: ChartRecord, indexedAt: number): ChartRow {
         indexed_at: indexedAt,
     }
 }
+
+export type PageRow = {
+    id: string
+    /** The page's path, the key for grouping its chunks like Algolia's `distinct` */
+    path: string
+    type: string
+    slug: string
+    title: string
+    excerpt: string
+    /** One chunk of the page's text, up to 1,000 characters */
+    content: string
+    tags: string[]
+    authors: string[]
+    date: string
+    modifiedDate: string
+    thumbnailUrl: string
+    /** Title, excerpt and this chunk: embedded, fuzzy-matched, and the text the rerank model scores */
+    search_text: string
+    /** The record score: 1,000 × importance + 7-day views, clamped to ≥ 0 */
+    popularity: number
+    indexed_at: number
+}
+
+export const PAGES_SCHEMA: Record<string, AttributeSchema> = {
+    path: "string",
+    type: "string",
+    slug: { type: "string", filterable: false },
+    title: { type: "string", full_text_search: STEMMED },
+    excerpt: { type: "string", full_text_search: STEMMED },
+    content: { type: "string", full_text_search: STEMMED },
+    tags: { type: "[]string", full_text_search: STEMMED, filterable: true },
+    authors: { type: "[]string", full_text_search: true },
+    date: { type: "string", filterable: false },
+    modifiedDate: { type: "string", filterable: false },
+    thumbnailUrl: { type: "string", filterable: false },
+    search_text: {
+        type: "string",
+        embed: EMBEDDING_MODEL,
+        fuzzy: true,
+        filterable: false,
+    },
+    popularity: "uint",
+    indexed_at: "uint",
+}
+
+export function toPageRow(record: PageRecord, indexedAt: number): PageRow {
+    const excerpt = record.excerpt ?? ""
+    return {
+        id: rowId(record.objectID),
+        path: record.path,
+        type: record.type,
+        slug: record.slug,
+        title: record.title,
+        excerpt,
+        content: record.content,
+        tags: record.tags ?? [],
+        authors: record.authors ?? [],
+        date: record.date ?? "",
+        modifiedDate: record.modifiedDate ?? "",
+        thumbnailUrl: record.thumbnailUrl,
+        search_text: [record.title, excerpt, record.content]
+            .filter(Boolean)
+            .map((part) => part.trim().replace(/\.$/, ""))
+            .join(". "),
+        popularity: Math.max(0, record.score),
+        indexed_at: indexedAt,
+    }
+}
+
+/** A row of either namespace, as the indexer handles it */
+export type IndexRow = ChartRow | PageRow
