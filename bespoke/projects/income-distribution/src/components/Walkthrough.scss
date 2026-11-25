@@ -69,6 +69,12 @@
 }
 
 .income-distribution--narrow {
+    // Room under the text for the slide's control, which sits up here
+    // rather than over the plot (see .income-distribution-tutorial-aside)
+    .income-distribution-tutorial-slide-header {
+        margin-bottom: 48px;
+    }
+
     .income-distribution-tutorial-slide-header__text {
         font-size: 17px;
         line-height: 23px;
@@ -255,6 +261,8 @@
 // Narrow charts: only the slide's control, compact and without its label,
 // over the plot's top-left corner, where the curves are still low
 .income-distribution--narrow .income-distribution-tutorial-aside {
+    // Up into the room the header leaves above the plot
+    margin-top: -40px;
     width: auto;
     max-width: calc(100% - 32px);
 
