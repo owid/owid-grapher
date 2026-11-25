@@ -65,8 +65,9 @@ import {
 } from "../settings/clientSettings.mjs"
 import {
     deleteChart,
+    makePublishConfirmMessage,
+    makeUnpublishConfirmMessage,
     References,
-    unpublishConfirmMessage,
 } from "./adminChartApi.js"
 import { getChartListItemEtlSource } from "./etlChartSync.js"
 
@@ -701,8 +702,8 @@ export class ChartList extends React.Component<ChartListProps> {
         // A draft may have no slug yet; the editor then derives it from the title
         const slug = chart.slug || slugify(chart.title ?? "")
         const message = publish
-            ? `Publish chart at ${BAKED_GRAPHER_URL}/${slug}?`
-            : unpublishConfirmMessage(await this.fetchRefs(chart.id))
+            ? makePublishConfirmMessage(slug)
+            : makeUnpublishConfirmMessage(await this.fetchRefs(chart.id))
         if (!window.confirm(message)) return
 
         const patch: GrapherInterface = await admin.getJSON(

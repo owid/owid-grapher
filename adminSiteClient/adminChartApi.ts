@@ -10,7 +10,7 @@ import { ContentGraphLinkType } from "@ourworldindata/types"
 import { migrateGrapherConfigToLatestVersion } from "@ourworldindata/grapher"
 import { Admin } from "./Admin.js"
 import { DataInsightMinimalInformation } from "../adminShared/AdminTypes.js"
-import { ENV } from "../settings/clientSettings.mjs"
+import { BAKED_GRAPHER_URL, ENV } from "../settings/clientSettings.mjs"
 
 export interface Log {
     userId: number
@@ -130,8 +130,11 @@ export const getFullReferencesCount = (references: References): number => {
     return uniqueRefs.size
 }
 
-/** The confirmation before unpublishing a chart, louder if it's referenced */
-export function unpublishConfirmMessage(references?: References): string {
+export function makePublishConfirmMessage(slug: string): string {
+    return `Publish chart at ${BAKED_GRAPHER_URL}/${slug}?`
+}
+
+export function makeUnpublishConfirmMessage(references?: References): string {
     return references && getFullReferencesCount(references) > 0
         ? "WARNING: This chart might be referenced from public posts, please double check before unpublishing. Try to remove the chart anyway?"
         : "Are you sure you want to unpublish this chart?"

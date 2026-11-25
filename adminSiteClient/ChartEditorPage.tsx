@@ -15,7 +15,6 @@ import {
     DbChartTagJoin,
     OwidChartDimensionInterface,
 } from "@ourworldindata/types"
-import { BAKED_GRAPHER_URL } from "../settings/clientSettings.mjs"
 import { ChartSourceBadge, EtlSourceSection } from "./ChartSourceBadge.js"
 import { EtlSource, getOverriddenFields, makeEtlDrift } from "./etlChartSync.js"
 import { Admin } from "./Admin.js"
@@ -41,8 +40,9 @@ import {
     getFullReferencesCount,
     Log,
     makeChartBaseConfig,
+    makePublishConfirmMessage,
+    makeUnpublishConfirmMessage,
     References,
-    unpublishConfirmMessage,
 } from "./adminChartApi.js"
 import {
     adminOriginUrlSuggestions,
@@ -424,13 +424,15 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
                     () => (grapherState.isPublished = wasPublished)
                 )
                 if (wasPublished) {
-                    const message = unpublishConfirmMessage(this.references)
+                    const message = makeUnpublishConfirmMessage(this.references)
                     if (!window.confirm(message)) return
                     runInAction(() => (grapherState.isPublished = undefined))
                     void editor.saveGrapher({ onError: rollBack })
                 } else {
-                    const url = `${BAKED_GRAPHER_URL}/${grapherState.displaySlug}`
-                    if (!window.confirm(`Publish chart at ${url}?`)) return
+                    const message = makePublishConfirmMessage(
+                        grapherState.displaySlug
+                    )
+                    if (!window.confirm(message)) return
                     runInAction(() => (grapherState.isPublished = true))
                     void editor.saveGrapher({ onError: rollBack })
                 }
