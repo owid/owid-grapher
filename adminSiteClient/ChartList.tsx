@@ -698,10 +698,10 @@ export class ChartList extends React.Component<ChartListProps> {
     /** Publishes or unpublishes it as the editor does, with its warnings */
     @bind async onTogglePublished(chart: ChartListItem) {
         const { admin } = this.context
-        const publish = !chart.isPublished
+        const shouldPublish = !chart.isPublished
         // A draft may have no slug yet; the editor then derives it from the title
         const slug = chart.slug || slugify(chart.title ?? "")
-        const message = publish
+        const message = shouldPublish
             ? makePublishConfirmMessage(slug)
             : makeUnpublishConfirmMessage(await this.fetchRefs(chart.id))
         if (!window.confirm(message)) return
@@ -711,7 +711,7 @@ export class ChartList extends React.Component<ChartListProps> {
         )
         await admin.requestJSON(
             `/api/charts/${chart.id}`,
-            publish
+            shouldPublish
                 ? {
                       ...patch,
                       isPublished: true,
@@ -724,11 +724,11 @@ export class ChartList extends React.Component<ChartListProps> {
         const now = new Date().toISOString()
         const updatedChart: ChartListItem = {
             ...chart,
-            slug: publish ? slug : chart.slug,
-            isPublished: publish,
+            slug: shouldPublish ? slug : chart.slug,
+            isPublished: shouldPublish,
             lastEditedAt: now,
             lastEditedBy: admin.username,
-            ...(publish
+            ...(shouldPublish
                 ? { publishedAt: now, publishedBy: admin.username }
                 : {}),
         }
