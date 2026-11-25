@@ -21,6 +21,9 @@ class Memoized {
     }
 }
 
+// Results are accumulated here so the benchmarked work can't be optimised away.
+let sink = 0
+
 const readAll = (o: Memoized): number => o.a + o.b + o.c + o.d + o.e
 
 // Many short-lived instances whose getters are each read a few times,
@@ -35,7 +38,9 @@ const manyInstances = (): number => {
 }
 
 test("imemo: first access on many fresh instances", async ({ bench }) => {
-    await bench("imemo", () => void manyInstances()).run()
+    await bench("imemo", () => {
+        sink += manyInstances()
+    }).run()
 })
 
 // A few long-lived instances whose memoized getters are read over and over.
@@ -49,5 +54,7 @@ const readWarm = (): number => {
 }
 
 test("imemo: repeated reads of already-memoized values", async ({ bench }) => {
-    await bench("imemo", () => void readWarm()).run()
+    await bench("imemo", () => {
+        sink += readWarm()
+    }).run()
 })
