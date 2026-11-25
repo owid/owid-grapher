@@ -237,8 +237,8 @@ export function IncomeDistributionLegend({
                         type="button"
                         className="income-distribution-legend__close"
                         onClick={onClearPovertyLine}
-                        aria-label="Remove poverty line"
-                        data-hint="Remove poverty line"
+                        aria-label="Close & remove poverty line"
+                        data-hint="Close & remove poverty line"
                     >
                         <FontAwesomeIcon icon={faXmark} aria-hidden />
                     </button>
