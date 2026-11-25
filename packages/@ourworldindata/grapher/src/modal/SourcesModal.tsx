@@ -149,7 +149,7 @@ export class SourcesModal extends React.Component<SourcesModalProps> {
         )
     }
 
-    @computed private get tabs(): SourcesModalTab[] {
+    @computed get tabs(): SourcesModalTab[] {
         const columnTabs = this.columns.map((column) => {
             let title = column.titlePublicOrDisplayName.title
 
