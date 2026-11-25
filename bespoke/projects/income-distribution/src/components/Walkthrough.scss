@@ -309,4 +309,12 @@
     color: $gray-70;
     font-size: 16px;
     line-height: 21px;
+    // A soft white halo, so the text stays readable where it runs over the
+    // plot (several stacked shadows make it solid, not a thin glow)
+    text-shadow:
+        0 0 3px $white,
+        0 0 3px $white,
+        0 0 3px $white,
+        0 0 6px $white,
+        0 0 6px $white;
 }
