@@ -1,20 +1,20 @@
 import { Tippy } from "@ourworldindata/utils"
+import { DOD_TIPPY_PROPS } from "@ourworldindata/components/src/detailsOnDemand.js"
 
 import { useTippyContainer } from "../../../../hooks/useTippyContainer.js"
 import type { WelfareType } from "../core/types.js"
 import { WELFARE_TYPE_DETAILS } from "../core/welfareType.js"
 import type { WelfareSentenceSegment } from "../core/welfareSentence.js"
 
-/** Like OWID's details-on-demand tooltips (DOD_TIPPY_PROPS in @ourworldindata/components) */
+// tippy.js types `content` and `render` more widely than the React wrapper
+// does; the DoD props set neither
+const { content: _content, render: _render, ...dodTippyProps } = DOD_TIPPY_PROPS
+
+/** OWID's details-on-demand tooltips, with this project's theme (WelfareDetails.scss) */
 export const WELFARE_DOD_TIPPY_PROPS: Partial<
     React.ComponentProps<typeof Tippy>
 > = {
-    // A hide delay, so the pointer can reach the card in tricky edge cases
-    // such as a term that wraps onto two lines
-    delay: [null, 200],
-    interactive: true,
-    hideOnClick: false,
-    arrow: false,
+    ...dodTippyProps,
     theme: "light income-distribution-dod",
     maxWidth: 320,
 }

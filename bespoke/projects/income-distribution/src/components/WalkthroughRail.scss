@@ -27,8 +27,7 @@
     }
 
     &:focus-visible {
-        outline: 2px solid $blue-30;
-        outline-offset: 2px;
+        @include income-distribution-focus-ring;
     }
 }
 
@@ -149,27 +148,20 @@
 }
 
 .income-distribution-tutorial-pill {
-    display: flex;
+    @include income-distribution-pill-button;
+
     flex-shrink: 0;
-    align-items: center;
-    gap: 8px;
-    height: 40px;
-    padding: 8px 16px 8px 12px;
     border: 1px solid $blue-60;
-    border-radius: 4px;
     background: $white;
     color: $blue-60;
-    font: 500 14px/21px $sans-serif-font-stack;
     white-space: nowrap;
-    cursor: pointer;
 
     &:hover {
         background: $blue-5;
     }
 
     &:focus-visible {
-        outline: 2px solid $blue-30;
-        outline-offset: 2px;
+        @include income-distribution-focus-ring;
     }
 }
 

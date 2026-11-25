@@ -2,26 +2,19 @@ $configure-drawer-duration: 200ms;
 
 // Narrow charts: takes the controls card's place above the chart
 .income-distribution-configure-button {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    height: 40px;
+    @include income-distribution-pill-button;
+
     margin-bottom: 16px;
-    padding: 8px 16px 8px 12px;
     border: none;
-    border-radius: 4px;
     background: $blue-70;
     color: $white;
-    font: 500 14px/21px $sans-serif-font-stack;
-    cursor: pointer;
 
     &[data-hovered] {
         background: $blue-60;
     }
 
     &[data-focus-visible] {
-        outline: 2px solid $blue-30;
-        outline-offset: 2px;
+        @include income-distribution-focus-ring;
     }
 }
 
@@ -124,7 +117,6 @@ $configure-drawer-duration: 200ms;
     }
 
     &[data-focus-visible] {
-        outline: 2px solid $blue-30;
-        outline-offset: 1px;
+        @include income-distribution-focus-ring(1px);
     }
 }

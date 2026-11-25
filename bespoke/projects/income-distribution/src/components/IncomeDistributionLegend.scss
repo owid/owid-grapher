@@ -100,8 +100,7 @@
     }
 
     &:focus-visible {
-        outline: 2px solid $blue-30;
-        outline-offset: 1px;
+        @include income-distribution-focus-ring(1px);
     }
 }
 
@@ -235,28 +234,19 @@
     }
 
     &:focus-visible {
-        outline: 2px solid $blue-30;
-        outline-offset: 0;
+        @include income-distribution-focus-ring(0);
     }
 
-    // The same instant hint as the × next to the poverty line's label
-    // (.income-distribution-hint in IncomeDistributionChart.scss)
+    // The same instant hint as the × next to the poverty line's label,
+    // right-aligned under the ×
     &::after {
+        @include income-distribution-hint-card;
+
         content: attr(data-hint);
         position: absolute;
         top: calc(100% + 4px);
         right: 0;
         display: none;
-        padding: 4px 8px;
-        border: 1px solid $gray-20;
-        border-radius: 4px;
-        background: $white;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-        color: $gray-100;
-        font-size: 12px;
-        line-height: 1.3;
-        white-space: nowrap;
-        pointer-events: none;
     }
 
     &:hover::after,
