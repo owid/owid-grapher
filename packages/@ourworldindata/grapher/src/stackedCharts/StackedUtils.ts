@@ -1,6 +1,8 @@
 import * as R from "remeda"
 import * as _ from "lodash-es"
 import { InitialAnchoredLabelSeries } from "../anchoredLabels/AnchoredLabelsTypes.js"
+import { AnchoredLabelsState } from "../anchoredLabels/AnchoredLabelsState.js"
+import { FontSettings } from "../core/GrapherConstants.js"
 import {
     SeriesName,
     sortNumeric,
@@ -118,28 +120,24 @@ export function compareStackedSeriesByImportance(
     s1: StackedSeries<number>,
     s2: StackedSeries<number>
 ): number {
-    if (s1.isAllZeros && !s2.isAllZeros) return 1
-    if (s2.isAllZeros && !s1.isAllZeros) return -1
+    return (
+        Number(s1.isAllZeros) - Number(s2.isAllZeros) ||
+        getLastValue(s2) - getLastValue(s1) ||
+        getMaxValue(s2) - getMaxValue(s1) ||
+        getArea(s2) - getArea(s1)
+    )
+}
 
-    // Prefer series with a higher last value
-    const yLast1 = R.last(s1.points)?.value ?? 0
-    const yLast2 = R.last(s2.points)?.value ?? 0
-    if (yLast1 > yLast2) return -1
-    if (yLast2 > yLast1) return 1
+function getLastValue(series: StackedSeries<number>): number {
+    return R.last(series.points)?.value ?? 0
+}
 
-    // Prefer series with a higher maximum value
-    const yMax1 = _.maxBy(s1.points, (p) => p.value)?.value ?? 0
-    const yMax2 = _.maxBy(s2.points, (p) => p.value)?.value ?? 0
-    if (yMax1 > yMax2) return -1
-    if (yMax2 > yMax1) return 1
+function getMaxValue(series: StackedSeries<number>): number {
+    return _.maxBy(series.points, (p) => p.value)?.value ?? 0
+}
 
-    // Prefer series with a higher total area
-    const area1 = _.sumBy(s1.points, (p) => p.value)
-    const area2 = _.sumBy(s2.points, (p) => p.value)
-    if (area1 > area2) return -1
-    if (area2 > area1) return 1
-
-    return 0
+function getArea(series: StackedSeries<number>): number {
+    return _.sumBy(series.points, (p) => p.value)
 }
 
 export function getXAxisConfigDefaultsForStackedBar(
@@ -266,14 +264,58 @@ export function toPlacedStackedBarSeries(
     }))
 }
 
+/** Series labels at the right edge of a stacked thumbnail */
+export function makeStackedAnchoredLabelsState(
+    labelsSeries: readonly Omit<InitialAnchoredLabelSeries, "position">[],
+    {
+        seriesByName,
+        dualAxis,
+        fontSettings,
+        maxWidth,
+        labelPadding,
+        yRange,
+    }: {
+        seriesByName: Map<SeriesName, StackedSeries<number>>
+        dualAxis: DualAxis
+        fontSettings: FontSettings
+        maxWidth: number
+        labelPadding: number
+        yRange: [number, number]
+    }
+): AnchoredLabelsState {
+    const compare = makeStackedLabelComparator(seriesByName)
+    const series = toInitialAnchoredLabelSeries(labelsSeries, {
+        seriesByName,
+        dualAxis,
+        compare,
+    })
+    return new AnchoredLabelsState(series, {
+        ...fontSettings,
+        maxWidth,
+        labelPadding,
+        yRanges: { edge: yRange },
+        compare,
+    })
+}
+
 /**
  * Labels of series whose last band is tall enough to label, anchored at the
  * chart's right edge. When no band is, the top-ranked series keeps its label.
  */
-export function toInitialAnchoredLabelSeries(
+function toInitialAnchoredLabelSeries(
     labelsSeries: readonly Omit<InitialAnchoredLabelSeries, "position">[],
-    seriesByName: Map<SeriesName, StackedSeries<number>>,
-    dualAxis: DualAxis
+    {
+        seriesByName,
+        dualAxis,
+        compare,
+    }: {
+        seriesByName: Map<SeriesName, StackedSeries<number>>
+        dualAxis: DualAxis
+        compare: (
+            a: InitialAnchoredLabelSeries,
+            b: InitialAnchoredLabelSeries
+        ) => number
+    }
 ): InitialAnchoredLabelSeries[] {
     const anchoredSeries = labelsSeries.map((series) => ({
         ...series,
@@ -293,9 +335,7 @@ export function toInitialAnchoredLabelSeries(
     if (seriesWithTallBand.length > 0 || anchoredSeries.length === 0)
         return seriesWithTallBand
 
-    const topRankedSeries = anchoredSeries.toSorted(
-        makeStackedLabelComparator(seriesByName)
-    )[0]
+    const topRankedSeries = anchoredSeries.toSorted(compare)[0]
     return [topRankedSeries]
 }
 
@@ -308,7 +348,7 @@ function isLastBandTallEnoughToLabel(
     )
 }
 
-export function makeStackedLabelComparator(
+function makeStackedLabelComparator(
     seriesByName: Map<SeriesName, StackedSeries<number>>
 ): (a: InitialAnchoredLabelSeries, b: InitialAnchoredLabelSeries) => number {
     return (a, b) => {

@@ -21,8 +21,7 @@ import {
 } from "./StackedConstants"
 import {
     getXAxisConfigDefaultsForStackedBar,
-    toInitialAnchoredLabelSeries,
-    makeStackedLabelComparator,
+    makeStackedAnchoredLabelsState,
     toPlacedStackedBarSeries,
 } from "./StackedUtils"
 import {
@@ -150,19 +149,13 @@ export class StackedBarChartThumbnail
     }): AnchoredLabelsState | undefined {
         if (this.labelsSeries.length === 0) return undefined
 
-        const series = toInitialAnchoredLabelSeries(
-            this.labelsSeries,
-            this.chartState.seriesByName,
-            dualAxis
-        )
-
-        return new AnchoredLabelsState(series, {
-            ...this.labelFontSettings,
+        return makeStackedAnchoredLabelsState(this.labelsSeries, {
+            seriesByName: this.chartState.seriesByName,
+            dualAxis,
+            fontSettings: this.labelFontSettings,
             maxWidth: this.labelsMaxWidth,
             labelPadding: LEGEND_PADDING,
-            xRange: dualAxis.bounds.xRange(),
-            yRanges: { edge: this.labelsRange },
-            compare: makeStackedLabelComparator(this.chartState.seriesByName),
+            yRange: this.labelsRange,
         })
     }
 

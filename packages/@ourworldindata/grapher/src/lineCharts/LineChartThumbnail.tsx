@@ -409,12 +409,7 @@ export class LineChartThumbnail
 
         // Keep one series per name, the one with the earliest data
         // (series are sorted by time)
-        const seriesByName = Map.groupBy(
-            labelCandidateSeries,
-            (series) => series.seriesName
-        )
-
-        return [...seriesByName.values()].map((group) => group[0])
+        return _.uniqBy(labelCandidateSeries, (series) => series.seriesName)
     }
 
     @computed private get startPointBySeriesName(): Map<
@@ -520,15 +515,11 @@ export class LineChartThumbnail
             compare: (
                 a: InitialAnchoredLabelSeries,
                 b: InitialAnchoredLabelSeries
-            ): number => {
-                // Prefer to label series that have an end label
-                const hasEndLabelA = visibleEndLabels.has(a.seriesName)
-                const hasEndLabelB = visibleEndLabels.has(b.seriesName)
-                if (hasEndLabelA !== hasEndLabelB) return hasEndLabelA ? -1 : 1
-
-                // Prefer the series with the larger x value
-                return b.position.x - a.position.x
-            },
+            ): number =>
+                // Prefer series that have an end label, then those further right
+                Number(visibleEndLabels.has(b.seriesName)) -
+                    Number(visibleEndLabels.has(a.seriesName)) ||
+                b.position.x - a.position.x,
         })
     }
 

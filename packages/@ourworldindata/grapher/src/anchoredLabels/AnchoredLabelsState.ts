@@ -34,8 +34,8 @@ interface AnchoredLabelsOptions {
     /** Maximum width for labels (no restriction by default) */
     maxWidth?: number
 
-    /** Horizontal extent of the plot */
-    xRange: [number, number]
+    /** Horizontal extent of the plot; without it, every label is an edge label */
+    xRange?: [number, number]
 
     /** Vertical ranges the labels must stay inside */
     yRanges?: {
@@ -213,6 +213,8 @@ export class AnchoredLabelsState {
 
     @computed private get edgeSeriesNames(): Set<string> {
         const { xRange, textAnchor } = this.options
+        if (!xRange)
+            return new Set(this.sizedSeries.map((series) => series.seriesName))
         const [left, right] = xRange
         const isAtOrBeyondEdge = (x: number): boolean =>
             textAnchor === "start"
@@ -277,14 +279,13 @@ export class AnchoredLabelsState {
             series: SizedAnchoredLabelSeries,
             collisionBounds: Bounds
         ): Bounds[] => {
-            const reachTop = collisionBounds.top - maxNudge - NUDGE_STEP_PX
-            const reachBottom =
-                collisionBounds.bottom + maxNudge + NUDGE_STEP_PX
+            const reach = maxNudge + NUDGE_STEP_PX
+            const reachBounds = collisionBounds.expand({
+                top: reach,
+                bottom: reach,
+            })
             const isInReach = (bounds: Bounds): boolean =>
-                bounds.left <= collisionBounds.right &&
-                bounds.right >= collisionBounds.left &&
-                bounds.top <= reachBottom &&
-                bounds.bottom >= reachTop
+                reachBounds.intersects(bounds)
 
             const obstacles = placedCollisionBounds.filter(isInReach)
             for (const edge of edgeLabels)
@@ -314,14 +315,16 @@ export class AnchoredLabelsState {
             const collisionBounds = bounds.expand(this.collisionPadding)
             const obstacles = findObstaclesInReach(series, collisionBounds)
 
-            const isOffsetFree = (dy: number): boolean =>
-                bounds.top + dy >= range.top &&
-                bounds.bottom + dy <= range.bottom &&
-                !obstacles.some(
-                    (obstacle) =>
-                        obstacle.top <= collisionBounds.bottom + dy &&
-                        obstacle.bottom >= collisionBounds.top + dy
+            const isOffsetFree = (dy: number): boolean => {
+                if (bounds.top + dy < range.top) return false
+                if (bounds.bottom + dy > range.bottom) return false
+                const shifted = collisionBounds.set({
+                    y: collisionBounds.y + dy,
+                })
+                return !obstacles.some((obstacle) =>
+                    shifted.hasVerticalOverlap(obstacle)
                 )
+            }
 
             const dy = findNearestFreeOffset({ maxNudge, isOffsetFree })
             if (dy === undefined) continue
@@ -432,11 +435,6 @@ function appendFarthestFirst<T extends InitialAnchoredLabelSeries>(
     ordered: T[],
     candidates: readonly T[]
 ): void {
-    if (candidates.length === 1) {
-        ordered.push(candidates[0])
-        return
-    }
-
     const remaining = candidates.map((candidate) => ({
         candidate,
         squaredDistanceToOrdered: ordered.reduce(

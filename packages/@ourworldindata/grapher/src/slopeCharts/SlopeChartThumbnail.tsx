@@ -258,16 +258,16 @@ export class SlopeChartThumbnail
 
     private makeEndLabelsState({
         yAxis,
-        xRange,
+        endX,
     }: {
         yAxis: VerticalAxis
-        xRange: [number, number]
+        endX: number
     }): AnchoredLabelsState | undefined {
         if (!this.manager.showSeriesLabels) return undefined
 
         const series = this.endLabelsSeries.map((series) => {
             const position = {
-                x: xRange[1],
+                x: endX,
                 y: yAxis.place(series.value),
             }
 
@@ -276,17 +276,13 @@ export class SlopeChartThumbnail
 
         return new AnchoredLabelsState(series, {
             ...this.labelFontSettings,
-            xRange,
             labelPadding: LABEL_PADDING,
             yRanges: { edge: this.labelsRange },
         })
     }
 
     @computed private get endLabelsState(): AnchoredLabelsState | undefined {
-        return this.makeEndLabelsState({
-            yAxis: this.yAxis,
-            xRange: [this.startX, this.endX],
-        })
+        return this.makeEndLabelsState({ yAxis: this.yAxis, endX: this.endX })
     }
 
     @computed private get shouldShowValueLabelsOnly(): boolean {
@@ -319,18 +315,18 @@ export class SlopeChartThumbnail
 
     private makeStartLabelsState({
         yAxis,
-        xRange,
+        startX,
         visibleEndLabels,
     }: {
         yAxis: VerticalAxis
-        xRange: [number, number]
+        startX: number
         visibleEndLabels: Set<SeriesName>
     }): AnchoredLabelsState | undefined {
         if (!this.manager.showSeriesLabels) return undefined
 
         const series = this.startLabelsSeries.map((series) => {
             const position = {
-                x: xRange[0],
+                x: startX,
                 y: yAxis.place(series.value),
             }
 
@@ -341,26 +337,22 @@ export class SlopeChartThumbnail
             ...this.labelFontSettings,
             textAnchor: "end",
             maxWidth: this.startLabelsMaxWidth,
-            xRange,
             labelPadding: LABEL_PADDING,
             yRanges: { edge: this.labelsRange },
             compare: (
                 a: InitialAnchoredLabelSeries,
                 b: InitialAnchoredLabelSeries
-            ): number => {
+            ): number =>
                 // Prefer to label series that have an end label
-                const hasEndLabelA = visibleEndLabels.has(a.seriesName)
-                const hasEndLabelB = visibleEndLabels.has(b.seriesName)
-                if (hasEndLabelA === hasEndLabelB) return 0
-                return hasEndLabelA ? -1 : 1
-            },
+                Number(visibleEndLabels.has(b.seriesName)) -
+                Number(visibleEndLabels.has(a.seriesName)),
         })
     }
 
     @computed private get startLabelsState(): AnchoredLabelsState | undefined {
         return this.makeStartLabelsState({
             yAxis: this.yAxis,
-            xRange: [this.startX, this.endX],
+            startX: this.startX,
             visibleEndLabels: this.visibleEndLabels,
         })
     }
@@ -401,14 +393,12 @@ export class SlopeChartThumbnail
         const preliminaryXScale = scaleLinear()
             .domain(this.chartState.xDomain)
             .range(preliminaryBounds.xRange())
-        const preliminaryXRange: [number, number] = [
-            preliminaryXScale(this.chartState.startTime),
-            preliminaryXScale(this.chartState.endTime),
-        ]
+        const preliminaryStartX = preliminaryXScale(this.chartState.startTime)
+        const preliminaryEndX = preliminaryXScale(this.chartState.endTime)
 
         const endLabelsState = this.makeEndLabelsState({
             yAxis: preliminaryYAxis,
-            xRange: preliminaryXRange,
+            endX: preliminaryEndX,
         })
 
         const visibleEndLabels = new Set(
@@ -417,7 +407,7 @@ export class SlopeChartThumbnail
 
         const startLabelsState = this.makeStartLabelsState({
             yAxis: preliminaryYAxis,
-            xRange: preliminaryXRange,
+            startX: preliminaryStartX,
             visibleEndLabels,
         })
 
