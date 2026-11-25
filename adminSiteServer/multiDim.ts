@@ -273,6 +273,8 @@ export async function upsertMultiDim(
     // run one after another. Without it, both work out the same orphaned views
     // and the second one fails deep in the upsert, waiting on the first one's
     // row locks. A multi-dim that doesn't exist yet has no row to lock.
+    // Publishing and deleting lock the row first too (see
+    // getMultiDimDataPageByIdForUpdate), so the writers can't deadlock.
     const existingMultiDim = await knex<DbPlainMultiDimDataPage>(
         MultiDimDataPagesTableName
     )
