@@ -272,7 +272,7 @@ export class SwimlaneChart
     @computed private get xAxisConfig(): AxisConfig {
         const labelModeOverrides = this.shouldShowAxis
             ? {}
-            : { hideTickLabels: true }
+            : { hideTickLabels: true, label: "" }
         return new AxisConfig(
             {
                 isDomainEndExclusive: true,
