@@ -1,23 +1,19 @@
 // Analytics Type System
 //
-// This file defines the complete contract between the frontend and analytics backend.
-// Each event category has exactly one corresponding parameter interface.
-// TypeScript enforces you can't send wrong parameters for an event.
+// The single source of truth for the analytics events the site sends.
+// Each event has exactly one params type, which says what the event is, when
+// it fires, since when (`@since`), and what it carries. TypeScript enforces
+// you can't send wrong parameters for an event.
 //
-// IMPORTANT GUIDELINES FOR ANALYTICS BACKEND:
+// Read docs/analytics.md before adding or changing an event: it explains how
+// an event reaches GA4, how to read these types, and what to do when an event
+// changes.
 //
-// 1. GA4 100-Character Limit:
-//    - GA4 truncates ALL string parameters at exactly 100 characters
-//    - Use separate typed parameters instead of JSON in eventContext
-//    - Example: searchQuery, searchTopics (separate params)
-//      is better than eventContext: JSON.stringify({query, topics})
-//
-// 2. Register Custom Parameters in Google Tag Manager:
-//    - After adding new parameters, you MUST register them in GTM
-//    - Go to: https://tagmanager.google.com/#/container/accounts/4702630479/containers/12712743/workspaces/50/tags
-//    - Without registration, custom parameters won't be collected by GA4
-//
-// 3. This file is the single source of truth for the analytics contract
+// GA4 100-character limit:
+// - GA4 truncates ALL string parameters at exactly 100 characters
+// - Use separate typed parameters instead of JSON in eventContext
+// - Example: searchQuery, searchTopics (separate params)
+//   is better than eventContext: JSON.stringify({query, topics})
 
 import { JsonString } from "../domainTypes/Various.js"
 import { FacetStrategy, GrapherTabName } from "../grapherTypes/GrapherTypes.js"
@@ -102,6 +98,14 @@ export type GAEvent = {
 
 // Site Events
 
+/**
+ * The state of the search page: the query and the filters.
+ *
+ * Fires when a visitor changes the query or a filter on the search page
+ * (`/search`). Each distinct state is sent once. The empty default state is
+ * not sent on page load, only when the visitor comes back to it.
+ * @since 2025-10
+ */
 export interface SiteSearchParams {
     /** Always 'search' for this event */
     eventAction: "search"
@@ -117,6 +121,14 @@ export interface SiteSearchParams {
     searchSelectedCountries: string
 }
 
+/**
+ * The state of the filters on the "Latest" page (`/latest`).
+ *
+ * Fires when a visitor changes the topic or content type filter on that page.
+ * Each distinct state is sent once. The unfiltered default state is not sent
+ * on page load, only when the visitor comes back to it.
+ * @since 2026-05
+ */
 export interface SiteLatestParams {
     /** Always 'filter' for this event */
     eventAction: "filter"
@@ -134,6 +146,10 @@ export interface SiteLatestParams {
 /**
  * Records opening the content represented by a feed preview. Excludes body,
  * author, and CTA links within content already displayed in the feed.
+ *
+ * Fires when a visitor opens an article, a data insight or a data update from
+ * its card in the feed of the "Latest" page (`/latest`).
+ * @since 2026-05
  */
 export interface SiteLatestResultClickParams {
     /** Always 'click' for this event */
@@ -152,6 +168,14 @@ export interface SiteLatestResultClickParams {
     experimentArm?: string
 }
 
+/**
+ * A pick from the suggestions of the search page's own search field.
+ *
+ * Fires when a visitor chooses a suggested topic, country or query in the
+ * autocomplete of the search page (`/search`). The search fields elsewhere on
+ * the site send `owid.site_instantsearch_click` instead.
+ * @since 2025-06
+ */
 export interface SiteSearchAutocompleteClickParams {
     /** Always 'click' for this event */
     eventAction: "click"
@@ -171,6 +195,14 @@ export interface SiteSearchAutocompleteClickParams {
     autocompleteSuggestionsCount: number
 }
 
+/**
+ * A click on a search result.
+ *
+ * Fires when a visitor clicks a result on the search page (`/search`): a
+ * chart, an article, a topic page, a data insight, a country profile or a
+ * featured visualization.
+ * @since 2025-10
+ */
 export interface SiteSearchResultClickParams {
     /** Always 'click' for this event */
     eventAction: "click"
@@ -180,6 +212,15 @@ export interface SiteSearchResultClickParams {
     eventTarget: string
 }
 
+/**
+ * A click on a tracked element of the site that is not inside a chart.
+ *
+ * Fires when a visitor clicks an element that has a `data-track-note`
+ * attribute (or anything inside it) and that is not inside a chart; clicks
+ * inside a chart send `owid.grapher_click`. A few clicks are logged from code
+ * instead, see {@link SiteClickAction}.
+ * @since 2023-06
+ */
 export interface SiteClickParams {
     /** The clicked element's track note, or an action logged from code */
     eventAction: TrackNote | SiteClickAction
@@ -187,6 +228,14 @@ export interface SiteClickParams {
     eventTarget?: string
 }
 
+/**
+ * A submitted newsletter or donation form.
+ *
+ * Fires when a visitor submits a newsletter subscription form
+ * (`newsletter-subscribe`), or when the donation form was accepted and the
+ * visitor is about to be sent to the payment page (`donate`).
+ * @since 2024-07
+ */
 export interface SiteFormSubmitParams {
     /** Action type - form submission type */
     eventAction: "newsletter-subscribe" | "donate"
@@ -194,6 +243,14 @@ export interface SiteFormSubmitParams {
     eventTarget?: string
 }
 
+/**
+ * Use of the browser's own find-in-page.
+ *
+ * Fires when a visitor presses Cmd/Ctrl+F or F3 on any page, at most once per
+ * page view. Find opened from the browser menu (the usual way on mobile) is
+ * not seen.
+ * @since 2026-10
+ */
 export interface SiteFindInPageParams {
     /** Always 'open': the browser's find shortcut was pressed (logged at most
      * once per page view). The browser never exposes the searched text. */
@@ -202,6 +259,14 @@ export interface SiteFindInPageParams {
     eventContext: "mod+f" | "f3"
 }
 
+/**
+ * A pick from the suggestions of a site-wide search field.
+ *
+ * Fires when a visitor chooses a suggestion in the autocomplete of a search
+ * field outside the search page, such as the one in the site header, on the
+ * homepage or on a data page.
+ * @since 2024-04
+ */
 export interface SiteInstantSearchClickParams {
     /** Always 'click' for this event */
     eventAction: "click"
@@ -211,6 +276,13 @@ export interface SiteInstantSearchClickParams {
     eventTarget: string
 }
 
+/**
+ * A "page not found" page.
+ *
+ * Fires when a visitor lands on the site's 404 page. `eventContext` is the
+ * address they tried to open.
+ * @since 2023-06
+ */
 export interface SiteErrorParams {
     /** Always 'not_found' for this event */
     eventAction: "not_found"
@@ -218,12 +290,26 @@ export interface SiteErrorParams {
     eventContext: string
 }
 
+/**
+ * A page being printed.
+ *
+ * Fires when a visitor prints any page of the site or opens the browser's
+ * print preview.
+ * @since 2026-10
+ */
 export interface SitePrintParams {
     /** Always 'beforeprint' for this event; fired when the browser is about to
      * print the page or open its print preview */
     eventAction: "beforeprint"
 }
 
+/**
+ * A click on a guided chart link: a link in an article's text that changes
+ * the view of a chart on the same page instead of opening a new page.
+ *
+ * Fires when a visitor clicks such a link and the chart was updated.
+ * @since 2025-08
+ */
 export interface SiteGuidedChartLinkClickParams {
     /** Always 'click' for this event */
     eventAction: "click"
@@ -235,6 +321,13 @@ export interface SiteGuidedChartLinkClickParams {
     grapherPath?: string
 }
 
+/**
+ * A chart preview shown for a link in an article.
+ *
+ * Fires when a visitor hovers over a link to a chart or explorer in an
+ * article's text and the preview of that chart appears.
+ * @since 2025-09
+ */
 export interface SiteChartPreviewMouseoverParams {
     /** Always 'mouseover' for this event */
     eventAction: "mouseover"
@@ -248,6 +341,14 @@ export interface SiteChartPreviewMouseoverParams {
     grapherPath?: string
 }
 
+/**
+ * A download from a static visualization (an image-based chart in an
+ * article).
+ *
+ * Fires when a visitor downloads the image or the data of a static
+ * visualization, or clicks the link to its source.
+ * @since 2026-01
+ */
 export interface SiteStaticVizDownloadParams {
     /** Type of download action */
     eventAction: "image_download" | "data_download" | "source_link_click"
@@ -272,6 +373,14 @@ export type UserSurveyRoleAnswer =
           freeFormInput?: string
       }
 
+/**
+ * A step in the user survey widget, which asks visitors about their role.
+ *
+ * Fires when the survey's question or its thank-you screen is shown to a
+ * visitor, and when the visitor answers, sends feedback or dismisses the
+ * widget. `responseId` links the events of one survey instance.
+ * @since 2026-02
+ */
 export type SiteUserSurveyParams =
     | {
           /** Always 'user_role_show' for this event */
@@ -356,6 +465,18 @@ export type SiteUserSurveyParams =
 
 // Grapher Events
 
+/**
+ * A chart seen by a visitor.
+ *
+ * Fires when a chart scrolls into view, once per chart on the page. Applies
+ * to charts on their own page and to charts embedded in articles and other
+ * pages. A narrative chart is logged under its parent chart's path, with
+ * `narrativeChartName` set. A multi-dimensional chart fires once it has
+ * become visible, and again each time the visitor switches to another view
+ * (`viewConfigId` says which). Charts inside explorers send
+ * `owid.explorer_view` instead.
+ * @since 2024-11
+ */
 export interface GrapherViewParams {
     /** Grapher chart path (e.g., '/grapher/life-expectancy') */
     grapherPath?: string
@@ -367,6 +488,18 @@ export interface GrapherViewParams {
     narrativeChartName?: string
 }
 
+/**
+ * A click on a tracked element inside a chart.
+ *
+ * Fires when a visitor clicks an element that has a `data-track-note`
+ * attribute (or anything inside it) inside a chart: tabs, action buttons,
+ * settings, download and share options, and so on, listed in
+ * {@link TrackNote}. Also fires when a visitor downloads the chart as an
+ * image from the download modal (`chart_download_png`, `chart_download_svg`).
+ * Before 2023-06, clicks inside a chart were not told apart from other site
+ * clicks.
+ * @since 2023-06
+ */
 export interface GrapherClickParams {
     /** The clicked element's track note, or an image download */
     eventAction: TrackNote | GrapherImageDownloadEvent
@@ -384,6 +517,13 @@ export interface GrapherClickParams {
     eventContext?: string
 }
 
+/**
+ * A hover over a map.
+ *
+ * Fires when a visitor hovers over a country on a chart's map or globe, or
+ * over an item of the map's legend.
+ * @since 2025-05
+ */
 export interface GrapherHoverParams {
     /** Type of hover interaction */
     eventAction: GrapherInteractionEvent
@@ -399,6 +539,14 @@ export interface GrapherHoverParams {
     eventTarget?: string
 }
 
+/**
+ * A chart that failed to display.
+ *
+ * Fires when a chart crashes while rendering in a visitor's browser.
+ * `eventContext` is the error message. No code sends the
+ * `entities_not_found` action.
+ * @since 2023-06
+ */
 export interface GrapherErrorParams {
     /** Type of error */
     eventAction: "grapher_view_error" | "entities_not_found"
@@ -414,6 +562,14 @@ export interface GrapherErrorParams {
     narrativeChartName?: string
 }
 
+/**
+ * Use of the entity selector inside a chart: the panel where a visitor picks
+ * which countries or other entities the chart shows.
+ *
+ * Fires when a visitor selects or deselects an entity, clears the selection,
+ * or changes how the list is sorted or filtered.
+ * @since 2025-05
+ */
 export interface GrapherEntitySelectorParams {
     /** Entity selector action */
     eventAction: EntitySelectorEvent
@@ -431,6 +587,13 @@ export interface GrapherEntitySelectorParams {
 
 // Explorer Events
 
+/**
+ * An explorer view seen by a visitor.
+ *
+ * Fires when an explorer scrolls into view, and again each time the visitor
+ * changes the explorer's controls to show another view.
+ * @since 2024-11
+ */
 export interface ExplorerViewParams {
     /** Explorer path (e.g., '/explorers/migration') */
     explorerPath: string
@@ -440,6 +603,13 @@ export interface ExplorerViewParams {
     viewConfigId?: string
 }
 
+/**
+ * Use of the entity picker in an explorer's sidebar.
+ *
+ * Fires when a visitor selects or deselects an entity there, picks one by
+ * pressing Enter in its search field, or changes how the list is sorted.
+ * @since 2023-06
+ */
 export interface ExplorerCountrySelectorParams {
     /** Entity selector action */
     eventAction: EntitySelectorEvent
@@ -453,6 +623,13 @@ export interface ExplorerCountrySelectorParams {
 
 // Shared Events
 
+/**
+ * A detail on demand shown: the tooltip that explains a term.
+ *
+ * Fires when a visitor brings up the tooltip of an underlined term, in a chart
+ * or in a page's text. `eventTarget` is the id of the term.
+ * @since 2024-06
+ */
 export interface DetailOnDemandParams {
     /** Always 'show' for this event */
     eventAction: "show"
@@ -466,6 +643,13 @@ export interface DetailOnDemandParams {
     grapherPath?: string
 }
 
+/**
+ * An expandable section of an article being opened or closed.
+ *
+ * Fires when a visitor opens or closes an expander block in an article.
+ * `eventTarget` is the block's title.
+ * @since 2025-06
+ */
 export interface ExpanderParams {
     /** Action type - 'open' or 'close' */
     eventAction: "open" | "close"
@@ -477,6 +661,12 @@ export interface ExpanderParams {
     grapherPath?: string
 }
 
+/**
+ * An announcement expanded in the feed of the "Latest" page (`/latest`).
+ *
+ * Fires when a visitor clicks "Read more" on an announcement card there.
+ * @since 2026-05
+ */
 export interface SiteLatestAnnouncementExpandParams {
     /** Always 'expand' for this event — the announcement card's Read more
      * toggle is one-way (no collapse), so there's no 'open'/'close'
@@ -496,6 +686,12 @@ export interface SiteLatestAnnouncementExpandParams {
     experimentArm?: string
 }
 
+/**
+ * A chart keyboard shortcut.
+ *
+ * Fires when a visitor presses one of a chart's keyboard shortcuts.
+ * @since 2023-06
+ */
 export interface KeyboardShortcutParams {
     /** The keyboard shortcut name */
     eventAction: KeyboardShortcutAction
@@ -507,6 +703,14 @@ export interface KeyboardShortcutParams {
     grapherPath?: string
 }
 
+/**
+ * A search in the chart filter of a country page.
+ *
+ * Fired when a visitor typed in the field that filters the list of charts on
+ * a country page. No code sends this event any more: those pages were
+ * removed.
+ * @since 2023-06
+ */
 export interface FilterParams {
     /** Always 'country_page_search' for this event */
     eventAction: "country_page_search"
@@ -514,6 +718,13 @@ export interface FilterParams {
     eventContext: string
 }
 
+/**
+ * A page translated by the visitor's browser.
+ *
+ * Fires when a visitor's browser translates a page into another language, or
+ * switches the translation off again.
+ * @since 2025-11
+ */
 export interface TranslatePageParams {
     /** Information about the translation event, in the form { from: string | null, to: string | null } */
     eventTarget: JsonString
