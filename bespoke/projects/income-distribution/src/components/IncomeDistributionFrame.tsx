@@ -9,12 +9,12 @@ import { BespokeMetadataProvider } from "../../../../components/MetadataModal/Be
 import { useBoxWithin } from "../../../../hooks/useBoxWithin.js"
 
 import {
-    FIRST_NOWCAST_YEAR,
     INT_POVERTY_LINE,
-    INTERNATIONAL_DOLLAR,
     WORLD_COLOR,
     WORLD_ENTITY_NAME,
 } from "../core/constants.js"
+import { chartNoteSegments } from "../core/chartText.js"
+import { resolveFrameLayout } from "../core/frameLayout.js"
 import type { IncomeDistributionMetadata } from "../core/data.js"
 import { buildChartModel } from "../core/chartModel.js"
 import {
@@ -22,16 +22,9 @@ import {
     sharesBelowDisplayedLine,
 } from "../core/density.js"
 import { placeholderWelfareType } from "../core/welfareType.js"
-import {
-    welfareTypeSentence,
-    type WelfareSentenceSegment,
-} from "../core/welfareSentence.js"
+import { welfareTypeSentence } from "../core/welfareSentence.js"
 import type { ChartState } from "../core/useIncomeDistributionState.js"
-import type {
-    Currency,
-    IncomeDistributionYear,
-    LegendMeasure,
-} from "../core/types.js"
+import type { IncomeDistributionYear, LegendMeasure } from "../core/types.js"
 import { CountryMultiSelect } from "./CountryMultiSelect.js"
 import type {
     ChartPresentation,
@@ -44,10 +37,6 @@ import {
     IncomeDistributionLegend,
     LegendEntry,
 } from "./IncomeDistributionLegend.js"
-
-/** Top of the overlays over the plot without the button, and the gap between them (.income-distribution-captioned-chart__overlays in IncomeDistributionFrame.scss) */
-const OVERLAY_TOP = 38
-const OVERLAY_GAP = 8
 
 export interface IncomeDistributionFrameProps {
     metadata: IncomeDistributionMetadata
@@ -128,10 +117,6 @@ export function IncomeDistributionFrame({
     }, [editCountriesBox, plotOverlayBox])
 
     const year = yearData.year
-    const availableCountries = useMemo(
-        () => yearData.countries.map((country) => country.name),
-        [yearData]
-    )
 
     const model = useMemo(
         () =>
@@ -209,53 +194,34 @@ export function IncomeDistributionFrame({
 
     // The swatch legend leaves the line out of the legend altogether
     const legendPovertyLine = legend === "swatches" ? null : povertyLine
-    const showEditCountries = view === "countries" && editCountries !== "hidden"
-    // On wide charts the legend floats over the plot's top-right corner and
-    // turns into the share bars when a poverty line is set, so setting a line
-    // never pushes the plot down; narrow charts keep it above the plot, where
-    // it doesn't cover the mountains. In the countries view the curves are
-    // labelled directly, so without a line the overlay legend only shows when
-    // some country couldn't be labelled.
-    const showOverlayLegend =
-        !isNarrow &&
-        !hasNoCountries &&
-        legend !== "hidden" &&
-        (legend === "swatches" ||
-            view === "global" ||
-            povertyLine !== null ||
-            unlabelledCountries.length > 0)
-    // Countries view without a line: the overlay legend only appears when a
-    // country couldn't be labelled, and then lists every country
-    const listsLeftovers =
-        legend === "auto" &&
-        view === "countries" &&
-        povertyLine === null &&
-        !isNarrow
     // The swatch legend lists the chart's own entries, without World
     const shownLegendEntries =
         legend === "swatches" ? model.legend : legendEntries
-    // Where that legend starts: below the button, else below the poverty
-    // line's label (see .income-distribution-captioned-chart__overlays)
-    const leftoverLegendTop = listsLeftovers
-        ? editCountriesBox
-            ? editCountriesBox.bottom + OVERLAY_GAP
-            : OVERLAY_TOP
-        : undefined
-    const showInlineLegend = isNarrow && !hasNoCountries && legend !== "hidden"
-    // Wide charts put the button over the plot's top-right corner, above the
-    // overlay legend; narrow ones keep it in the row above the plot. In the
-    // legend, it's a link at the legend's foot
-    const showLegendEditCountries =
-        showEditCountries && !isNarrow && editCountries === "legend"
-    const showOverlayEditCountries =
-        showEditCountries && !isNarrow && editCountries === "auto"
-    const showToolbar = isNarrow && (showInlineLegend || showEditCountries)
+    const {
+        showOverlayLegend,
+        showInlineLegend,
+        listsLeftovers,
+        leftoverLegendTop,
+        showEditCountries,
+        showOverlayEditCountries,
+        showLegendEditCountries,
+        showToolbar,
+    } = resolveFrameLayout({
+        legend,
+        editCountries,
+        view,
+        povertyLine,
+        isNarrow,
+        hasNoCountries,
+        hasUnlabelled: unlabelledCountries.length > 0,
+        editCountriesBottom: editCountriesBox?.bottom,
+    })
 
     const editCountriesControl = (
         appearance: "button" | "link"
     ): React.ReactElement => (
         <CountryMultiSelect
-            availableCountries={availableCountries}
+            availableCountries={yearData.names}
             selectedCountries={selectedCountries}
             onChange={onSelectedCountriesChange}
             // TODO(feed welfare_type)
@@ -274,6 +240,20 @@ export function IncomeDistributionFrame({
                   placeholderWelfareType // TODO(feed welfare_type)
               )
             : undefined
+    const noteSegments = chartNoteSegments(
+        currency,
+        year,
+        isInternationalPovertyLine,
+        welfareSentence
+    )
+    // A plain string unless a welfare term needs its details-on-demand span
+    const note = noteSegments.every(
+        (segment) => typeof segment === "string"
+    ) ? (
+        noteSegments.join("")
+    ) : (
+        <WelfareSentence segments={noteSegments} />
+    )
 
     return (
         <BespokeMetadataProvider metadata={metadata.bespokeMetadata}>
@@ -392,55 +372,8 @@ export function IncomeDistributionFrame({
                     )}
                     {chartAreaOverlay}
                 </div>
-                {footer ?? (
-                    <ChartFooter
-                        source={metadata.source}
-                        note={chartNote(
-                            currency,
-                            year,
-                            isInternationalPovertyLine,
-                            welfareSentence
-                        )}
-                    />
-                )}
+                {footer ?? <ChartFooter source={metadata.source} note={note} />}
             </Frame>
         </BespokeMetadataProvider>
-    )
-}
-
-function chartNote(
-    currency: Currency,
-    year: number,
-    isInternationalLine: boolean,
-    /** Countries view: which of the countries shown report which (welfareTypeSentence) */
-    welfareSentence?: WelfareSentenceSegment[]
-): React.ReactNode {
-    // The countries' own sentence says what each reports, so it replaces
-    // the general one
-    const sentences = welfareSentence
-        ? []
-        : [
-              "Depending on the country, the data relates to income measured after taxes and benefits, or to consumption, per capita.",
-          ]
-    // Below the plot rather than in the subtitle, so picking or dragging the
-    // line never reflows the chart above it
-    if (isInternationalLine)
-        sentences.push(
-            "The International Poverty Line is set by the World Bank as its definition of extreme poverty."
-        )
-    if (year >= FIRST_NOWCAST_YEAR)
-        sentences.push(
-            `Figures for ${year} are World Bank nowcasts, which extrapolate the latest household surveys using economic growth.`
-        )
-    if (currency.code !== INTERNATIONAL_DOLLAR.code)
-        sentences.push(
-            `Incomes in local currencies are converted from international-$ using PPP conversion factors and adjusted for inflation to ${currency.pricesYear ? `${currency.pricesYear} prices` : "the latest year available"}.`
-        )
-    if (!welfareSentence) return sentences.join(" ")
-    return (
-        <>
-            <WelfareSentence segments={welfareSentence} />
-            {sentences.map((sentence) => ` ${sentence}`).join("")}
-        </>
     )
 }

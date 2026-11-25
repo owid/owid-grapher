@@ -75,6 +75,8 @@ export interface IncomeDistributionYear {
     year: number
     /** Sorted by name */
     countries: CountryDistribution[]
+    /** The countries' names, in the same order */
+    names: string[]
     byName: Map<string, CountryDistribution>
 }
 

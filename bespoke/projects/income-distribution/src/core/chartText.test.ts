@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 
 import {
+    chartNoteSegments,
     chartSubtitle,
     chartTitle,
     livingOnLessThanPhrase,
@@ -83,5 +84,41 @@ describe(livingOnLessThanPhrase, () => {
         expect(livingOnLessThanPhrase(10, EURO, "monthly")).toBe(
             "living on less than €150 a month"
         )
+    })
+})
+
+describe(chartNoteSegments, () => {
+    const GENERAL =
+        "Depending on the country, the data relates to income measured after taxes and benefits, or to consumption, per capita."
+
+    it("explains the data in general, as one string", () => {
+        expect(chartNoteSegments(INTERNATIONAL_DOLLAR, 2020, false)).toEqual([
+            GENERAL,
+        ])
+    })
+
+    it("adds the international line's definition, the nowcast caveat and the conversion", () => {
+        const [note] = chartNoteSegments(EURO, 2025, true)
+        expect(note).toBe(
+            `${GENERAL} The International Poverty Line is set by the World Bank as its definition of extreme poverty. Figures for 2025 are World Bank nowcasts, which extrapolate the latest household surveys using economic growth. Incomes in local currencies are converted from international-$ using PPP conversion factors and adjusted for inflation to the latest year available.`
+        )
+        expect(
+            chartNoteSegments({ ...EURO, pricesYear: 2024 }, 2020, false)[0]
+        ).toContain("adjusted for inflation to 2024 prices.")
+    })
+
+    it("lets the countries' own sentence replace the general one, keeping its terms as segments", () => {
+        expect(
+            chartNoteSegments(INTERNATIONAL_DOLLAR, 2025, false, [
+                "Germany reports ",
+                { welfareType: "income" },
+                ".",
+            ])
+        ).toEqual([
+            "Germany reports ",
+            { welfareType: "income" },
+            ".",
+            " Figures for 2025 are World Bank nowcasts, which extrapolate the latest household surveys using economic growth.",
+        ])
     })
 })

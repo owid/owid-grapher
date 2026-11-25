@@ -126,6 +126,7 @@ export function parseIncomeDistributionYear(
     return {
         year: raw.year,
         countries,
+        names: countries.map((country) => country.name),
         byName: new Map(countries.map((country) => [country.name, country])),
     }
 }

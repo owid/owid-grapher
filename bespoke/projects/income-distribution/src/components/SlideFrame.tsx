@@ -23,8 +23,8 @@ import {
     type IncomeDistributionControlsProps,
 } from "./IncomeDistributionControls.js"
 import { IncomeDistributionFrame } from "./IncomeDistributionFrame.js"
+import { RichText } from "./RichText.js"
 import {
-    RichText,
     SlideFooter,
     SlideHeader,
     SlideSideNav,
@@ -94,10 +94,6 @@ export function SlideFrame({
         [slide.annotations, yearData, entityColors]
     )
 
-    const availableCountries = useMemo(
-        () => yearData.countries.map((country) => country.name),
-        [yearData]
-    )
     const controlFor = (someSlide: WalkthroughSlide): React.ReactNode => {
         if (someSlide.control === "measuredIn")
             return <MeasuredInControl {...controlsProps} hideLabel />
@@ -107,7 +103,7 @@ export function SlideFrame({
         if (someSlide.control === "editCountries" && isNarrow)
             return (
                 <CountryMultiSelect
-                    availableCountries={availableCountries}
+                    availableCountries={yearData.names}
                     selectedCountries={chartState.selectedCountries}
                     onChange={setters.setSelectedCountries}
                     // TODO(feed welfare_type)
