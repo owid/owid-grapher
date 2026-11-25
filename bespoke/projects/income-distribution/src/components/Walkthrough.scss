@@ -193,6 +193,32 @@
     box-shadow: 0 0 0 8px $blue-20;
 }
 
+// After a while without interaction, the halo breathes to draw the eye on;
+// it settles as soon as the button is pointed at
+@keyframes income-distribution-tutorial-nudge {
+    0%,
+    100% {
+        box-shadow: 0 0 0 8px $blue-20;
+    }
+
+    50% {
+        box-shadow: 0 0 0 14px rgba($blue-20, 0.35);
+    }
+}
+
+.income-distribution-tutorial-round-button--nudge {
+    animation: income-distribution-tutorial-nudge 1.6s ease-in-out infinite;
+
+    &:hover,
+    &:focus-visible {
+        animation: none;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        animation: none;
+    }
+}
+
 .income-distribution-tutorial-footer {
     margin-top: 12px;
     color: $gray-80;

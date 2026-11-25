@@ -181,6 +181,8 @@ interface SlideNavProps {
     onPrevious: () => void
     onNext: () => void
     onClose: () => void
+    /** Pulse the next button, after the reader has been idle a while */
+    isNudging?: boolean
 }
 
 function PreviousButton({
@@ -212,8 +214,12 @@ function NextButton({
     slideCount,
     onNext,
     onClose,
+    isNudging = false,
     className,
-}: Pick<SlideNavProps, "slide" | "slideCount" | "onNext" | "onClose"> & {
+}: Pick<
+    SlideNavProps,
+    "slide" | "slideCount" | "onNext" | "onClose" | "isNudging"
+> & {
     className?: string
 }): React.ReactElement {
     const isLast = slide >= slideCount
@@ -223,6 +229,11 @@ function NextButton({
             className={cx(
                 "income-distribution-tutorial-round-button",
                 "income-distribution-tutorial-round-button--next",
+                {
+                    // Not on the last slide, where it closes rather than moves on
+                    "income-distribution-tutorial-round-button--nudge":
+                        isNudging && !isLast,
+                },
                 className
             )}
             aria-label={isLast ? "Close walkthrough" : "Next slide"}
@@ -248,6 +259,7 @@ export function SlideFooter({
     onPrevious,
     onNext,
     onClose,
+    isNudging,
     isNarrow,
 }: SlideNavProps & { isNarrow: boolean }): React.ReactElement {
     return (
@@ -265,6 +277,7 @@ export function SlideFooter({
                             slideCount={slideCount}
                             onNext={onNext}
                             onClose={onClose}
+                            isNudging={isNudging}
                         />
                     </div>
                 )}
@@ -302,6 +315,7 @@ export function SlideSideNav({
     onPrevious,
     onNext,
     onClose,
+    isNudging,
 }: SlideNavProps): React.ReactElement {
     return (
         <>
@@ -317,6 +331,7 @@ export function SlideSideNav({
                 slideCount={slideCount}
                 onNext={onNext}
                 onClose={onClose}
+                isNudging={isNudging}
                 className="income-distribution-tutorial-side-nav income-distribution-tutorial-side-nav--next"
             />
             {slide === 1 && (

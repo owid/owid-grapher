@@ -72,6 +72,8 @@ const RAIL_GAP = 32
 
 /** A horizontal swipe longer than this, and mostly sideways, changes the slide */
 const SWIPE_DISTANCE = 50
+/** Without interaction for this long, the next button starts pulsing */
+const NUDGE_AFTER_MS = 3000
 
 export function TutorialVariant({
     config,
@@ -234,6 +236,12 @@ function CaptionedTutorialVariant({
         onPrevious: previous,
         onNext: next,
     })
+    const isNudging = useIdleNudge({
+        isEnabled: !!walkthrough,
+        node,
+        // A new slide starts the wait over
+        resetKey: `${walkthrough?.id}:${slideNumber}`,
+    })
 
     // The slide's state over the reader's own; a line dragged on the slide
     // stays on the slide
@@ -384,6 +392,7 @@ function CaptionedTutorialVariant({
                         walkthrough={walkthrough}
                         slide={slide}
                         slideNumber={slideNumber}
+                        isNudging={isNudging}
                         metadata={metadata}
                         yearData={yearData}
                         chartState={chartState}
@@ -443,6 +452,7 @@ function SlideFrame({
     controlsProps,
     isLoading,
     isNarrow,
+    isNudging,
     onPrevious,
     onNext,
     onClose,
@@ -457,6 +467,7 @@ function SlideFrame({
     controlsProps: IncomeDistributionControlsProps
     isLoading: boolean
     isNarrow: boolean
+    isNudging: boolean
     onPrevious: () => void
     onNext: () => void
     onClose: () => void
@@ -535,6 +546,7 @@ function SlideFrame({
         onPrevious,
         onNext,
         onClose,
+        isNudging,
     }
 
     return (
@@ -683,6 +695,41 @@ function useWalkthroughKeyboard({
             window.removeEventListener("keydown", handleKeyDown)
         }
     }, [isOpen, onPrevious, onNext, onClose])
+}
+
+/**
+ * Whether the reader has gone NUDGE_AFTER_MS without touching the chart
+ * (pointer, key or touch inside `node`) since the slide came up
+ */
+function useIdleNudge({
+    isEnabled,
+    node,
+    resetKey,
+}: {
+    isEnabled: boolean
+    node: HTMLElement | null
+    resetKey: string
+}): boolean {
+    // The resetKey the reader has gone idle on; a new key is a fresh wait
+    const [idleOn, setIdleOn] = useState<string | null>(null)
+    useEffect(() => {
+        if (!isEnabled || !node) return
+        const arm = (): number =>
+            window.setTimeout(() => setIdleOn(resetKey), NUDGE_AFTER_MS)
+        let timer = arm()
+        const restart = (): void => {
+            setIdleOn(null)
+            window.clearTimeout(timer)
+            timer = arm()
+        }
+        const events = ["pointerdown", "keydown", "touchstart"] as const
+        for (const event of events) node.addEventListener(event, restart)
+        return () => {
+            window.clearTimeout(timer)
+            for (const event of events) node.removeEventListener(event, restart)
+        }
+    }, [isEnabled, node, resetKey])
+    return idleOn === resetKey
 }
 
 /** A horizontal swipe over the chart changes slides; dragging the poverty line doesn't */
