@@ -50,6 +50,11 @@
     outline: none;
 }
 
+.income-distribution-chart__poverty-line--fixed {
+    cursor: default;
+    touch-action: auto;
+}
+
 .income-distribution-chart__poverty-line:focus-visible
     .income-distribution-chart__poverty-line-ball {
     stroke: $blue-30;

@@ -261,13 +261,15 @@ function CaptionedTutorialVariant({
         const resolved = resolveSlideChartState(
             readerState,
             slide.chart,
-            new Set([...stickyReleased, ...slideState.released]),
+            walkthrough?.fixedUnits
+                ? slideState.released
+                : new Set([...stickyReleased, ...slideState.released]),
             (name) => yearData.byName.has(name)
         )
         return slideState.povertyLine !== undefined
             ? { ...resolved, povertyLine: slideState.povertyLine }
             : resolved
-    }, [slide, readerState, slideState, stickyReleased, yearData])
+    }, [walkthrough, slide, readerState, slideState, stickyReleased, yearData])
 
     // A slide's control writes to the reader's state, and from then on the
     // slide shows what the reader picked
@@ -591,6 +593,7 @@ function SlideFrame({
                     ? { showSeriesLabels: true }
                     : {}),
                 annotations: isNarrow ? undefined : annotations,
+                isPovertyLineFixed: walkthrough.fixedPovertyLine,
                 isInteractive: false,
             }}
             header={

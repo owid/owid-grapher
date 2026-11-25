@@ -94,6 +94,14 @@ export interface Walkthrough {
     title: string
     thumbnail: WalkthroughThumbnail
     slides: WalkthroughSlide[]
+    /**
+     * Show every slide in the units its text quotes (its `chart` says which),
+     * even when the reader has picked others; otherwise a pick on one slide
+     * carries on to the next
+     */
+    fixedUnits?: boolean
+    /** The poverty line is the slides' to set: the reader can't drag it */
+    fixedPovertyLine?: boolean
 }
 
 /** The share of `entity`'s population living below `line` (int-$/day) */
@@ -195,6 +203,9 @@ export const WALKTHROUGHS: Walkthrough[] = [
         id: "poverty-in-richer-and-poorer-countries",
         category: "insight",
         title: "Poverty in richer and poorer countries",
+        // The slides quote dollar amounts and shares below their own lines
+        fixedUnits: true,
+        fixedPovertyLine: true,
         thumbnail: {
             view: "countries",
             countries: ["Burundi", "India", "China", ...SWEDEN_AND_US],
