@@ -532,21 +532,36 @@ function createColumns({
             key: "publishedAt",
             sorter: (a, b) => compareTimes(a.publishedAt, b.publishedAt),
             sortDirections: descendFirst,
-            render: (_, chart) => (
-                <div className="chart-list__published">
-                    <Switch
-                        size="small"
-                        checked={!!chart.isPublished}
-                        onChange={() => onTogglePublished(chart)}
-                    />
-                    <AuthoredTimestampCell
-                        time={chart.publishedAt}
-                        by={chart.publishedBy}
-                        highlight={highlightAuthor}
-                        onAuthorClick={onAuthorClick}
-                    />
-                </div>
-            ),
+            render: (_, chart) => {
+                const isSwitchDisabled =
+                    !chart.isPublished && !chart.slug && !chart.title
+                return (
+                    <div className="chart-list__published">
+                        <Tooltip
+                            title={
+                                isSwitchDisabled
+                                    ? "This draft has no title or slug, so publish it from the editor"
+                                    : undefined
+                            }
+                        >
+                            <span className="chart-list__publish-switch">
+                                <Switch
+                                    size="small"
+                                    checked={!!chart.isPublished}
+                                    disabled={isSwitchDisabled}
+                                    onChange={() => onTogglePublished(chart)}
+                                />
+                            </span>
+                        </Tooltip>
+                        <AuthoredTimestampCell
+                            time={chart.publishedAt}
+                            by={chart.publishedBy}
+                            highlight={highlightAuthor}
+                            onAuthorClick={onAuthorClick}
+                        />
+                    </div>
+                )
+            },
         },
         {
             title: (

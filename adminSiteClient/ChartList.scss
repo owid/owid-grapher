@@ -133,6 +133,11 @@
     }
 }
 
+// Wraps the switch so its tooltip shows while it's disabled
+.chart-list__publish-switch {
+    display: flex;
+}
+
 .chart-list__timestamp {
     min-width: 90px;
     line-height: 1.35;
