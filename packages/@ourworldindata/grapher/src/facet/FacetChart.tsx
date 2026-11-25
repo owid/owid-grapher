@@ -691,11 +691,7 @@ export class FacetChart
         })
     }
 
-    /**
-     * The focus without its entity names, for the facets of focused entities.
-     * Entity facets name their series after columns, so an entity name in the
-     * shared focus mutes every series of every facet.
-     */
+    /** The focus without its entity names, for the facets of focused entities */
     @computed private get columnFocusArray(): FocusArray {
         const { selectedSet } = this.selectionArray
         return new FacetFocusArray(this.focusArray).add(
