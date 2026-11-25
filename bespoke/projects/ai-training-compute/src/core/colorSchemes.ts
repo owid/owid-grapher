@@ -75,6 +75,31 @@ export function getSectorGroup(
     return "Other"
 }
 
+export const COMPUTE_STATUS_GROUPS = [
+    "Reported by developer",
+    "Epoch estimate",
+    "No estimate",
+] as const
+
+export type ComputeStatus = (typeof COMPUTE_STATUS_GROUPS)[number]
+
+/**
+ * Where a training compute figure comes from. Epoch lists one or more
+ * estimation methods per model; any figure the developer reported counts as
+ * reported, even when Epoch also checked it another way. Everything else
+ * (operation counting, hardware and time, comparisons, third-party
+ * estimates Epoch adopted) is an estimate.
+ */
+export function getComputeStatus(
+    trainingComputeFlop: number | null | undefined,
+    computeEstimationMethod: string | null | undefined
+): ComputeStatus {
+    if (!trainingComputeFlop) return "No estimate"
+    if (splitList(computeEstimationMethod ?? null).includes("Reported"))
+        return "Reported by developer"
+    return "Epoch estimate"
+}
+
 export function splitList(value: string | null): string[] {
     if (!value) return []
     return value
@@ -93,9 +118,7 @@ export const COLOR_SCHEME_DEFINITIONS: Record<ColorScheme, SchemeDefinition> = {
             Google: OwidDistinctColors.Blue,
             Meta: OwidDistinctColors.Purple,
             Anthropic: OwidDistinctColors.DarkOrange,
-            Microsoft: OwidDistinctColors.Turquoise,
             xAI: OwidDistinctColors.MidnightBlue,
-            Nvidia: OwidDistinctColors.Lime,
             "Chinese AI labs": OwidDistinctColors.Coral,
             "Other companies": OwidDistinctColors.Camel,
             "Academia & others": GRAY_50,
@@ -125,20 +148,44 @@ export const COLOR_SCHEME_DEFINITIONS: Record<ColorScheme, SchemeDefinition> = {
             Other: GRAY_50,
         },
     },
+    computeStatus: {
+        label: "Estimate",
+        legendTitle:
+            "The color shows where the training computation figure comes from:",
+        groups: COMPUTE_STATUS_GROUPS,
+        colors: {
+            "Reported by developer": OwidDistinctColors.Blue,
+            // No OWID palette yellow; a warm one that reads on white
+            "Epoch estimate": "#e5a823",
+            "No estimate": OwidDistinctColors.Coral,
+        },
+    },
 }
 
 export function getGroupColor(scheme: ColorScheme, group: string): string {
     return COLOR_SCHEME_DEFINITIONS[scheme].colors[group] ?? GRAY_50
 }
 
-export function getModelGroups(
-    organization: string | null,
-    organizationCategory: string | null,
+export function getModelGroups({
+    organization,
+    organizationCategory,
+    domain,
+    trainingComputeFlop,
+    computeEstimationMethod,
+}: {
+    organization: string | null
+    organizationCategory: string | null
     domain: string | null
-): Record<ColorScheme, string> {
+    trainingComputeFlop: number | null
+    computeEstimationMethod: string | null
+}): Record<ColorScheme, string> {
     return {
         organization: getOrganizationGroup(organization, organizationCategory),
         domain: getDomainGroup(domain),
         sector: getSectorGroup(organizationCategory),
+        computeStatus: getComputeStatus(
+            trainingComputeFlop,
+            computeEstimationMethod
+        ),
     }
 }

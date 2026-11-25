@@ -15,6 +15,8 @@ import {
     getMonthOfComputation,
 } from "../core/computers.js"
 import { LANDMARKS } from "../core/landmarks.js"
+import { CONFIDENCE_FACTORS, getComputeRange } from "../core/uncertainty.js"
+import { FrontierTooltip } from "./FrontierRow.js"
 import type { HoverTarget } from "./ComputeScatter.js"
 
 const DATE_FORMAT = new Intl.DateTimeFormat("en-US", {
@@ -99,10 +101,20 @@ export function ComputeScatterTooltip({
         )
     }
 
+    if (target.kind === "frontier")
+        return (
+            <FrontierTooltip
+                segment={target.segment}
+                isPlotted={target.isPlotted}
+                common={common}
+            />
+        )
+
     const { model } = target
     const group = model.groups[colorScheme]
     const color = getGroupColor(colorScheme, group)
     const landmark = LANDMARKS[model.model]
+    const range = getComputeRange(model.trainingComputeFlop, model.confidence)
     const footer = model.link
         ? [
               {
@@ -144,10 +156,11 @@ export function ComputeScatterTooltip({
                     color={GRAY_70}
                 />
             )}
-            {model.confidence && model.confidence !== "Confident" && (
+            {range && (
                 <TooltipValue
-                    label="Epoch's confidence in the estimate"
-                    value={model.confidence}
+                    label="90% uncertainty range"
+                    value={`${formatFlopInWords(range[0])} – ${formatFlopInWords(range[1])} FLOP`}
+                    detail={`Epoch rates the estimate \u201c${model.confidence}\u201d (\u00b1${CONFIDENCE_FACTORS[model.confidence ?? ""]}\u00d7)`}
                     color={GRAY_70}
                 />
             )}

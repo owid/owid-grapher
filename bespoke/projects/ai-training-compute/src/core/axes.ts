@@ -17,9 +17,9 @@ export function getYExponentDomain(values: number[]): [number, number] {
 }
 
 /**
- * Exponents that get a labeled tick: every third (thousand, million, …)
- * normally, every one when zoomed in close, every sixth when space is
- * tight. Always multiples of the step, so labels stay on round names.
+ * Exponents that get a gridline and label: every third (thousand, million,
+ * …), or every sixth or ninth when space is tight. Always multiples of the
+ * step, so labels stay on round names.
  */
 export function getYTickExponents(
     [minExp, maxExp]: [number, number],
@@ -27,10 +27,15 @@ export function getYTickExponents(
 ): number[] {
     const decades = maxExp - minExp
     const minSpacing = 26
-    const step = [1, 3, 6, 9].find(
+    const step = [3, 6, 9].find(
         (candidate) => (plotHeight / decades) * candidate >= minSpacing
     )
-    return R.range(minExp, maxExp + 1).filter((exp) => exp % (step ?? 9) === 0)
+    // The domain can be fractional mid-animation; label whole exponents in it
+    return R.range(
+        // + 0 turns -0 into 0
+        Math.ceil(minExp - 1e-9) + 0,
+        Math.floor(maxExp + 1e-9) + 1
+    ).filter((exp) => exp % (step ?? 9) === 0)
 }
 
 /** Year ticks at a round step that leaves room for each label */

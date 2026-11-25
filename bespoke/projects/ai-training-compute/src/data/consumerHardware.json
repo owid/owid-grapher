@@ -1,0 +1,432 @@
+[
+    {
+        "id": "ibm-pc-5150-with-intel-8087-coprocessor",
+        "name": "IBM PC 5150 with Intel 8087 coprocessor",
+        "kind": "pc_cpu",
+        "year": 1981,
+        "flopPerSecond": 55000.0,
+        "precision": "x87 80-bit (FMUL)",
+        "sourceUrl": "https://en.wikipedia.org/wiki/X87#Performance",
+        "notes": "Peak FMUL rate 0.034-0.055 million/s for an 8087 at 5 MHz (x87 timing table); IBM PC ran the 8087 at 4.77 MHz, so ~5% lower. Coprocessor socket in IBM PC per Intel_8087 article."
+    },
+    {
+        "id": "intel-80387-16-mhz-with-80386",
+        "name": "Intel 80387 (16 MHz) with 80386",
+        "kind": "pc_cpu",
+        "year": 1987,
+        "flopPerSecond": 552000.0,
+        "precision": "x87 80-bit (FMUL)",
+        "sourceUrl": "https://en.wikipedia.org/wiki/X87#Performance",
+        "notes": "Peak FMUL rate 0.280-0.552 million/s at 16 MHz (x87 timing table); 33 MHz parts later reached 1.1 million/s. Released 1987."
+    },
+    {
+        "id": "intel-486dx-50",
+        "name": "Intel 486DX-50",
+        "kind": "pc_cpu",
+        "year": 1991,
+        "flopPerSecond": 3100000.0,
+        "precision": "x87 80-bit (FMUL)",
+        "sourceUrl": "https://en.wikipedia.org/wiki/X87#Performance",
+        "notes": "Peak FMUL rate 1.0-3.1 million/s at 50 MHz (x87 timing table); 50 MHz i486DX introduced fall 1991 (en.wikipedia.org/wiki/I486). The FLOPS article's per-cycle table gives 0.128 FLOP/cycle, i.e. 6.4 MFLOPS at 50 MHz."
+    },
+    {
+        "id": "intel-pentium-60-mhz",
+        "name": "Intel Pentium 60 MHz",
+        "kind": "pc_cpu",
+        "year": 1993,
+        "flopPerSecond": 30000000.0,
+        "precision": "x87 80-bit",
+        "sourceUrl": "https://en.wikipedia.org/wiki/Floating_point_operations_per_second#Floating-point_operations_per_clock_cycle_for_various_processors | https://en.wikipedia.org/wiki/Pentium_(original)",
+        "notes": "0.5 FLOP/cycle/core (FLOPS article table) x 60 MHz. The x87 timing table instead gives 20-60 million FMUL/s at 60 MHz."
+    },
+    {
+        "id": "nintendo-64",
+        "name": "Nintendo 64",
+        "kind": "console",
+        "year": 1996,
+        "flopPerSecond": 93750000.0,
+        "precision": "FP (VR4300 FPU; single/double)",
+        "sourceUrl": "https://en.wikipedia.org/w/index.php?oldid=1150105036",
+        "notes": "CPU (NEC VR4300 at 93.75 MHz) figure from the former 'Nintendo 64 technical specifications' Wikipedia article, citing a MIPS Technologies product card; = 1 FLOP/cycle. RCP graphics coprocessor not counted."
+    },
+    {
+        "id": "sega-dreamcast",
+        "name": "Sega Dreamcast",
+        "kind": "console",
+        "year": 1998,
+        "flopPerSecond": 1400000000.0,
+        "precision": "FP32 (SH-4 FPU)",
+        "sourceUrl": "https://en.wikipedia.org/wiki/Dreamcast",
+        "notes": "Hitachi SH-4 CPU at 200 MHz with 128-bit graphics-oriented FPU; PowerVR2 GPU is fixed-function and not counted. JP release Nov 27, 1998."
+    },
+    {
+        "id": "intel-pentium-iii-1-0-ghz-coppermine-",
+        "name": "Intel Pentium III 1.0 GHz (Coppermine)",
+        "kind": "pc_cpu",
+        "year": 2000,
+        "flopPerSecond": 2000000000.0,
+        "precision": "FP32 (SSE)",
+        "sourceUrl": "https://en.wikipedia.org/wiki/Floating_point_operations_per_second#Floating-point_operations_per_clock_cycle_for_various_processors | https://en.wikipedia.org/wiki/Pentium_III",
+        "notes": "2 FP32 FLOP/cycle (FLOPS article) x 1000 MHz; 1 GHz part released between Dec 1999 and May 2000 per Pentium III article."
+    },
+    {
+        "id": "sony-playstation-2",
+        "name": "Sony PlayStation 2",
+        "kind": "console",
+        "year": 2000,
+        "flopPerSecond": 6200000000.0,
+        "precision": "FP32 (Emotion Engine incl. vector units)",
+        "sourceUrl": "https://en.wikipedia.org/wiki/PlayStation_2",
+        "notes": "Emotion Engine CPU at ~295 MHz; GPU (Graphics Synthesizer) fixed-function, not counted. JP release March 4, 2000."
+    },
+    {
+        "id": "microsoft-xbox",
+        "name": "Microsoft Xbox",
+        "kind": "console",
+        "year": 2001,
+        "flopPerSecond": 13900000000.0,
+        "precision": "FP32 (GPU)",
+        "sourceUrl": "https://en.wikipedia.org/wiki/List_of_Nvidia_graphics_processing_units#Console/handheld_GPUs",
+        "notes": "NV2A GPU at 233 MHz, single-precision figure from Wikipedia's console-GPU table. Uncertain: other figures circulate (4.66, 5.8, 20 GFLOPS). The 733 MHz Pentium III CPU adds ~1.5 GFLOPS (2 FLOP/cycle SSE)."
+    },
+    {
+        "id": "nintendo-gamecube",
+        "name": "Nintendo GameCube",
+        "kind": "console",
+        "year": 2001,
+        "flopPerSecond": 1900000000.0,
+        "precision": "FP32 (paired singles, MAC)",
+        "sourceUrl": "https://en.wikipedia.org/wiki/Gekko_(processor)",
+        "notes": "Gekko CPU at 486 MHz. The GameCube article also quotes a 'peak of 10.5 GFLOPS' for the whole system, which is not used here."
+    },
+    {
+        "id": "intel-pentium-4-3-06-ghz-northwood-",
+        "name": "Intel Pentium 4 3.06 GHz (Northwood)",
+        "kind": "pc_cpu",
+        "year": 2002,
+        "flopPerSecond": 12240000000.0,
+        "precision": "FP32 (SSE2)",
+        "sourceUrl": "https://en.wikipedia.org/wiki/Floating_point_operations_per_second#Floating-point_operations_per_clock_cycle_for_various_processors | https://en.wikipedia.org/wiki/Pentium_4",
+        "notes": "4 FP32 FLOP/cycle (FLOPS article) x 3.06 GHz; released Nov 2002. FP64 would be half."
+    },
+    {
+        "id": "microsoft-xbox-360",
+        "name": "Microsoft Xbox 360",
+        "kind": "console",
+        "year": 2005,
+        "flopPerSecond": 240000000000.0,
+        "precision": "FP32 (GPU)",
+        "sourceUrl": "https://en.wikipedia.org/wiki/Xenos_(graphics_chip)",
+        "notes": "ATI Xenos GPU at 500 MHz (48 unified vec5 shaders x MAD). The Xenon CPU adds a theoretical 115.2 GFLOPS (Xbox 360 technical specifications article), not included. Released Nov 22, 2005."
+    },
+    {
+        "id": "intel-core-2-extreme-x6800",
+        "name": "Intel Core 2 Extreme X6800",
+        "kind": "pc_cpu",
+        "year": 2006,
+        "flopPerSecond": 46880000000.0,
+        "precision": "FP32 (SSE, 128-bit)",
+        "sourceUrl": "https://en.wikipedia.org/wiki/Floating_point_operations_per_second#Floating-point_operations_per_clock_cycle_for_various_processors | https://en.wikipedia.org/wiki/Conroe_(microprocessor)",
+        "notes": "8 FP32 FLOP/cycle/core x 2 cores x 2.93 GHz; released July 29, 2006. FP64 half."
+    },
+    {
+        "id": "nintendo-wii",
+        "name": "Nintendo Wii",
+        "kind": "console",
+        "year": 2006,
+        "flopPerSecond": 2900000000.0,
+        "precision": "FP32 (paired singles)",
+        "sourceUrl": "https://en.wikipedia.org/wiki/Broadway_(processor)",
+        "notes": "Broadway CPU at 729 MHz; Hollywood GPU is fixed-function, not counted."
+    },
+    {
+        "id": "nvidia-geforce-8800-gtx",
+        "name": "Nvidia GeForce 8800 GTX",
+        "kind": "gpu",
+        "year": 2006,
+        "flopPerSecond": 345600000000.0,
+        "precision": "FP32",
+        "sourceUrl": "https://en.wikipedia.org/wiki/List_of_Nvidia_graphics_processing_units",
+        "notes": "First unified-shader GeForce. 128 shaders x 1350 MHz x 2 (MAD). Wikipedia also lists 518.4 GFLOPS counting the extra co-issued MUL (3 ops/clock); MAD-only figure used for consistency."
+    },
+    {
+        "id": "sony-playstation-3",
+        "name": "Sony PlayStation 3",
+        "kind": "console",
+        "year": 2006,
+        "flopPerSecond": 192000000000.0,
+        "precision": "FP32 (GPU)",
+        "sourceUrl": "https://en.wikipedia.org/wiki/RSX_Reality_Synthesizer",
+        "notes": "RSX GPU only. Wikipedia's Nvidia console-GPU table gives 192 + 153.6 GFLOPS with the Cell SPUs; Sony's launch-era '2 TFLOPS' claim is not used. Released Nov 11, 2006."
+    },
+    {
+        "id": "ati-radeon-hd-2900-xt",
+        "name": "ATI Radeon HD 2900 XT",
+        "kind": "gpu",
+        "year": 2007,
+        "flopPerSecond": 475500000000.0,
+        "precision": "FP32",
+        "sourceUrl": "https://en.wikipedia.org/wiki/List_of_AMD_graphics_processing_units",
+        "notes": "320 stream processors x 743 MHz x 2 (MAD). Released May 14, 2007."
+    },
+    {
+        "id": "ati-radeon-hd-4870",
+        "name": "ATI Radeon HD 4870",
+        "kind": "gpu",
+        "year": 2008,
+        "flopPerSecond": 1200000000000.0,
+        "precision": "FP32",
+        "sourceUrl": "https://en.wikipedia.org/wiki/List_of_AMD_graphics_processing_units",
+        "notes": "800 stream processors x 750 MHz x 2 (MAD). One of the first consumer GPUs to reach 1 TFLOPS (FLOPS article)."
+    },
+    {
+        "id": "intel-core-i7-920-bloomfield-",
+        "name": "Intel Core i7-920 (Bloomfield)",
+        "kind": "pc_cpu",
+        "year": 2008,
+        "flopPerSecond": 85120000000.0,
+        "precision": "FP32 (SSE4, 128-bit)",
+        "sourceUrl": "https://en.wikipedia.org/wiki/Floating_point_operations_per_second#Floating-point_operations_per_clock_cycle_for_various_processors | https://en.wikipedia.org/wiki/Bloomfield_(microprocessor)",
+        "notes": "8 FP32 FLOP/cycle/core x 4 cores x 2.66 GHz base; released 2008-11-17."
+    },
+    {
+        "id": "nvidia-geforce-gtx-280",
+        "name": "Nvidia GeForce GTX 280",
+        "kind": "gpu",
+        "year": 2008,
+        "flopPerSecond": 622080000000.0,
+        "precision": "FP32",
+        "sourceUrl": "https://en.wikipedia.org/wiki/List_of_Nvidia_graphics_processing_units",
+        "notes": "240 shaders x 1296 MHz x 2 (MAD); the co-issued MUL is not counted (marketing figures that include it are ~1.5x higher)."
+    },
+    {
+        "id": "nvidia-geforce-gtx-480",
+        "name": "Nvidia GeForce GTX 480",
+        "kind": "gpu",
+        "year": 2010,
+        "flopPerSecond": 1345000000000.0,
+        "precision": "FP32",
+        "sourceUrl": "https://en.wikipedia.org/wiki/List_of_Nvidia_graphics_processing_units",
+        "notes": "480 shaders x 1401 MHz x 2 (FMA)."
+    },
+    {
+        "id": "nvidia-geforce-gtx-580",
+        "name": "Nvidia GeForce GTX 580",
+        "kind": "gpu",
+        "year": 2010,
+        "flopPerSecond": 1581056000000.0,
+        "precision": "FP32",
+        "sourceUrl": "https://en.wikipedia.org/wiki/List_of_Nvidia_graphics_processing_units",
+        "notes": "512 shaders x 1544 MHz x 2 (FMA)."
+    },
+    {
+        "id": "intel-core-i7-2600k-sandy-bridge-",
+        "name": "Intel Core i7-2600K (Sandy Bridge)",
+        "kind": "pc_cpu",
+        "year": 2011,
+        "flopPerSecond": 217600000000.0,
+        "precision": "FP32 (AVX)",
+        "sourceUrl": "https://en.wikipedia.org/wiki/Floating_point_operations_per_second#Floating-point_operations_per_clock_cycle_for_various_processors | https://en.wikipedia.org/wiki/Sandy_Bridge",
+        "notes": "16 FP32 FLOP/cycle/core x 4 cores x 3.4 GHz base (3.8 GHz turbo); released 2011-01-09."
+    },
+    {
+        "id": "nvidia-geforce-gtx-680",
+        "name": "Nvidia GeForce GTX 680",
+        "kind": "gpu",
+        "year": 2012,
+        "flopPerSecond": 3250176000000.0,
+        "precision": "FP32",
+        "sourceUrl": "https://en.wikipedia.org/wiki/List_of_Nvidia_graphics_processing_units",
+        "notes": "FP32 FMA counted as 2 FLOPs, at reference boost clock (Wikipedia table cites TechPowerUp GPU DB); no sparsity; 3090.4 GFLOPS at base clock."
+    },
+    {
+        "id": "intel-core-i7-4770k-haswell-",
+        "name": "Intel Core i7-4770K (Haswell)",
+        "kind": "pc_cpu",
+        "year": 2013,
+        "flopPerSecond": 448000000000.0,
+        "precision": "FP32 (AVX2 FMA)",
+        "sourceUrl": "https://en.wikipedia.org/wiki/Floating_point_operations_per_second#Floating-point_operations_per_clock_cycle_for_various_processors | https://en.wikipedia.org/wiki/Haswell_(microarchitecture)",
+        "notes": "32 FP32 FLOP/cycle/core x 4 cores x 3.5 GHz base (3.9 GHz turbo); released 2013-06-02."
+    },
+    {
+        "id": "microsoft-xbox-one",
+        "name": "Microsoft Xbox One",
+        "kind": "console",
+        "year": 2013,
+        "flopPerSecond": 1310000000000.0,
+        "precision": "FP32 (GPU)",
+        "sourceUrl": "https://en.wikipedia.org/wiki/Xbox_One",
+        "notes": "12 GCN compute units (768 cores) at 853 MHz. Released Nov 22, 2013."
+    },
+    {
+        "id": "nvidia-geforce-gtx-780-ti",
+        "name": "Nvidia GeForce GTX 780 Ti",
+        "kind": "gpu",
+        "year": 2013,
+        "flopPerSecond": 5345300000000.0,
+        "precision": "FP32",
+        "sourceUrl": "https://en.wikipedia.org/wiki/List_of_Nvidia_graphics_processing_units",
+        "notes": "FP32 FMA counted as 2 FLOPs, at reference boost clock (Wikipedia table cites TechPowerUp GPU DB); no sparsity; 5040 GFLOPS at base clock."
+    },
+    {
+        "id": "sony-playstation-4",
+        "name": "Sony PlayStation 4",
+        "kind": "console",
+        "year": 2013,
+        "flopPerSecond": 1840000000000.0,
+        "precision": "FP32 (GPU)",
+        "sourceUrl": "https://en.wikipedia.org/wiki/PlayStation_4",
+        "notes": "18 GCN compute units at 800 MHz. Released Nov 15, 2013."
+    },
+    {
+        "id": "nvidia-geforce-gtx-980-ti",
+        "name": "Nvidia GeForce GTX 980 Ti",
+        "kind": "gpu",
+        "year": 2015,
+        "flopPerSecond": 6060030000000.0,
+        "precision": "FP32",
+        "sourceUrl": "https://en.wikipedia.org/wiki/List_of_Nvidia_graphics_processing_units",
+        "notes": "FP32 FMA counted as 2 FLOPs, at reference boost clock (Wikipedia table cites TechPowerUp GPU DB); no sparsity; 5632 GFLOPS at base clock."
+    },
+    {
+        "id": "sony-playstation-4-pro",
+        "name": "Sony PlayStation 4 Pro",
+        "kind": "console",
+        "year": 2016,
+        "flopPerSecond": 4190000000000.0,
+        "precision": "FP32 (GPU)",
+        "sourceUrl": "https://en.wikipedia.org/wiki/PlayStation_4_technical_specifications",
+        "notes": "36 CUs at 911 MHz; often rounded to 4.2 TFLOPS. FP16 rate is double, not used."
+    },
+    {
+        "id": "microsoft-xbox-one-x",
+        "name": "Microsoft Xbox One X",
+        "kind": "console",
+        "year": 2017,
+        "flopPerSecond": 6000000000000.0,
+        "precision": "FP32 (GPU)",
+        "sourceUrl": "https://en.wikipedia.org/wiki/Xbox_One",
+        "notes": "40 CUs at 1172 MHz (= 6.0 TFLOPS). Released Nov 7, 2017."
+    },
+    {
+        "id": "nintendo-switch",
+        "name": "Nintendo Switch",
+        "kind": "console",
+        "year": 2017,
+        "flopPerSecond": 393216000000.0,
+        "precision": "FP32 (GPU, docked)",
+        "sourceUrl": "https://en.wikipedia.org/wiki/Nintendo_Switch",
+        "notes": "Tegra X1 GPU, 256 CUDA cores x 2 x 768 MHz docked; 236 GFLOPS undocked at 460 MHz."
+    },
+    {
+        "id": "nvidia-geforce-gtx-1080-ti",
+        "name": "Nvidia GeForce GTX 1080 Ti",
+        "kind": "gpu",
+        "year": 2017,
+        "flopPerSecond": 11339780000000.0,
+        "precision": "FP32",
+        "sourceUrl": "https://en.wikipedia.org/wiki/List_of_Nvidia_graphics_processing_units",
+        "notes": "FP32 FMA counted as 2 FLOPs, at reference boost clock (Wikipedia table cites TechPowerUp GPU DB); no sparsity; 10616 GFLOPS at base clock."
+    },
+    {
+        "id": "intel-core-i9-9900k-coffee-lake-refresh-",
+        "name": "Intel Core i9-9900K (Coffee Lake Refresh)",
+        "kind": "pc_cpu",
+        "year": 2018,
+        "flopPerSecond": 921600000000.0,
+        "precision": "FP32 (AVX2 FMA)",
+        "sourceUrl": "https://en.wikipedia.org/wiki/Floating_point_operations_per_second#Floating-point_operations_per_clock_cycle_for_various_processors | https://en.wikipedia.org/wiki/Coffee_Lake",
+        "notes": "32 FP32 FLOP/cycle/core x 8 cores x 3.6 GHz base (all-core turbo 4.7 GHz would give ~1.2 TFLOPS); announced Oct 2018."
+    },
+    {
+        "id": "nvidia-geforce-rtx-2080-ti",
+        "name": "Nvidia GeForce RTX 2080 Ti",
+        "kind": "gpu",
+        "year": 2018,
+        "flopPerSecond": 13448000000000.0,
+        "precision": "FP32",
+        "sourceUrl": "https://en.wikipedia.org/wiki/List_of_Nvidia_graphics_processing_units",
+        "notes": "FP32 FMA counted as 2 FLOPs, at reference boost clock (Wikipedia table cites TechPowerUp GPU DB); no sparsity (reference 1545 MHz boost; Founders Edition was clocked slightly higher); tensor-core FP16 figures not used."
+    },
+    {
+        "id": "amd-ryzen-9-3950x-zen-2-",
+        "name": "AMD Ryzen 9 3950X (Zen 2)",
+        "kind": "pc_cpu",
+        "year": 2019,
+        "flopPerSecond": 1792000000000.0,
+        "precision": "FP32 (AVX2 FMA)",
+        "sourceUrl": "https://en.wikipedia.org/wiki/Floating_point_operations_per_second#Floating-point_operations_per_clock_cycle_for_various_processors | https://en.wikipedia.org/wiki/Template:AMD_Ryzen_3000_series",
+        "notes": "32 FP32 FLOP/cycle/core x 16 cores x 3.5 GHz base (4.7 GHz boost); released 2019-11-25."
+    },
+    {
+        "id": "microsoft-xbox-series-x",
+        "name": "Microsoft Xbox Series X",
+        "kind": "console",
+        "year": 2020,
+        "flopPerSecond": 12155000000000.0,
+        "precision": "FP32 (GPU)",
+        "sourceUrl": "https://en.wikipedia.org/wiki/Xbox_Series_X_and_Series_S",
+        "notes": "52 RDNA 2 CUs at a fixed 1.825 GHz. Released Nov 10, 2020."
+    },
+    {
+        "id": "nvidia-geforce-rtx-3090",
+        "name": "Nvidia GeForce RTX 3090",
+        "kind": "gpu",
+        "year": 2020,
+        "flopPerSecond": 35581000000000.0,
+        "precision": "FP32",
+        "sourceUrl": "https://en.wikipedia.org/wiki/List_of_Nvidia_graphics_processing_units",
+        "notes": "FP32 FMA counted as 2 FLOPs, at reference boost clock (Wikipedia table cites TechPowerUp GPU DB); no sparsity. Ampere doubled FP32 lanes per SM (10496 CUDA cores), so this peak is harder to reach in practice than on earlier architectures."
+    },
+    {
+        "id": "sony-playstation-5",
+        "name": "Sony PlayStation 5",
+        "kind": "console",
+        "year": 2020,
+        "flopPerSecond": 10280000000000.0,
+        "precision": "FP32 (GPU)",
+        "sourceUrl": "https://en.wikipedia.org/wiki/PlayStation_5",
+        "notes": "36 RDNA 2 CUs at up to 2.23 GHz (variable clock). FLOPS article: 20.56 TFLOPS at FP16, not used."
+    },
+    {
+        "id": "nvidia-geforce-rtx-4090",
+        "name": "Nvidia GeForce RTX 4090",
+        "kind": "gpu",
+        "year": 2022,
+        "flopPerSecond": 82575000000000.0,
+        "precision": "FP32",
+        "sourceUrl": "https://en.wikipedia.org/wiki/List_of_Nvidia_graphics_processing_units",
+        "notes": "FP32 FMA counted as 2 FLOPs, at reference boost clock (Wikipedia table cites TechPowerUp GPU DB); no sparsity. Also listed in the FLOPS article as 82.6 TFLOPS."
+    },
+    {
+        "id": "amd-ryzen-9-9950x-zen-5-",
+        "name": "AMD Ryzen 9 9950X (Zen 5)",
+        "kind": "pc_cpu",
+        "year": 2024,
+        "flopPerSecond": 4403200000000.0,
+        "precision": "FP32 (AVX-512 FMA, 512-bit)",
+        "sourceUrl": "https://en.wikipedia.org/wiki/Floating_point_operations_per_second#Floating-point_operations_per_clock_cycle_for_various_processors | https://en.wikipedia.org/wiki/Template:AMD_Ryzen_9000_Series",
+        "notes": "64 FP32 FLOP/cycle/core x 16 cores x 4.3 GHz base (5.7 GHz boost); released 2024-08-15."
+    },
+    {
+        "id": "nintendo-switch-2",
+        "name": "Nintendo Switch 2",
+        "kind": "console",
+        "year": 2025,
+        "flopPerSecond": 3072000000000.0,
+        "precision": "FP32 (GPU, docked)",
+        "sourceUrl": "https://en.wikipedia.org/wiki/Nintendo_Switch_2",
+        "notes": "1536 Ampere CUDA cores at 1007 MHz docked; 1.71 TFLOPS undocked. Released June 5, 2025."
+    },
+    {
+        "id": "nvidia-geforce-rtx-5090",
+        "name": "Nvidia GeForce RTX 5090",
+        "kind": "gpu",
+        "year": 2025,
+        "flopPerSecond": 104753000000000.0,
+        "precision": "FP32",
+        "sourceUrl": "https://en.wikipedia.org/wiki/List_of_Nvidia_graphics_processing_units",
+        "notes": "FP32 FMA counted as 2 FLOPs, at reference boost clock (Wikipedia table cites TechPowerUp GPU DB); no sparsity; 87.78 TFLOPS at base clock. Released Jan 30, 2025."
+    }
+]

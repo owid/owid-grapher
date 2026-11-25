@@ -1,8 +1,9 @@
 import { createRoot } from "react-dom/client"
 import { enableShadowDOM } from "@react-stately/flags"
 
-import { COLOR_SCHEMES, VariantName } from "./core/constants.js"
+import { VariantName } from "./core/constants.js"
 import { ScatterVariant } from "./variants/ScatterVariant.js"
+import { TutorialVariant } from "./variants/TutorialVariant.js"
 
 import type {
     BespokeComponentMountFn,
@@ -24,29 +25,30 @@ export const VARIANTS = [
     {
         name: "scatter",
         description:
-            "Training computation of notable AI models over time, with a zoomable time range, colors by developer, domain or sector, and famous computers for comparison",
+            "Training computation of notable AI models over time, colored by developer, with a zoomable time range",
         component: ScatterVariant,
+    },
+    {
+        name: "tutorial",
+        description:
+            "The same chart with guided walkthroughs beside it, played slide by slide: missing frontier models, uncertainty, familiar computers and legal thresholds",
+        component: TutorialVariant,
+        defaultSize: "widest",
     },
 ] satisfies BespokeComponentVariantsList<VariantName>
 
 export const CONFIG_SPEC = {
     title: {
         type: "string",
-        default: "How much computation was used to train notable AI systems?",
+        default: "How much computation was used to train AI systems?",
         description: "Chart title",
     },
     subtitle: {
         type: "string",
         default:
-            "Total number of calculations (floating-point operations, FLOP) used to train each AI system. The axis is logarithmic: each labeled gridline is a thousand times the one below.",
-        description: "Chart subtitle",
-    },
-    colorBy: {
-        type: "enum",
-        values: COLOR_SCHEMES,
-        default: "organization",
+            "Total number of calculations (floating-point operations, FLOP) used to train each AI system.",
         description:
-            "What the dot colors show at first: the developer, the domain of the AI system, or the sector (industry or academia)",
+            "Chart subtitle. A sentence on frontier models missing since 2024, with a link that zooms to them, is always appended",
     },
     startYear: {
         type: "integer",
@@ -58,18 +60,6 @@ export const CONFIG_SPEC = {
         description:
             "Last year of the time range shown at first. Defaults to next year",
     },
-    showComputers: {
-        type: "boolean",
-        default: "true",
-        description:
-            "Whether famous computers (supercomputers, PCs and consoles, AI chips) start switched on",
-    },
-    showReferenceLines: {
-        type: "boolean",
-        default: "true",
-        description:
-            "Whether the human comparisons and legal thresholds start switched on",
-    },
     labeledModels: {
         type: "string",
         default:
@@ -77,10 +67,15 @@ export const CONFIG_SPEC = {
         description:
             "Comma-separated model names (as in Epoch's data) to label directly on the chart, most important first",
     },
+    walkthrough: {
+        type: "string",
+        description:
+            "Tutorial variant only: the id of a walkthrough to start playing (missing-frontier-models, uncertainty, computers, legal-thresholds)",
+    },
     hideControls: {
         type: "boolean",
         default: "false",
-        description: "Hide the controls box above the chart",
+        description: "Hide the time slider under the chart",
     },
 } as const satisfies BespokeConfigSpec
 

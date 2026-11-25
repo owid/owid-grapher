@@ -1,4 +1,7 @@
+import consumerHardware from "../data/consumerHardware.json"
+
 import { SECONDS_PER_MONTH } from "./constants.js"
+import { formatFlopInWords } from "./formatFlop.js"
 
 /**
  * Famous computers, drawn at the year they were introduced, at the
@@ -11,11 +14,18 @@ import { SECONDS_PER_MONTH } from "./constants.js"
  * used to train models. Each entry notes which.
  */
 
-export type ComputerKind = "supercomputer" | "personal" | "aiChip"
+export type ComputerKind =
+    | "supercomputer"
+    | "pcCpu"
+    | "console"
+    | "gpu"
+    | "aiChip"
 
 export interface ComputerSystem {
     id: string
     name: string
+    /** Shorter name for the chart label; the tooltip keeps `name` */
+    label?: string
     kind: ComputerKind
     year: number
     /** Operations per second */
@@ -25,9 +35,44 @@ export interface ComputerSystem {
 
 export const COMPUTER_KIND_LABELS: Record<ComputerKind, string> = {
     supercomputer: "Supercomputer",
-    personal: "Personal computer or console",
+    pcCpu: "PC processor",
+    console: "Games console",
+    gpu: "PC graphics card",
     aiChip: "AI chip",
 }
+
+/** One row of src/data/consumerHardware.json, from scripts/consumerHardware.csv */
+interface RawConsumerHardware {
+    id: string
+    name: string
+    kind: "pc_cpu" | "console" | "gpu"
+    year: number
+    flopPerSecond: number
+    precision: string
+    sourceUrl: string
+    notes: string
+}
+
+const CONSUMER_KINDS: Record<RawConsumerHardware["kind"], ComputerKind> = {
+    pc_cpu: "pcCpu",
+    console: "console",
+    gpu: "gpu",
+}
+
+/** PC processors, games consoles and graphics cards at their peak speed */
+const CONSUMER_HARDWARE: ComputerSystem[] = (
+    consumerHardware as RawConsumerHardware[]
+).map((row) => ({
+    id: row.id,
+    name: row.name,
+    // "IBM PC 5150 with Intel 8087 coprocessor" → "IBM PC 5150",
+    // "Intel Core i7-920 (Bloomfield)" → "Intel Core i7-920"
+    label: row.name.replace(/ \(.*?\)/g, "").replace(/ with .*/, ""),
+    kind: CONSUMER_KINDS[row.kind],
+    year: row.year,
+    flopPerSecond: row.flopPerSecond,
+    description: `Peaks at about ${formatFlopInWords(row.flopPerSecond)} FLOP per second (${row.precision}).`,
+}))
 
 export const COMPUTER_SYSTEMS: ComputerSystem[] = [
     // Supercomputers
@@ -139,51 +184,16 @@ export const COMPUTER_SYSTEMS: ComputerSystem[] = [
             "The world's fastest supercomputer on the TOP500 list since November 2024, measured at 1.74 quintillion FLOP per second (LINPACK) at its debut.",
     },
 
-    // Personal computers and consoles
+    // A laptop's graphics, which the sourced consumer table doesn't cover
     {
-        id: "ibm-pc",
-        name: "IBM PC",
-        kind: "personal",
-        year: 1981,
-        flopPerSecond: 50e3,
+        id: "macbook-pro-m5",
+        name: "MacBook Pro (M5)",
+        kind: "gpu",
+        year: 2025,
+        // Rough estimate: Apple publishes no 32-bit figure for the M5 GPU
+        flopPerSecond: 4.5e12,
         description:
-            "With its optional Intel 8087 math coprocessor, the original IBM PC managed about 50,000 FLOP per second.",
-    },
-    {
-        id: "playstation-2",
-        name: "PlayStation 2",
-        kind: "personal",
-        year: 2000,
-        flopPerSecond: 6.2e9,
-        description:
-            "Sony's best-selling console peaked at about 6.2 billion FLOP per second.",
-    },
-    {
-        id: "xbox-360",
-        name: "Xbox 360",
-        kind: "personal",
-        year: 2005,
-        flopPerSecond: 240e9,
-        description:
-            "Its graphics chip peaked at about 240 billion FLOP per second.",
-    },
-    {
-        id: "playstation-5",
-        name: "PlayStation 5",
-        kind: "personal",
-        year: 2020,
-        flopPerSecond: 10.28e12,
-        description:
-            "Its graphics chip peaks at about 10.3 trillion FLOP per second (32-bit).",
-    },
-    {
-        id: "macbook-air-m2",
-        name: "MacBook Air (M2)",
-        kind: "personal",
-        year: 2022,
-        flopPerSecond: 3.6e12,
-        description:
-            "The 10-core GPU of Apple's M2 chip peaks at about 3.6 trillion FLOP per second (32-bit).",
+            "Apple doesn't publish a 32-bit speed for the 10-core GPU of its M5 chip; about 4.5 trillion FLOP per second is a rough estimate scaled from earlier M-series chips.",
     },
 
     // AI chips
@@ -223,8 +233,36 @@ export const COMPUTER_SYSTEMS: ComputerSystem[] = [
         description:
             "Nvidia's Blackwell chip; 2.25 quadrillion FLOP per second at peak (16-bit, dense).",
     },
+    ...CONSUMER_HARDWARE,
 ]
 
 export function getMonthOfComputation(system: ComputerSystem): number {
     return system.flopPerSecond * SECONDS_PER_MONTH
+}
+
+/**
+ * The computers the chart shows. Left out for now: supercomputers, whose
+ * 64-bit benchmark speeds don't compare cleanly with the peak ratings of
+ * the other machines, and games consoles, which crowd the chart without
+ * changing the trend PC processors and graphics cards already show.
+ */
+export const SHOWN_COMPUTERS = COMPUTER_SYSTEMS.filter(
+    (c) => c.kind !== "supercomputer" && c.kind !== "console"
+)
+
+/**
+ * The machines that were faster than every earlier one of their kind, in
+ * year order: the trend line for each kind runs through these, so a slower
+ * machine released later (a handheld console, say) doesn't make it zigzag
+ */
+export function getRecordHolders(systems: ComputerSystem[]): ComputerSystem[] {
+    const byKind = new Map<ComputerKind, number>()
+    return [...systems]
+        .sort((a, b) => a.year - b.year || b.flopPerSecond - a.flopPerSecond)
+        .filter((system) => {
+            const best = byKind.get(system.kind) ?? 0
+            if (system.flopPerSecond <= best) return false
+            byKind.set(system.kind, system.flopPerSecond)
+            return true
+        })
 }

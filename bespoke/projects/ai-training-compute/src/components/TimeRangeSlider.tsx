@@ -1,5 +1,4 @@
 import { useState } from "react"
-import cx from "clsx"
 import {
     Slider,
     SliderOutput,
@@ -7,26 +6,19 @@ import {
     SliderTrack,
 } from "react-aria-components"
 
-import { TimePreset } from "../core/timeline.js"
+const MIN_SPAN_YEARS = 1
 
-const MIN_SPAN_YEARS = 3
-
-/**
- * Two-thumb version of the shared TimeSlider, reusing its styles. The
- * presets sit below as quick jumps to common ranges.
- */
+/** Two-thumb version of the shared TimeSlider, reusing its styles */
 export function TimeRangeSlider({
     min,
     max,
     range,
     onChange,
-    presets,
 }: {
     min: number
     max: number
     range: [number, number]
     onChange: (range: [number, number]) => void
-    presets: TimePreset[]
 }) {
     const [isHovering, setIsHovering] = useState(false)
 
@@ -110,26 +102,6 @@ export function TimeRangeSlider({
                 >
                     {range[1]}
                 </button>
-            </div>
-            <div className="time-range-slider__presets">
-                {presets.map((preset) => {
-                    const isActive =
-                        preset.range[0] === range[0] &&
-                        preset.range[1] === range[1]
-                    return (
-                        <button
-                            key={preset.label}
-                            type="button"
-                            className={cx("time-range-slider__preset", {
-                                "time-range-slider__preset--active": isActive,
-                            })}
-                            aria-pressed={isActive}
-                            onClick={() => onChange(preset.range)}
-                        >
-                            {preset.label}
-                        </button>
-                    )
-                })}
             </div>
         </div>
     )

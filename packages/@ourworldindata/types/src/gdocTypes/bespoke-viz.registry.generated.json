@@ -10,9 +10,15 @@
       "variants": [
         {
           "name": "scatter",
-          "description": "Training computation of notable AI models over time, with a zoomable time range, colors by developer, domain or sector, and famous computers for comparison",
+          "description": "Training computation of notable AI models over time, colored by developer, with a zoomable time range",
           "defaultSize": "wide",
           "archie": "{.bespoke-component}\nbundle: ai-training-compute\nvariant: scatter\nsize: wide\n{}\n"
+        },
+        {
+          "name": "tutorial",
+          "description": "The same chart with guided walkthroughs beside it, played slide by slide: missing frontier models, uncertainty, familiar computers and legal thresholds",
+          "defaultSize": "widest",
+          "archie": "{.bespoke-component}\nbundle: ai-training-compute\nvariant: tutorial\nsize: widest\n{}\n"
         }
       ],
       "config": [
@@ -20,24 +26,13 @@
           "name": "title",
           "type": "string",
           "description": "Chart title",
-          "default": "How much computation was used to train notable AI systems?"
+          "default": "How much computation was used to train AI systems?"
         },
         {
           "name": "subtitle",
           "type": "string",
-          "description": "Chart subtitle",
-          "default": "Total number of calculations (floating-point operations, FLOP) used to train each AI system. The axis is logarithmic: each labeled gridline is a thousand times the one below."
-        },
-        {
-          "name": "colorBy",
-          "type": "enum",
-          "values": [
-            "organization",
-            "domain",
-            "sector"
-          ],
-          "description": "What the dot colors show at first: the developer, the domain of the AI system, or the sector (industry or academia)",
-          "default": "organization"
+          "description": "Chart subtitle. A sentence on frontier models missing since 2024, with a link that zooms to them, is always appended",
+          "default": "Total number of calculations (floating-point operations, FLOP) used to train each AI system."
         },
         {
           "name": "startYear",
@@ -51,27 +46,20 @@
           "description": "Last year of the time range shown at first. Defaults to next year"
         },
         {
-          "name": "showComputers",
-          "type": "boolean",
-          "description": "Whether famous computers (supercomputers, PCs and consoles, AI chips) start switched on",
-          "default": "true"
-        },
-        {
-          "name": "showReferenceLines",
-          "type": "boolean",
-          "description": "Whether the human comparisons and legal thresholds start switched on",
-          "default": "true"
-        },
-        {
           "name": "labeledModels",
           "type": "string",
           "description": "Comma-separated model names (as in Epoch's data) to label directly on the chart, most important first",
           "default": "GPT-6 Astra, AlexNet, GPT-3 175B (davinci), AlphaGo Lee, Theseus, Perceptron Mark I, TD-Gammon, AlphaFold 2, GPT-4 (Mar 2023), NetTalk (transcription), Neocognitron, ADALINE, GraphCast"
         },
         {
+          "name": "walkthrough",
+          "type": "string",
+          "description": "Tutorial variant only: the id of a walkthrough to start playing (missing-frontier-models, uncertainty, computers, legal-thresholds)"
+        },
+        {
           "name": "hideControls",
           "type": "boolean",
-          "description": "Hide the controls box above the chart",
+          "description": "Hide the time slider under the chart",
           "default": "false"
         }
       ]

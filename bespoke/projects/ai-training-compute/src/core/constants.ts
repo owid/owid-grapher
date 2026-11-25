@@ -1,4 +1,4 @@
-export type VariantName = "scatter"
+export type VariantName = "scatter" | "tutorial"
 
 /** One row of src/data/notableAiModels.json, as exported by scripts/buildData.sql */
 export interface RawAiModel {
@@ -10,10 +10,16 @@ export interface RawAiModel {
     /** YYYY-MM-DD */
     date: string
     trainingComputeFlop: number
+    /** Comma-separated (Reported, Operation counting, Hardware, …) */
+    computeEstimationMethod: string | null
     link: string | null
     /** Comma-separated (Language, Vision, Multimodal, …) */
     domain: string | null
     confidence: string | null
+    /** In Epoch's "notable models" set (meets its notability criteria) */
+    isNotable: boolean
+    /** In Epoch's "frontier models" set (top 5 by training compute when released) */
+    isFrontier: boolean
 }
 
 export interface AiModel {
@@ -24,13 +30,25 @@ export interface AiModel {
     /** Fractional year, used as the x position */
     year: number
     trainingComputeFlop: number
+    computeEstimationMethod?: string
     link?: string
     domain?: string
     confidence?: string
+    isNotable: boolean
+    isFrontier: boolean
 }
 
-export const COLOR_SCHEMES = ["organization", "domain", "sector"] as const
+export const COLOR_SCHEMES = [
+    "organization",
+    "domain",
+    "sector",
+    "computeStatus",
+] as const
 export type ColorScheme = (typeof COLOR_SCHEMES)[number]
+
+/** Which of Epoch's model sets the scatter shows */
+export const MODEL_SETS = ["frontier", "notable"] as const
+export type ModelSet = (typeof MODEL_SETS)[number]
 
 /** Seconds in the one-month run every human and computer comparison uses */
 export const SECONDS_PER_MONTH = 30 * 24 * 60 * 60

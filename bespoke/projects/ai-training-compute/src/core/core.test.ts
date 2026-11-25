@@ -6,12 +6,24 @@ import {
     formatScientific,
 } from "./formatFlop.js"
 import { getOrganizationGroup } from "./organizations.js"
-import { getDomainGroup, getSectorGroup } from "./colorSchemes.js"
+import {
+    getComputeStatus,
+    getDomainGroup,
+    getSectorGroup,
+} from "./colorSchemes.js"
+import { getLeaderSegments, getLeaderSegmentsSince } from "./eci.js"
+import { getComputeRange } from "./uncertainty.js"
 import { getYearTicks, getYExponentDomain, getYTickExponents } from "./axes.js"
 import { placeLabels } from "./labelPlacement.js"
-import { COMPUTER_SYSTEMS, getMonthOfComputation } from "./computers.js"
+import {
+    COMPUTER_SYSTEMS,
+    SHOWN_COMPUTERS,
+    getMonthOfComputation,
+    getRecordHolders,
+} from "./computers.js"
+import { getLargestRunInDeviceMonths } from "./hardwareComparison.js"
 import { spreadLabels } from "./labelLayout.js"
-import { AI_MODELS } from "./data.js"
+import { AI_MODELS, FRONTIER_MODELS, getModelsInSet } from "./data.js"
 
 describe(formatFlopInWords, () => {
     it.each([
@@ -130,13 +142,12 @@ describe(getYExponentDomain, () => {
 })
 
 describe(getYTickExponents, () => {
-    it("labels every thousandfold step, or every step when zoomed in close", () => {
+    it("labels every thousandfold step, or every second one when space is tight", () => {
         expect(getYTickExponents([0, 28], 500)).toEqual([
             0, 3, 6, 9, 12, 15, 18, 21, 24, 27,
         ])
-        expect(getYTickExponents([21, 27], 500)).toEqual([
-            21, 22, 23, 24, 25, 26, 27,
-        ])
+        expect(getYTickExponents([21, 27], 500)).toEqual([21, 24, 27])
+        expect(getYTickExponents([0, 28], 200)).toEqual([0, 6, 12, 18, 24])
     })
 })
 
@@ -187,5 +198,178 @@ describe("computer systems", () => {
         expect(formatFlopInWords(getMonthOfComputation(h100))).toBe(
             "2.6 sextillion"
         )
+    })
+})
+
+describe(getComputeStatus, () => {
+    it("counts a figure as reported whenever the developer reported it", () => {
+        expect(getComputeStatus(1e24, "Reported,Operation counting")).toBe(
+            "Reported by developer"
+        )
+        expect(getComputeStatus(1e24, "Hardware")).toBe("Epoch estimate")
+        // Epoch sometimes leaves the method blank on its own estimates
+        expect(getComputeStatus(9.4e26, null)).toBe("Epoch estimate")
+        expect(getComputeStatus(null, "Benchmarks")).toBe("No estimate")
+    })
+})
+
+describe(getLeaderSegments, () => {
+    const score = (model: string, date: string, eci: number) => ({
+        model,
+        displayName: model,
+        organization: "Lab",
+        date,
+        eci,
+        eciLow: eci - 2,
+        eciHigh: eci + 2,
+        trainingComputeFlop: null,
+        computeEstimationMethod: null,
+    })
+    const day = (date: string) => Date.parse(`${date}T00:00:00Z`)
+    const scores = [
+        score("A", "2023-06-01", 100),
+        score("B", "2024-03-01", 110),
+        // Released the same day as a better model: never leads
+        score("C small", "2024-06-01", 112),
+        score("C large", "2024-06-01", 115),
+        // Worse than the leader: never leads
+        score("D", "2024-09-01", 114),
+        score("E", "2025-01-01", 120),
+    ]
+
+    it("follows the running best score, clipped to the range", () => {
+        const segments = getLeaderSegments(scores, {
+            start: day("2024-01-01"),
+            end: day("2025-03-01"),
+        })
+        expect(segments.map((s) => s.score.model)).toEqual([
+            "A",
+            "B",
+            "C large",
+            "E",
+        ])
+        // A led before the range starts; its segment starts at the range
+        expect(segments[0].start).toBe(day("2024-01-01"))
+        expect(segments[2].end).toBe(day("2025-01-01"))
+        expect(segments.at(-1)?.isOngoing).toBe(true)
+        expect(segments[1].isOngoing).toBe(false)
+    })
+})
+
+describe(getLeaderSegmentsSince, () => {
+    const score = (model: string, date: string, eci: number) => ({
+        model,
+        displayName: model,
+        organization: "Lab",
+        date,
+        eci,
+        eciLow: null,
+        eciHigh: null,
+        trainingComputeFlop: null,
+        computeEstimationMethod: null,
+    })
+    const day = (date: string) => Date.parse(`${date}T00:00:00Z`)
+
+    it("starts at the release of the model already leading", () => {
+        const segments = getLeaderSegmentsSince(
+            [score("Old", "2023-03-14", 100), score("New", "2024-06-01", 110)],
+            { since: day("2024-01-01"), end: day("2025-01-01") }
+        )
+        expect(segments.map((s) => s.score.model)).toEqual(["Old", "New"])
+        expect(segments[0].start).toBe(day("2023-03-14"))
+    })
+})
+
+describe("developer groups", () => {
+    it("count Microsoft and Nvidia as other companies", () => {
+        expect(getOrganizationGroup("Microsoft Research", "Industry")).toBe(
+            "Other companies"
+        )
+        expect(getOrganizationGroup("Nvidia", "Industry")).toBe(
+            "Other companies"
+        )
+        // A named lab elsewhere in the list still wins
+        expect(getOrganizationGroup("Nvidia,Meta AI", "Industry")).toBe("Meta")
+    })
+})
+
+describe(getComputeRange, () => {
+    it("spans the estimate divided and multiplied by Epoch's factor", () => {
+        // Compare in orders of magnitude, clear of floating-point noise
+        const log = (range?: [number, number]) => range?.map(Math.log10)
+        const [low, high] = log(getComputeRange(1e25, "Likely"))!
+        expect(low).toBeCloseTo(24)
+        expect(high).toBeCloseTo(26)
+        const [cLow, cHigh] = log(getComputeRange(1e25, "Confident"))!
+        expect(cHigh - cLow).toBeCloseTo(2 * Math.log10(3))
+        const [sLow, sHigh] = log(getComputeRange(1e25, "Speculative"))!
+        expect(sHigh - sLow).toBeCloseTo(2 * Math.log10(31))
+    })
+
+    it("has no range for labels without a stated interval", () => {
+        expect(getComputeRange(1e25, "Unknown")).toBeUndefined()
+        expect(getComputeRange(1e25, undefined)).toBeUndefined()
+    })
+})
+
+describe("model sets", () => {
+    it("put every model in at least one of Epoch's sets", () => {
+        expect(AI_MODELS.every((m) => m.isNotable || m.isFrontier)).toBe(true)
+        expect(getModelsInSet("notable").every((m) => m.isNotable)).toBe(true)
+        expect(getModelsInSet("frontier").every((m) => m.isFrontier)).toBe(true)
+    })
+
+    it("include frontier models that aren't notable", () => {
+        expect(getModelsInSet("frontier").some((m) => !m.isNotable)).toBe(true)
+    })
+})
+
+describe(getRecordHolders, () => {
+    const system = (
+        id: string,
+        kind: "console" | "gpu",
+        year: number,
+        flopPerSecond: number
+    ) => ({
+        id,
+        name: id,
+        kind,
+        year,
+        flopPerSecond,
+        description: "",
+    })
+
+    it("keeps only machines faster than every earlier one of their kind", () => {
+        const holders = getRecordHolders([
+            system("Big console", "console", 2017, 6e12),
+            system("Handheld", "console", 2018, 4e11),
+            system("Next console", "console", 2020, 1e13),
+            system("Card", "gpu", 2018, 1e13),
+        ])
+        expect(holders.map((s) => s.id)).toEqual([
+            "Big console",
+            "Card",
+            "Next console",
+        ])
+    })
+})
+
+describe(getLargestRunInDeviceMonths, () => {
+    it("stays around a month or less until 2010, then pulls far ahead", () => {
+        const until2010 = [1990, 2000, 2005, 2010].map(
+            (year) =>
+                getLargestRunInDeviceMonths(
+                    year,
+                    FRONTIER_MODELS,
+                    SHOWN_COMPUTERS
+                )?.months ?? NaN
+        )
+        for (const months of until2010) expect(months).toBeLessThan(2)
+        const recent = getLargestRunInDeviceMonths(
+            2025,
+            FRONTIER_MODELS,
+            SHOWN_COMPUTERS
+        )
+        expect(recent?.months).toBeGreaterThan(1e5)
     })
 })
