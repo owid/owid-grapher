@@ -155,12 +155,13 @@ export function DataPageContent({
 
     const inputTableFetcher = useMemo(
         () =>
-            getCachingInputTableFetcher(
-                DATA_API_URL,
+            getCachingInputTableFetcher({
+                dataApiUrl: DATA_API_URL,
                 archiveContext,
-                isPreviewing
-            ),
-        [archiveContext, isPreviewing]
+                noCache: isPreviewing,
+                slug: slug ?? undefined,
+            }),
+        [archiveContext, isPreviewing, slug]
     )
 
     const titleFragments = useTitleFragments(config)

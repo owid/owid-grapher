@@ -14,6 +14,32 @@ import {
 } from "./loadVariable.js"
 import { toJS } from "mobx"
 
+const measuredLegacyToOwidTableAndDimensions = (
+    slug: string | undefined,
+    ...args: Parameters<typeof legacyToOwidTableAndDimensions>
+): OwidTable => {
+    const startMark = performance.now()
+    const table = legacyToOwidTableAndDimensions(...args)
+    try {
+        performance.measure("legacyToOwidTableAndDimensions", {
+            start: startMark,
+            end: performance.now(),
+            detail: {
+                // Top-level so Sentry's userTimingIntegration records it as
+                // its own span attribute
+                slug,
+                devtools: {
+                    track: "Grapher",
+                    properties: [["slug", slug]],
+                },
+            },
+        })
+    } catch {
+        // In old browsers, the above may throw an error - just ignore it
+    }
+    return table
+}
+
 export type FetchInputTableForConfigFn = (args: {
     dimensions?: OwidChartDimensionInterface[]
     selectedEntityColors?: SelectedEntityColors
@@ -21,6 +47,8 @@ export type FetchInputTableForConfigFn = (args: {
     archiveContext?: ArchiveContext
     noCache?: boolean
     loadMetadataOnly?: boolean
+    /** Only used to label the performance measurement */
+    slug?: string
 }) => Promise<OwidTable | undefined>
 
 export const fetchInputTableForConfig: FetchInputTableForConfigFn = async (
@@ -38,7 +66,8 @@ export const fetchInputTableForConfig: FetchInputTableForConfigFn = async (
         args.noCache,
         args.loadMetadataOnly
     )
-    const inputTable = legacyToOwidTableAndDimensions(
+    const inputTable = measuredLegacyToOwidTableAndDimensions(
+        args.slug,
         variablesDataMap,
         indicatorDimensions,
         args.selectedEntityColors
@@ -47,12 +76,20 @@ export const fetchInputTableForConfig: FetchInputTableForConfigFn = async (
     return inputTable
 }
 
-export function getCachingInputTableFetcher(
-    dataApiUrl: string,
-    archiveContext: ArchiveContext | undefined,
-    noCache?: boolean,
+export function getCachingInputTableFetcher({
+    dataApiUrl,
+    archiveContext,
+    noCache,
+    loadMetadataOnly,
+    slug,
+}: {
+    dataApiUrl: string
+    archiveContext?: ArchiveContext
+    noCache?: boolean
     loadMetadataOnly?: boolean
-): (
+    /** Only used to label the performance measurement */
+    slug?: string
+}): (
     dimensions: OwidChartDimensionInterface[],
     selectedEntityColors: SelectedEntityColors | undefined
 ) => Promise<OwidTable | undefined> {
@@ -104,7 +141,8 @@ export function getCachingInputTableFetcher(
             variables.map((v) => [v, cache.get(v)!])
         )
 
-        const inputTable = legacyToOwidTableAndDimensions(
+        const inputTable = measuredLegacyToOwidTableAndDimensions(
+            slug,
             variablesDataMap,
             indicatorDimensions,
             selectedEntityColors

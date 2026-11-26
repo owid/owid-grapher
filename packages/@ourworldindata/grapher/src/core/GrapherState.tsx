@@ -1700,6 +1700,9 @@ export class GrapherState
         const endMark = performance.now()
         // This runs inside computeds; keep performance metadata reads from becoming dependencies
         const detail = untracked(() => ({
+            // Top-level so Sentry's userTimingIntegration records it as its
+            // own span attribute
+            slug: this.slug,
             devtools: {
                 track: "Grapher",
                 properties: [

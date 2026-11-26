@@ -129,6 +129,7 @@ export function FetchingGrapher(
                 dataApiUrl: props.dataApiUrl,
                 archiveContext: props.archiveContext,
                 noCache: props.noCache,
+                slug: grapherStateRef.current.slug,
             })
 
             if (isCancelled) return

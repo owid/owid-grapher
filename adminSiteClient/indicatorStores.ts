@@ -50,11 +50,10 @@ export function dataApiIndicatorStore(
         | { catalog?: IndicatorCatalog; datasets?: never }
     )
 ): IndicatorStore {
-    const fetchTable = getCachingInputTableFetcher(
-        options.dataApiUrl,
-        undefined,
-        true
-    )
+    const fetchTable = getCachingInputTableFetcher({
+        dataApiUrl: options.dataApiUrl,
+        noCache: true,
+    })
     const { datasets } = options
     return {
         catalog: datasets ? listCatalog(datasets) : options.catalog,

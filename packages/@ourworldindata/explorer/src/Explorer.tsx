@@ -637,6 +637,7 @@ export class Explorer
                 archiveContext: this.props.archiveContext,
                 noCache: this.props.isPreview,
                 loadMetadataOnly: this.props.loadMetadataOnly,
+                slug: this.props.slug,
             }).then((owidTable) => (owidTable ? owidTable : BlankOwidTable()))
             // We use the PromiseSwitcher here to make sure that only the last
             // of several user triggered load operations in quick succession
@@ -834,6 +835,7 @@ export class Explorer
                 dataApiUrl: this.props.dataApiUrl,
                 noCache: this.props.isPreview,
                 loadMetadataOnly: this.props.loadMetadataOnly,
+                slug: this.props.slug,
             }).then((owidTable) => (owidTable ? owidTable : BlankOwidTable()))
             // We use the PromiseSwitcher here to make sure that only the last
             // of several user triggered load operations in quick succession
