@@ -20,7 +20,7 @@ import {
     getVariableDataRoute,
     getVariableMetadataRoute,
 } from "@ourworldindata/grapher"
-import pl from "nodejs-polars"
+import pl, { type DataType } from "nodejs-polars"
 import { DATA_API_URL } from "../../settings/serverSettings.js"
 import { deleteGrapherConfigsFromR2ByUuid } from "../../serverUtils/r2/chartConfigR2Helpers.js"
 import {
@@ -537,32 +537,33 @@ export async function writeVariableCSV(
     knex: db.KnexReadonlyTransaction
 ): Promise<void> {
     // get variables as dataframe
-    const variablesDF = (
-        await readSQLasDF(
-            `-- sql
+    const variablesDF = await readSQLasDF(
+        `-- sql
         SELECT
             id as variableId,
             name as variableName,
             columnOrder
         FROM variables v
         WHERE id IN (?)`,
-            [variableIds],
-            knex
-        )
-    ).withColumn(pl.col("variableId").cast(pl.Int32))
+        [variableIds],
+        knex,
+        {
+            variableId: pl.Int32,
+            variableName: pl.String,
+            columnOrder: pl.Int32,
+        }
+    )
 
     // Throw an error if not all variables exist
     if (variablesDF.shape.height !== variableIds.length) {
-        const fetchedVariableIds = variablesDF
-            .getColumn("variableId")
-            .toArray() as number[]
+        const fetchedVariableIds = variablesDF.getColumn("variableId").toArray()
         const missingVariables = _.difference(variableIds, fetchedVariableIds)
         throw Error(`Variable IDs do not exist: ${missingVariables.join(", ")}`)
     }
 
     // get data values as dataframe
     const dataValuesDF = await dataAsDF(
-        variablesDF.getColumn("variableId").toArray() as number[],
+        variablesDF.getColumn("variableId").toArray(),
         knex
     )
 
@@ -585,22 +586,21 @@ export const entitiesAsDF = async (
     entityIds: number[],
     knex: db.KnexReadonlyTransaction
 ): Promise<pl.DataFrame> => {
-    return (
-        await readSQLasDF(
-            `
+    return readSQLasDF(
+        `
         SELECT
             id AS entityId,
             name AS entityName,
             code AS entityCode
         FROM entities WHERE id in (?)
         `,
-            [_.uniq(entityIds)],
-            knex
-        )
-    ).select(
-        pl.col("entityId").cast(pl.Int32),
-        pl.col("entityName").cast(pl.Utf8),
-        pl.col("entityCode").cast(pl.Utf8)
+        [_.uniq(entityIds)],
+        knex,
+        {
+            entityId: pl.Int32,
+            entityName: pl.String,
+            entityCode: pl.String,
+        }
     )
 }
 
@@ -789,12 +789,24 @@ export const createDataFrame = (data: unknown): pl.DataFrame => {
     }
 }
 
-export const readSQLasDF = async (
+/**
+ * Run a query and return its rows as a dataframe with exactly the columns and
+ * dtypes of `schema`, cast with `cast` (passing `schema` to the DataFrame
+ * constructor instead would silently turn mismatched values into nulls).
+ */
+export const readSQLasDF = async <S extends Record<string, DataType>>(
     sql: string,
     params: any[],
-    knex: db.KnexReadonlyTransaction
-): Promise<pl.DataFrame> => {
-    return createDataFrame(await db.knexRaw(knex, sql, params))
+    knex: db.KnexReadonlyTransaction,
+    schema: S
+): Promise<pl.DataFrame<S>> => {
+    const rows = await db.knexRaw(knex, sql, params)
+    if (rows.length === 0) return pl.DataFrame({}, { schema })
+    return createDataFrame(rows).select(
+        ...Object.entries(schema).map(([name, dtype]) =>
+            pl.col(name).cast(dtype)
+        )
+    ) as pl.DataFrame<S>
 }
 
 export async function getVariableOfDatapageIfApplicable(
