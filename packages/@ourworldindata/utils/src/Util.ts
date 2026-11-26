@@ -248,6 +248,16 @@ export function convertDaysSinceEpochToDate(dayAsYear: number): dayjs.Dayjs {
     return dayjs.utc(epochTimestamp() + Math.round(dayAsYear) * MS_PER_DAY)
 }
 
+/**
+ * The UTC year of a day given as days since the epoch. Same as
+ * convertDaysSinceEpochToDate(day).year(), without creating a dayjs object
+ */
+export function getYearFromDaysSinceEpoch(daysSinceEpoch: number): number {
+    return new Date(
+        epochTimestamp() + Math.round(daysSinceEpoch) * MS_PER_DAY
+    ).getUTCFullYear()
+}
+
 // Inverse of convertDaysSinceEpochToDate.
 export function convertDateToDaysSinceEpoch(date: dayjs.Dayjs): number {
     return diffDatesInDays(date, epochDate())
@@ -867,14 +877,6 @@ export const diffDatesInDays = (a: dayjs.Dayjs, b: dayjs.Dayjs): number => {
     const aUtc = toStartOfDayUtc(a)
     const bUtc = toStartOfDayUtc(b)
     return Math.trunc((aUtc.valueOf() - bUtc.valueOf()) / MS_PER_DAY)
-}
-
-export const getYearFromISOStringAndDayOffset = (
-    epoch: string,
-    daysOffset: number
-): number => {
-    const date = dayjs.utc(epoch).add(daysOffset, "day")
-    return date.year()
 }
 
 export const sleep = (ms: number): Promise<void> =>

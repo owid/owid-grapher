@@ -49,7 +49,7 @@ import {
     findClosestTimeIndex,
     findFinestCommonTimeInterval,
     getTimeInterval,
-    getYearFromISOStringAndDayOffset,
+    getYearFromDaysSinceEpoch,
     isSubYearly,
     snapToIntervalStart,
     trimObject,
@@ -439,7 +439,7 @@ const withYearDerivedFromDay = (frame: Frame): Frame => {
     const years = dayColumn.values.map((day) => {
         let year = yearByDay.get(day as number)
         if (year === undefined) {
-            year = getYearFromISOStringAndDayOffset(EPOCH_DATE, day as number)
+            year = getYearFromDaysSinceEpoch(day as number)
             yearByDay.set(day as number, year)
         }
         return year
