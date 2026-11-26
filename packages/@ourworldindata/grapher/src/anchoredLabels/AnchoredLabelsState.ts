@@ -14,12 +14,17 @@ import {
     PlacedAnchoredLabelSeries,
 } from "./AnchoredLabelsTypes.js"
 import { Emphasis } from "../interaction/Emphasis.js"
-import { placeColumn, VerticalRange } from "./AnchoredLabelsPacking.js"
 import {
-    EDGE_TOLERANCE_PX,
-    FLOAT_TOLERANCE_PX,
-    NUDGE_STEP_PX,
-} from "./AnchoredLabelsConstants.js"
+    placeEdgeLabels,
+    VerticalRange,
+} from "./AnchoredLabelsEdgePlacement.js"
+import { placeInChartLabels } from "./AnchoredLabelsInChartPlacement.js"
+import { EDGE_TOLERANCE_PX } from "./AnchoredLabelsConstants.js"
+
+interface SeriesBounds {
+    series: SizedAnchoredLabelSeries
+    bounds: Bounds
+}
 
 interface AnchoredLabelsOptions {
     /** Font size for the labels */
@@ -211,10 +216,15 @@ export class AnchoredLabelsState {
         return toVerticalRange(yRanges?.inChart ?? yRanges?.edge)
     }
 
+    /**
+     * Names of series whose anchor sits on the plot's right edge (left edge
+     * for end-anchored labels), e.g. lines that run to the last year
+     */
     @computed private get edgeSeriesNames(): Set<string> {
         const { xRange, textAnchor } = this.options
         if (!xRange)
             return new Set(this.sizedSeries.map((series) => series.seriesName))
+
         const [left, right] = xRange
         const isAtOrBeyondEdge = (x: number): boolean =>
             textAnchor === "start"
@@ -228,12 +238,20 @@ export class AnchoredLabelsState {
         )
     }
 
-    @computed private get packedEdgeSeries(): PlacedAnchoredLabelSeries[] {
+    /**
+     * Edge labels separated so they don't overlap, each moved at most
+     * one font size from its anchor. Labels join from the highest rank down,
+     * and one is left out if it would overflow the vertical range or push any
+     * label further than that. In-chart labels are placed afterwards and may
+     * cover lower-ranked ones, which placedEdgeSeries then drops.
+     */
+    @computed
+    private get tentativelyPlacedEdgeSeries(): PlacedAnchoredLabelSeries[] {
         const edgeSeries = this.sizedSeriesByPriority.filter((series) =>
             this.edgeSeriesNames.has(series.seriesName)
         )
 
-        const centerYs = placeColumn(
+        const centerYs = placeEdgeLabels(
             edgeSeries.map((series) => ({
                 id: series.seriesName,
                 anchorY: series.position.y,
@@ -256,11 +274,23 @@ export class AnchoredLabelsState {
             )
     }
 
-    @computed private get placedInChartSeries(): PlacedAnchoredLabelSeries[] {
-        const { anchorCollisionRadius, fontSize: maxNudge } = this.options
-        const range = this.inChartVerticalRange
+    private getCollisionBounds(series: SizedAnchoredLabelSeries): Bounds {
+        return series.bounds.expand(this.collisionPadding)
+    }
 
-        const anchors = this.sizedSeries.map((series) => ({
+    /** Tentatively placed edge labels as padded bounds */
+    @computed private get edgeLabelsForInChartLabelsToAvoid(): SeriesBounds[] {
+        return this.tentativelyPlacedEdgeSeries.map((series) => ({
+            series,
+            bounds: this.getCollisionBounds(series),
+        }))
+    }
+
+    /** Zones around anchor points; none if anchorCollisionRadius is 0 */
+    @computed private get anchorsForInChartLabelsToAvoid(): SeriesBounds[] {
+        const { anchorCollisionRadius } = this.options
+        if (anchorCollisionRadius === 0) return []
+        return this.sizedSeries.map((series) => ({
             series,
             bounds: Bounds.forDot(
                 series.position.x,
@@ -268,83 +298,60 @@ export class AnchoredLabelsState {
                 anchorCollisionRadius
             ),
         }))
-        const edgeLabels = this.packedEdgeSeries.map((series) => ({
-            series,
-            bounds: series.bounds.expand(this.collisionPadding),
-        }))
-        const placedCollisionBounds: Bounds[] = []
-
-        /** Bounds a label could hit anywhere in its nudge range */
-        const findObstaclesInReach = (
-            series: SizedAnchoredLabelSeries,
-            collisionBounds: Bounds
-        ): Bounds[] => {
-            const reach = maxNudge + NUDGE_STEP_PX
-            const reachBounds = collisionBounds.expand({
-                top: reach,
-                bottom: reach,
-            })
-            const isInReach = (bounds: Bounds): boolean =>
-                reachBounds.intersects(bounds)
-
-            const obstacles = placedCollisionBounds.filter(isInReach)
-            for (const edge of edgeLabels)
-                if (
-                    isInReach(edge.bounds) &&
-                    this.comparePriority(edge.series, series) <= 0
-                )
-                    obstacles.push(edge.bounds)
-            if (anchorCollisionRadius === 0) return obstacles
-
-            const emphasisRank = getEmphasisRank(series)
-            for (const anchor of anchors)
-                if (
-                    isInReach(anchor.bounds) &&
-                    anchor.series.seriesName !== series.seriesName &&
-                    emphasisRank <= getEmphasisRank(anchor.series)
-                )
-                    obstacles.push(anchor.bounds)
-            return obstacles
-        }
-
-        const placed: PlacedAnchoredLabelSeries[] = []
-        for (const series of this.sizedSeriesByPriority) {
-            if (this.edgeSeriesNames.has(series.seriesName)) continue
-
-            const { bounds } = series
-            const collisionBounds = bounds.expand(this.collisionPadding)
-            const obstacles = findObstaclesInReach(series, collisionBounds)
-
-            const isOffsetFree = (dy: number): boolean => {
-                if (bounds.top + dy < range.top) return false
-                if (bounds.bottom + dy > range.bottom) return false
-                const shifted = collisionBounds.set({
-                    y: collisionBounds.y + dy,
-                })
-                return !obstacles.some((obstacle) =>
-                    shifted.hasVerticalOverlap(obstacle)
-                )
-            }
-
-            const dy = findNearestFreeOffset({ maxNudge, isOffsetFree })
-            if (dy === undefined) continue
-
-            const nudged = shiftSeries(series, dy)
-            placed.push(nudged)
-            placedCollisionBounds.push(
-                nudged.bounds.expand(this.collisionPadding)
-            )
-        }
-        return placed
     }
 
-    /** Packed edge labels minus those an outranking in-chart label overlaps */
+    /**
+     * Bounds an in-chart label must not cover: edge labels ranked at least as
+     * high, and other series' anchors with at least the same emphasis
+     */
+    private getBoundsToAvoid(
+        inChartSeries: SizedAnchoredLabelSeries
+    ): Bounds[] {
+        const emphasisRank = getEmphasisRank(inChartSeries)
+        const edgeLabels = this.edgeLabelsForInChartLabelsToAvoid.filter(
+            (edge) => this.comparePriority(edge.series, inChartSeries) <= 0
+        )
+        const anchors = this.anchorsForInChartLabelsToAvoid.filter(
+            (anchor) =>
+                anchor.series.seriesName !== inChartSeries.seriesName &&
+                emphasisRank <= getEmphasisRank(anchor.series)
+        )
+        return [...edgeLabels, ...anchors].map((toAvoid) => toAvoid.bounds)
+    }
+
+    /** In-chart labels, each shifted at most one font size from its anchor */
+    @computed private get placedInChartSeries(): PlacedAnchoredLabelSeries[] {
+        const inChartSeries = this.sizedSeriesByPriority.filter(
+            (series) => !this.edgeSeriesNames.has(series.seriesName)
+        )
+
+        const offsetYs = placeInChartLabels(
+            inChartSeries.map((series) => ({
+                id: series.seriesName,
+                bounds: series.bounds,
+                collisionBounds: this.getCollisionBounds(series),
+                boundsToAvoid: this.getBoundsToAvoid(series),
+            })),
+            {
+                range: this.inChartVerticalRange,
+                maxShift: this.options.fontSize,
+            }
+        )
+
+        return inChartSeries
+            .filter((series) => offsetYs.has(series.seriesName))
+            .map((series) =>
+                shiftSeries(series, offsetYs.get(series.seriesName)!)
+            )
+    }
+
+    /** Tentatively placed edge labels minus those an outranking in-chart label overlaps */
     @computed private get placedEdgeSeries(): PlacedAnchoredLabelSeries[] {
         const inChartCollisionBounds = this.placedInChartSeries.map((series) =>
-            series.bounds.expand(this.collisionPadding)
+            this.getCollisionBounds(series)
         )
-        return this.packedEdgeSeries.filter((series) => {
-            const collisionBounds = series.bounds.expand(this.collisionPadding)
+        return this.tentativelyPlacedEdgeSeries.filter((series) => {
+            const collisionBounds = this.getCollisionBounds(series)
             return !inChartCollisionBounds.some((bounds) =>
                 bounds.intersects(collisionBounds)
             )
@@ -352,14 +359,14 @@ export class AnchoredLabelsState {
     }
 
     @computed get series(): PlacedAnchoredLabelSeries[] {
-        const placedByName = new Map(
+        const placedSeriesByName = new Map(
             [...this.placedEdgeSeries, ...this.placedInChartSeries].map(
                 (series) => [series.seriesName, series]
             )
         )
 
         return this.sizedSeries
-            .map((series) => placedByName.get(series.seriesName))
+            .map((series) => placedSeriesByName.get(series.seriesName))
             .filter((series) => series !== undefined)
     }
 
@@ -372,32 +379,16 @@ export class AnchoredLabelsState {
 
 function shiftSeries<T extends SizedAnchoredLabelSeries>(
     series: T,
-    dy: number
+    offsetY: number
 ): T {
     return {
         ...series,
         textPosition: {
             x: series.textPosition.x,
-            y: series.textPosition.y + dy,
+            y: series.textPosition.y + offsetY,
         },
-        bounds: series.bounds.set({ y: series.bounds.y + dy }),
+        bounds: series.bounds.set({ y: series.bounds.y + offsetY }),
     }
-}
-
-/** Smallest vertical offset within maxNudge that isOffsetFree accepts, trying up before down */
-function findNearestFreeOffset({
-    maxNudge,
-    isOffsetFree,
-}: {
-    maxNudge: number
-    isOffsetFree: (dy: number) => boolean
-}): number | undefined {
-    for (let k = 0; k * NUDGE_STEP_PX <= maxNudge + FLOAT_TOLERANCE_PX; k++) {
-        const offset = k * NUDGE_STEP_PX
-        const offsets = k === 0 ? [0] : [-offset, offset]
-        for (const dy of offsets) if (isOffsetFree(dy)) return dy
-    }
-    return undefined
 }
 
 function toVerticalRange(yRange?: [number, number]): VerticalRange {
@@ -406,24 +397,26 @@ function toVerticalRange(yRange?: [number, number]): VerticalRange {
         : { top: -Infinity, bottom: Infinity }
 }
 
-/** Sorted by comparePriority, with each run of ties ordered farthest-first */
+/**
+ * Sorts labels by comparePriority, highest priority first. Within a run of
+ * labels the comparator ties, the next label is always the one whose anchor is
+ * furthest from every label ordered so far, which spreads tied labels across
+ * the chart. Labels at equal distance keep their input order.
+ */
 function orderByPriorityThenFarthest<T extends InitialAnchoredLabelSeries>(
     series: readonly T[],
     comparePriority: (a: T, b: T) => number
 ): T[] {
-    const sorted = [...series].sort(comparePriority)
-    const ordered: T[] = []
-    let tieStart = 0
-    while (tieStart < sorted.length) {
-        let tieEnd = tieStart + 1
-        while (
-            tieEnd < sorted.length &&
-            comparePriority(sorted[tieStart], sorted[tieEnd]) === 0
-        )
-            tieEnd++
-        appendFarthestFirst(ordered, sorted.slice(tieStart, tieEnd))
-        tieStart = tieEnd
+    const ties: T[][] = []
+    for (const label of series.toSorted(comparePriority)) {
+        const currentTie = ties.at(-1)
+        if (currentTie && comparePriority(currentTie[0], label) === 0)
+            currentTie.push(label)
+        else ties.push([label])
     }
+
+    const ordered: T[] = []
+    for (const tie of ties) appendFarthestFirst(ordered, tie)
     return ordered
 }
 
@@ -437,25 +430,16 @@ function appendFarthestFirst<T extends InitialAnchoredLabelSeries>(
 ): void {
     const remaining = candidates.map((candidate) => ({
         candidate,
-        squaredDistanceToOrdered: ordered.reduce(
-            (min, other) =>
-                Math.min(
-                    min,
-                    getSquaredDistance(candidate.position, other.position)
-                ),
-            Infinity
+        squaredDistanceToOrdered: getSquaredDistanceToNearest(
+            candidate,
+            ordered
         ),
     }))
     while (remaining.length > 0) {
-        let farthestIndex = 0
-        for (let index = 1; index < remaining.length; index++)
-            if (
-                remaining[index].squaredDistanceToOrdered >
-                remaining[farthestIndex].squaredDistanceToOrdered
-            )
-                farthestIndex = index
-
-        const [{ candidate: next }] = remaining.splice(farthestIndex, 1)
+        const [{ candidate: next }] = remaining.splice(
+            findFarthestIndex(remaining),
+            1
+        )
         ordered.push(next)
         for (const entry of remaining)
             entry.squaredDistanceToOrdered = Math.min(
@@ -463,6 +447,31 @@ function appendFarthestFirst<T extends InitialAnchoredLabelSeries>(
                 getSquaredDistance(entry.candidate.position, next.position)
             )
     }
+}
+
+/** Index of the entry furthest from its nearest ordered label; the first on ties */
+function findFarthestIndex(
+    remaining: readonly { squaredDistanceToOrdered: number }[]
+): number {
+    let farthestIndex = 0
+    for (let index = 1; index < remaining.length; index++)
+        if (
+            remaining[index].squaredDistanceToOrdered >
+            remaining[farthestIndex].squaredDistanceToOrdered
+        )
+            farthestIndex = index
+    return farthestIndex
+}
+
+/** Squared distance from the series' anchor to the nearest of the others' anchors; Infinity without others */
+function getSquaredDistanceToNearest(
+    series: InitialAnchoredLabelSeries,
+    others: readonly InitialAnchoredLabelSeries[]
+): number {
+    let min = Infinity
+    for (const other of others)
+        min = Math.min(min, getSquaredDistance(series.position, other.position))
+    return min
 }
 
 function getSquaredDistance(a: Point, b: Point): number {

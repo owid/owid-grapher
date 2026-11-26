@@ -112,7 +112,7 @@ describe(AnchoredLabelsState, () => {
     })
 
     it("hides the lowest-ranked label that would be pushed more than a font size", () => {
-        // Packed together, the outer two of three labels at one anchor move 14px
+        // Separated, the outer two of three labels at one anchor move 14px
         const series = [makeSeries("A"), makeSeries("B"), makeSeries("C")]
         const preferC: Compare = (a, b) =>
             Number(b.seriesName === "C") - Number(a.seriesName === "C")
@@ -140,7 +140,7 @@ describe(AnchoredLabelsState, () => {
             makeSeries("A", undefined, { x: 100, y: 50 }),
             makeSeries("B", undefined, { x: 100, y: 50 }),
         ]
-        // Packed in the edge column, the pair moves 7px each; nudged in the chart, B can't move the 14px it needs
+        // Separated at the edge, the pair moves 7px each; shifted in the chart, B can't move the 14px it needs
         const names = (right: number): string[] =>
             makeState(series, { xRange: [0, right] }).series.map(
                 (s) => s.seriesName
@@ -222,7 +222,7 @@ describe(AnchoredLabelsState, () => {
         expect(state.width).toBeLessThan(makeState([long]).width)
     })
 
-    describe("nudging in-chart labels", () => {
+    describe("shifting in-chart labels", () => {
         const edge = makeSeries("Edge", undefined, { x: 100, y: 0 })
         const blocker = makeSeries("Blocker", Emphasis.Highlighted, {
             x: 0,
@@ -258,7 +258,7 @@ describe(AnchoredLabelsState, () => {
             expect(placed.textPosition.y).toBeLessThan(100)
         })
 
-        it("keeps later labels clear of a label at its nudged position", () => {
+        it("keeps later labels clear of a label at its shifted position", () => {
             const nextAnchorY = anchorY + labelHeight + VERTICAL_GAP
             const next = makeSeries("Next", undefined, { x: 0, y: nextAnchorY })
             const rankMoverFirst: Compare = (a, b) =>
