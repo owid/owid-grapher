@@ -55,11 +55,11 @@ import { NoDataMessage } from "../noDataMessage/NoDataMessage"
 import { ExternalColorLegendData } from "../legend/HorizontalColorLegendTypes.js"
 import { CategoricalBin } from "../color/ColorScaleBin.js"
 import {
-    getVisibleLabels,
     getHoverStateForSeries,
     isTargetOutsideElement,
     scaleFontSize,
 } from "../chart/ChartUtils"
+import { getVisibleLabels } from "../chart/VisibleChartLabels"
 import { TooltipState } from "../tooltip/Tooltip"
 import { LineChartTooltip } from "./LineChartTooltip"
 import { LineChartActiveTimeMarkers } from "./LineChartActiveTimeMarkers"

@@ -65,12 +65,8 @@ import {
     toLeftRight,
 } from "./DumbbellChartHelpers"
 import { AnimatedRows } from "../animation/AnimatedRows"
-import {
-    getVisibleLabels,
-    roundFontSize,
-    scaleFontSize,
-    textWidth,
-} from "../chart/ChartUtils.js"
+import { roundFontSize, scaleFontSize, textWidth } from "../chart/ChartUtils.js"
+import { getVisibleLabels } from "../chart/VisibleChartLabels.js"
 import { GRAPHER_LIGHT_TEXT } from "../color/ColorConstants.js"
 import { darkenColorForText } from "../color/ColorUtils.js"
 import { HorizontalLabelPair } from "../horizontalLabelPair/HorizontalLabelPair.js"

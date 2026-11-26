@@ -23,7 +23,8 @@ import {
     Time,
 } from "@ourworldindata/types"
 import { calculateAspectRatio, getFacetLabelFontSize } from "./FacetChartUtils"
-import { getVisibleLabels, scaleFontSize } from "../chart/ChartUtils"
+import { scaleFontSize } from "../chart/ChartUtils"
+import { getVisibleLabels } from "../chart/VisibleChartLabels"
 import {
     FacetMapManager,
     MapFacetSeries,

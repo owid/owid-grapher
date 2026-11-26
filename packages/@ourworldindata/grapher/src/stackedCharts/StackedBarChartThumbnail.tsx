@@ -10,7 +10,8 @@ import {
     DEFAULT_GRAPHER_BOUNDS,
     FontSettings,
 } from "../core/GrapherConstants"
-import { getVisibleLabels, scaleFontSize } from "../chart/ChartUtils"
+import { scaleFontSize } from "../chart/ChartUtils"
+import { getVisibleLabels } from "../chart/VisibleChartLabels"
 import { Bounds } from "@ourworldindata/utils"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"

@@ -41,7 +41,8 @@ import {
     ProjectedDataLegendPattern,
     InapplicablePattern,
 } from "./MapComponents"
-import { getVisibleLabels, NoDataPattern } from "../chart/ChartUtils"
+import { NoDataPattern } from "../chart/ChartUtils"
+import { getVisibleLabels } from "../chart/VisibleChartLabels"
 import { Patterns, makePatternId } from "../core/GrapherConstants"
 import {
     detectNearbyFeature,

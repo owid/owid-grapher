@@ -18,7 +18,7 @@ import { toSizeRange } from "./ScatterUtils"
 import { DualAxisComponent } from "../axis/AxisViews"
 import { ScatterPointsWithLabels } from "./ScatterPointsWithLabels"
 import { NoDataMessage } from "../noDataMessage/NoDataMessage"
-import { getVisibleLabels } from "../chart/ChartUtils"
+import { getVisibleLabels } from "../chart/VisibleChartLabels"
 
 @observer
 export class ScatterPlotChartThumbnail

@@ -35,11 +35,8 @@ import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { HorizontalAxis } from "../axis/Axis"
 import { ChartInterface } from "../chart/ChartInterface"
 import { TooltipState } from "../tooltip/Tooltip"
-import {
-    getVisibleLabels,
-    roundFontSize,
-    scaleFontSize,
-} from "../chart/ChartUtils"
+import { roundFontSize, scaleFontSize } from "../chart/ChartUtils"
+import { getVisibleLabels } from "../chart/VisibleChartLabels"
 import { GRAPHER_LIGHT_TEXT } from "../color/ColorConstants.js"
 import { ChartComponentProps } from "../chart/ChartTypeMap"
 import {

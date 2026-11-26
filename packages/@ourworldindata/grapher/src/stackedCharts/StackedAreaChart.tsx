@@ -40,10 +40,10 @@ import {
     StackedSeries,
 } from "./StackedConstants"
 import {
-    getVisibleLabels,
     isTargetOutsideElement,
     getHoverStateForSeries,
 } from "../chart/ChartUtils"
+import { getVisibleLabels } from "../chart/VisibleChartLabels"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig.js"
 import { LabelSeries } from "../verticalLabels/VerticalLabelsTypes"
 import { Emphasis, resolveEmphasis } from "../interaction/Emphasis"

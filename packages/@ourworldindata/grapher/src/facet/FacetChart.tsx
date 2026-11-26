@@ -47,11 +47,8 @@ import {
     FacetChartManager,
 } from "./FacetChartConstants"
 import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
-import {
-    getVisibleLabels,
-    autoDetectYColumnSlugs,
-    makeSelectionArray,
-} from "../chart/ChartUtils"
+import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
+import { getVisibleLabels } from "../chart/VisibleChartLabels"
 import { SelectionArray } from "../selection/SelectionArray"
 import { AxisConfig } from "../axis/AxisConfig"
 import { HorizontalAxis, VerticalAxis } from "../axis/Axis"

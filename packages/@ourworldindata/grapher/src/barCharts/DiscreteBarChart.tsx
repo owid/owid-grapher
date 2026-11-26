@@ -23,11 +23,8 @@ import { NoDataMessage } from "../noDataMessage/NoDataMessage"
 import { HorizontalAxisZeroLine } from "../axis/AxisViews"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { ChartInterface } from "../chart/ChartInterface"
-import {
-    getVisibleLabels,
-    roundFontSize,
-    scaleFontSize,
-} from "../chart/ChartUtils"
+import { roundFontSize, scaleFontSize } from "../chart/ChartUtils"
+import { getVisibleLabels } from "../chart/VisibleChartLabels"
 import {
     BAR_SPACING_FACTOR,
     DISCRETE_BAR_STYLE,

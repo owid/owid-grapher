@@ -33,13 +33,13 @@ import {
     autoDetectYColumnSlugs,
     getDefaultFailMessage,
     getShortNameForEntity,
-    getVisibleLabels,
     isToleranceDistanceValid,
     makeSelectionArray,
     sortByConfig,
     SortKeyFn,
     sortByColumnValue,
 } from "../chart/ChartUtils"
+import { getVisibleLabels } from "../chart/VisibleChartLabels"
 import { selectEntityAnnotation } from "../annotations/EntityAnnotations"
 
 export class DumbbellChartState implements ChartState {

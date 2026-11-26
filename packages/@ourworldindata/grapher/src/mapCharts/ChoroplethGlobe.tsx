@@ -1,5 +1,5 @@
 import * as _ from "lodash-es"
-import { getVisibleLabels } from "../chart/ChartUtils"
+import { getVisibleLabels } from "../chart/VisibleChartLabels"
 import React from "react"
 import { computed, action, observable, makeObservable } from "mobx"
 import { observer } from "mobx-react"

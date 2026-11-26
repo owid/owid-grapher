@@ -138,11 +138,11 @@ import {
 } from "../chart/ChartTabs.js"
 import { makeChartState } from "../chart/ChartTypeMap.js"
 import {
-    getVisibleLabels,
     autoDetectSeriesStrategy,
     autoDetectYColumnSlugs,
     scaleFontSize,
 } from "../chart/ChartUtils.js"
+import { getVisibleLabels } from "../chart/VisibleChartLabels.js"
 import { DimensionSlot } from "../chart/DimensionSlot.js"
 import { GRAPHER_LIGHT_TEXT } from "../color/ColorConstants.js"
 import { ColorScaleConfig } from "../color/ColorScaleConfig.js"

@@ -23,11 +23,8 @@ import {
     DEFAULT_GRAPHER_BOUNDS,
     FontSettings,
 } from "../core/GrapherConstants"
-import {
-    getVisibleLabels,
-    roundFontSize,
-    scaleFontSize,
-} from "../chart/ChartUtils"
+import { roundFontSize, scaleFontSize } from "../chart/ChartUtils"
+import { getVisibleLabels } from "../chart/VisibleChartLabels"
 import { enrichSeriesWithLabels } from "../rowSeriesLabels/RowSeriesLabelHelpers.js"
 import {
     HorizontalAxisComponent,
