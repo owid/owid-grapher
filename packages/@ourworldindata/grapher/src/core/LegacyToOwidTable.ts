@@ -102,11 +102,7 @@ export const legacyToOwidTableAndDimensions = (
         // Shouldn't happen, but does when adding dimensions in the chart editor
         if (!variable) continue
 
-        const variableFrame = buildVariableFrame(
-            variable,
-            dimension,
-            lookupEntityName
-        )
+        const variableFrame = buildVariableFrame(variable, dimension)
         const { targetYear } = dimension
         if (typeof targetYear === "number")
             targetTimeFrames.push(pinToTargetTime(variableFrame, targetYear))
@@ -178,6 +174,13 @@ export const legacyToOwidTableAndDimensions = (
         findColumn(joined, OwidTableSlugs.Day) ??
         findColumn(joined, OwidTableSlugs.Year)
     const extraColumns: FrameColumn[] = []
+
+    // Entity ids and names map one to one, so the joins only carry ids and
+    // names are looked up once, for the joined rows
+    const entityIdColumn = findColumn(joined, OwidTableSlugs.EntityId)
+    const entityNames = entityIdColumn
+        ? lookupEntityNames(entityIdColumn.values, lookupEntityName)
+        : []
     if (timeSource)
         extraColumns.push({
             def: {
@@ -190,14 +193,14 @@ export const legacyToOwidTableAndDimensions = (
 
     if (!_.isEmpty(selectedEntityColors))
         extraColumns.push(
-            makeEntityColorColumn(
-                findColumn(joined, OwidTableSlugs.EntityName)?.values ?? [],
-                selectedEntityColors
-            )
+            makeEntityColorColumn(entityNames, selectedEntityColors)
         )
 
+    const entityNameColumns: FrameColumn[] = entityIdColumn
+        ? [{ def: OwidEntityNameColumnDef, values: entityNames }]
+        : []
     return frameToTable({
-        columns: [...joined.columns, ...extraColumns],
+        columns: [...entityNameColumns, ...joined.columns, ...extraColumns],
         numRows: joined.numRows,
     })
 }
@@ -262,10 +265,19 @@ const makeEntityNameLookup = (
     }
 }
 
+const lookupEntityNames = (
+    entityIds: readonly CoreValueType[],
+    lookupEntityName: (id: number) => CoreValueType
+): CoreValueType[] => {
+    const names: CoreValueType[] = new Array(entityIds.length)
+    for (let row = 0; row < entityIds.length; row++)
+        names[row] = lookupEntityName(entityIds[row] as number)
+    return names
+}
+
 const buildVariableFrame = (
     variable: OwidVariableDataMetadataDimensions,
-    dimension: IndicatorDimensionInterface,
-    lookupEntityName: (id: number) => CoreValueType
+    dimension: IndicatorDimensionInterface
 ): VariableFrame => {
     const { metadata, data } = variable
     const interval = getTimeInterval(metadata.display)
@@ -276,12 +288,7 @@ const buildVariableFrame = (
     const entityIds = data.entities ?? []
     const numRows = entityIds.length
     const parsedIds: CoreValueType[] = new Array(numRows)
-    const parsedEntityNames: CoreValueType[] = new Array(numRows)
-    for (let i = 0; i < numRows; i++) {
-        const id = entityIds[i]
-        parsedIds[i] = parseNumber(id)
-        parsedEntityNames[i] = lookupEntityName(id)
-    }
+    for (let i = 0; i < numRows; i++) parsedIds[i] = parseNumber(entityIds[i])
 
     return {
         interval,
@@ -289,7 +296,6 @@ const buildVariableFrame = (
         valueSlug: valueColumn.def.slug,
         frame: {
             columns: [
-                { def: OwidEntityNameColumnDef, values: parsedEntityNames },
                 { def: OwidEntityIdColumnDef, values: parsedIds },
                 {
                     def: timeDef,
@@ -350,14 +356,14 @@ const pinToTargetTime = (
     targetTime: Time
 ): Frame => {
     const { frame, timeSlug, valueSlug } = variableFrame
-    const nameColumn = findColumn(frame, OwidTableSlugs.EntityName)!
+    const entityIdColumn = findColumn(frame, OwidTableSlugs.EntityId)!
     const timeColumn = findColumn(frame, timeSlug)!
     const valueColumn = findColumn(frame, valueSlug)!
 
     const tolerance =
         valueColumn.def.display?.tolerance ?? valueColumn.def.tolerance ?? 0
     const keptRows = findRowsMatchingTargetTime(
-        nameColumn.values,
+        entityIdColumn.values,
         timeColumn.values as number[],
         targetTime,
         tolerance
@@ -391,7 +397,7 @@ const pinToTargetTime = (
 }
 
 const findRowsMatchingTargetTime = (
-    entityNames: CoreValueType[],
+    entityIds: CoreValueType[],
     times: number[],
     targetTime: Time,
     tolerance: number
@@ -406,10 +412,10 @@ const findRowsMatchingTargetTime = (
     // For each entity, find the row closest to the target time within tolerance
     const rowsByEntity = new Map<CoreValueType, number[]>()
     for (let row = 0; row < times.length; row++) {
-        const name = entityNames[row]
-        const rows = rowsByEntity.get(name)
+        const entityId = entityIds[row]
+        const rows = rowsByEntity.get(entityId)
         if (rows) rows.push(row)
-        else rowsByEntity.set(name, [row])
+        else rowsByEntity.set(entityId, [row])
     }
 
     const keptRowSet = new Set<number>()
