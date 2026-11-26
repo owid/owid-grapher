@@ -791,8 +791,12 @@ export const createDataFrame = (data: unknown): pl.DataFrame => {
 
 /**
  * Run a query and return its rows as a dataframe with exactly the columns and
- * dtypes of `schema`, cast with `cast` (passing `schema` to the DataFrame
- * constructor instead would silently turn mismatched values into nulls).
+ * dtypes of `schema`.
+ *
+ * Careful: polars doesn't cast to the schema — a value of the wrong JS type
+ * (e.g. a number in a `pl.String` column) is silently dropped and becomes
+ * null. So the schema must match what mysql2 returns: numbers for int columns,
+ * strings for varchar columns.
  */
 export const readSQLasDF = async <S extends Record<string, DataType>>(
     sql: string,
@@ -800,13 +804,13 @@ export const readSQLasDF = async <S extends Record<string, DataType>>(
     knex: db.KnexReadonlyTransaction,
     schema: S
 ): Promise<pl.DataFrame<S>> => {
-    const rows = await db.knexRaw(knex, sql, params)
-    if (rows.length === 0) return pl.DataFrame({}, { schema })
-    return createDataFrame(rows).select(
-        ...Object.entries(schema).map(([name, dtype]) =>
-            pl.col(name).cast(dtype)
-        )
-    ) as pl.DataFrame<S>
+    const rows = await db.knexRaw<Record<string, unknown>>(knex, sql, params)
+    // Build the columns in schema order, since polars assigns schema dtypes
+    // to the data's columns by position, not by name.
+    const columns = _.mapValues(schema, (_dtype, name) =>
+        rows.map((row) => row[name])
+    )
+    return pl.DataFrame(columns, { schema })
 }
 
 export async function getVariableOfDatapageIfApplicable(
