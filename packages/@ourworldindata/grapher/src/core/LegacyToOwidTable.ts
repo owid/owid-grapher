@@ -370,6 +370,68 @@ const getIndicatorDisplayOverride = (
 })
 
 /**
+ * Checks that no two rows of the table share the same values in the index
+ * columns, with the same string keys the general join uses.
+ */
+const hasUniqueIndexValues = (
+    table: OwidTable,
+    indexColumnNames: OwidTableSlugs[]
+): boolean => {
+    const { columnStore, numRows } = table
+
+    // Fast path for the usual entity + time index: the data typically lists
+    // each entity in one contiguous run of rows with strictly increasing
+    // times, which proves uniqueness without building a key for every row.
+    // It only applies to numeric values, whose string keys are distinct
+    // whenever the numbers are
+    if (indexColumnNames.length === 2) {
+        const entitySlugIndex = indexColumnNames.indexOf(
+            OwidTableSlugs.EntityId
+        )
+        if (entitySlugIndex !== -1) {
+            const entities = columnStore[indexColumnNames[entitySlugIndex]]
+            const times = columnStore[indexColumnNames[1 - entitySlugIndex]]
+            if (hasEntityRunsWithIncreasingTimes(entities, times, numRows))
+                return true
+        }
+    }
+
+    const keyFn = makeKeyFn(columnStore, indexColumnNames)
+    const seenKeys = new Set<string>()
+    for (let row = 0; row < numRows; row++) {
+        const key = keyFn(row)
+        if (seenKeys.has(key)) return false
+        seenKeys.add(key)
+    }
+    return true
+}
+
+const hasEntityRunsWithIncreasingTimes = (
+    entities: unknown[],
+    times: unknown[],
+    numRows: number
+): boolean => {
+    const seenEntities = new Set<number>()
+    let previousEntity: unknown = undefined
+    let previousTime = -Infinity
+    for (let row = 0; row < numRows; row++) {
+        const entity = entities[row]
+        const time = times[row]
+        if (typeof entity !== "number" || typeof time !== "number") return false
+        if (row > 0 && entity === previousEntity) {
+            if (!(time > previousTime)) return false
+        } else {
+            // A new run starts; the entity must not have had one before
+            if (seenEntities.has(entity)) return false
+            seenEntities.add(entity)
+        }
+        previousEntity = entity
+        previousTime = time
+    }
+    return true
+}
+
+/**
  * Fast path for fullJoinTables: when every table has the exact same index
  * values in the same row order (e.g. several indicators from one dataset with
  * the same coverage), row i of every table belongs to row i of the joined
@@ -406,13 +468,7 @@ const joinTablesWithIdenticalIndex = (
 
     // The general join keeps only the first row of a repeated index value, so
     // only take the fast path if every index value is unique
-    const keyFn = makeKeyFn(firstTable.columnStore, indexColumnNames)
-    const seenKeys = new Set<string>()
-    for (let row = 0; row < numRows; row++) {
-        const key = keyFn(row)
-        if (seenKeys.has(key)) return undefined
-        seenKeys.add(key)
-    }
+    if (!hasUniqueIndexValues(firstTable, indexColumnNames)) return undefined
 
     const copyColumns = (table: OwidTable, slugs: string[]): OwidColumnDef[] =>
         table.getColumns(slugs).map((col) => ({

@@ -606,6 +606,33 @@ describe(legacyToOwidTableAndDimensions, () => {
             ])
         })
 
+        it("keeps the row order when an entity's rows aren't contiguous", () => {
+            const entities = [1, 2, 1]
+            const years = [2020, 2020, 2021]
+            const table = joinVariables(
+                makeVariable(2, { entities, years, values: [8, 9, 10] }),
+                makeVariable(3, { entities, years, values: [20, 21, 22] })
+            )
+            expect(pickValues(table)).toEqual([
+                ["World", 2020, 8, 20],
+                ["High-income", 2020, 9, 21],
+                ["World", 2021, 10, 22],
+            ])
+        })
+
+        it("keeps only the first row of an entity-year repeated further down", () => {
+            const entities = [1, 2, 1]
+            const years = [2020, 2020, 2020]
+            const table = joinVariables(
+                makeVariable(2, { entities, years, values: [8, 9, 10] }),
+                makeVariable(3, { entities, years, values: [20, 21, 22] })
+            )
+            expect(pickValues(table)).toEqual([
+                ["World", 2020, 8, 20],
+                ["High-income", 2020, 9, 21],
+            ])
+        })
+
         it("keeps only the first row of a repeated entity-year", () => {
             // Both variables list World 2020 twice. Joining keys rows by
             // entity-year, so only the first of the two rows is kept
