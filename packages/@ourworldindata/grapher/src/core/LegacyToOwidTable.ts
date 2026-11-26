@@ -406,6 +406,18 @@ const hasUniqueIndexValues = (
     return true
 }
 
+// Checks whether the table has entity-time pairs in an order where they're grouped by entity,
+// and inside each group the times are strictly increasing.
+// If that's the case, then it means that the index values are necessarily unique. But even when this
+// returns false, they might still be unique, just not in this specific way (that is common and can be checked
+// performantly).
+// A table that adheres to this format is:
+// | Entity | Year |
+// | ------ | ---- |
+// | Haiti  | 2022 |
+// | Haiti  | 2024 |
+// | Aruba  | 2020 |
+// | Aruba  | 2021 |
 const hasEntityRunsWithIncreasingTimes = (
     entities: unknown[],
     times: unknown[],
