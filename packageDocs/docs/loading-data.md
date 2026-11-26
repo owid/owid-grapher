@@ -12,7 +12,7 @@ See the [API reference](api/index.md) for their full options.
 
 ## The CSV column contract
 
-CSV data — whether passed inline (`csv`), fetched from a URL (`csvUrl`), or used to construct an `OwidTable` — must contain an `entityName` column and a `year` (or `day`) column, followed by one or more value columns. `entityCode` and `entityId` columns are optional.
+CSV data — whether passed inline (`csv`), fetched from a URL (`csvUrl`), or used to construct an `OwidTable` — must contain an `entityName` column and a `year` (or `day`) column, followed by one or more value columns. An `entityId` column is optional. Entity codes are not read from the data: the Code column in data downloads is filled in from Grapher's built-in list of countries and regions, matched by entity name.
 
 ## `fromCsv`: CSV data
 
@@ -23,9 +23,9 @@ import { GrapherLoader } from "@ourworldindata/grapher"
 
 GrapherLoader.fromCsv({
     config: { title: "GDP per capita" },
-    csv: `entityName,entityCode,entityId,year,gdpPerCapita
-United States,USA,1,2000,36330
-United States,USA,1,2020,63544`,
+    csv: `entityName,entityId,year,gdpPerCapita
+United States,1,2000,36330
+United States,1,2020,63544`,
     columnDefs: [
         { slug: "gdpPerCapita", type: "Numeric", name: "GDP per capita" },
     ],

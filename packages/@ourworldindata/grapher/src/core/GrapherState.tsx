@@ -12,7 +12,6 @@ import {
     MissingColumn,
     makeOriginalTimeSlugFromColumnSlug,
     ErrorValueTypes,
-    isNotErrorValueOrEmptyCell,
 } from "@ourworldindata/core-table"
 import {
     GrapherChartType,
@@ -66,6 +65,7 @@ import {
     GrapherWindowType,
     MapRegionName,
     OwidTableSlugs,
+    OwidEntityCodeColumnDef,
     PeerCountryStrategy,
 } from "@ourworldindata/types"
 import {
@@ -1211,7 +1211,6 @@ export class GrapherState
         // Select only relevant columns (in the right order)
         table = table.select([
             table.entityNameSlug, // Entity name column
-            table.entityCodeSlug, // Entity code column
             timeSlug, // Time column
             ...dataSlugs, // Data columns
             ...originalTimeSlugs, // Original time columns
@@ -1245,30 +1244,28 @@ export class GrapherState
             originalTimeSlugs.filter((slug) => table.get(slug).numValues === 0)
         )
 
-        // Fill in missing entity codes
-        if (table.entityCodeColumn.numErrorValues > 0) {
-            table = table.replaceCells(
-                [OwidTableSlugs.EntityCode],
-                (value, index) => {
-                    if (isNotErrorValueOrEmptyCell(value)) return value
-
-                    const entityName = table.entityNameColumn
-                        .valuesIncludingErrorValues[index] as string
-
-                    const entityCode =
-                        this.inputTable.entityNameToCodeMap.get(entityName)
-
-                    return entityCode ?? value
-                }
+        // Add entity codes, looked up by entity name from our list of regions.
+        // The column is omitted if none of the entities has a code.
+        const entityCodes =
+            table.entityNameColumn.valuesIncludingErrorValues.map(
+                (entityName) =>
+                    getRegionByName(entityName as string)?.code ??
+                    ErrorValueTypes.MissingValuePlaceholder
             )
-        }
-
-        // Drop entity code column if all values are empty (after backfilling)
-        const hasEntityCodes = table.entityCodeColumn.values.some(
-            (code) => code && code !== ""
+        const hasEntityCodes = entityCodes.some(
+            (code) => code !== ErrorValueTypes.MissingValuePlaceholder
         )
-        if (!hasEntityCodes) {
-            table = table.dropColumns([OwidTableSlugs.EntityCode])
+        if (hasEntityCodes) {
+            const { entityNameSlug, columnSlugs } = table
+            table = table
+                .appendColumns([
+                    { ...OwidEntityCodeColumnDef, values: entityCodes },
+                ])
+                .select([
+                    entityNameSlug,
+                    OwidTableSlugs.EntityCode,
+                    ...columnSlugs.filter((slug) => slug !== entityNameSlug),
+                ])
         }
 
         return table

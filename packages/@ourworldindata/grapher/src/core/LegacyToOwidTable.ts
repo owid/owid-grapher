@@ -125,12 +125,9 @@ export const legacyToOwidTableAndDimensions = (
             // no longer be a problem
             (id) => entityMetaById[id]?.name ?? id.toString()
         )
-        // see comment above about entityMetaById[id]
-        const entityCodes = entityIds.map((id) => entityMetaById[id]?.code)
 
         const columnStore: { [key: string]: any[] } = {
             [OwidTableSlugs.EntityId]: entityIds,
-            [OwidTableSlugs.EntityCode]: entityCodes,
             [OwidTableSlugs.EntityName]: entityNames,
             [timeColumnDef.slug]: times,
             [valueColumnDef.slug]: variable.data.values || [],
@@ -530,7 +527,7 @@ const fullJoinTables = (
     else if (tables.length === 1) return tables[0]
 
     // Figure out which column names are shared. Shared columns (the index columns but also in our
-    // data model stuff like entityCode and entityName that we usually have in addition to entityId)
+    // data model stuff like entityName that we usually have in addition to entityId)
     // will end up only once in the final table. This is a bit of a footgun for arbitrary data models
     // as we don't make sure that the values are equal for the same index values (we only assume that
     // this is true) - but this is how we have handled it in the past and it works with the setup we

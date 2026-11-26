@@ -1634,27 +1634,54 @@ describe("download", () => {
         expect(downloadTable.numRows).toBe(2) // Only 2020 and 2022
     })
 
-    it("attempts to fill in missing entity codes from inputTable", () => {
-        // Create a table where entity codes may be missing or present
+    it("looks up entity codes by entity name from the regions list", () => {
+        // The input table has no code column; codes come from regionsData
         const table = new OwidTable([
-            ["entityName", "entityCode", "entityId", "year", "gdp"],
-            ["France", "FRA", 1, 2020, 2500],
-            ["United Kingdom", "GBR", 2, 2020, 3500],
-            ["United Kingdom", undefined, 2, 2021, 3600], // Missing code in one row
+            ["entityName", "entityId", "year", "gdp"],
+            ["France", 1, 2020, 2500],
+            ["Africa (FAO)", 2, 2020, 3500],
+            ["Some Custom Entity", 3, 2020, 3600],
         ])
 
         const grapher = makeGrapher(table, {
-            selectedEntityNames: ["France", "United Kingdom"],
+            selectedEntityNames: [
+                "France",
+                "Africa (FAO)",
+                "Some Custom Entity",
+            ],
         })
 
         const downloadTable = grapher.filteredTableForDownload
-        const ukRows = downloadTable.rows.filter(
-            (r) => r.entityName === "United Kingdom"
-        )
 
-        // All UK rows should have the code backfilled
-        expect(ukRows.length).toBeGreaterThan(0)
-        expect(ukRows.every((r) => r.entityCode === "GBR")).toBe(true)
+        // The code column comes right after the entity name
+        expect(downloadTable.columnSlugs.slice(0, 2)).toEqual([
+            "entityName",
+            "entityCode",
+        ])
+        expect(downloadTable.toPrettyCsv()).toEqual(
+            [
+                "Entity,Code,Year,gdp",
+                "Africa (FAO),FAO_AFR,2020,3500",
+                "France,FRA,2020,2500",
+                "Some Custom Entity,,2020,3600",
+            ].join("\n")
+        )
+    })
+
+    it("omits the entity code column if no entity has a code", () => {
+        const table = new OwidTable([
+            ["entityName", "entityId", "year", "gdp"],
+            ["Fire", 1, 2020, 2500],
+            ["Earthquake", 2, 2020, 3500],
+        ])
+
+        const grapher = makeGrapher(table, {
+            selectedEntityNames: ["Fire", "Earthquake"],
+        })
+
+        expect(grapher.filteredTableForDownload.columnSlugs).not.toContain(
+            "entityCode"
+        )
     })
 
     it("uses original time as main time column when there's only one y column", () => {

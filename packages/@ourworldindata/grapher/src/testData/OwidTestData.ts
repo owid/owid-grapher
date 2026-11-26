@@ -3,12 +3,11 @@ import { Region, regions } from "@ourworldindata/utils"
 import {
     MultipleOwidVariableDataDimensionsMap,
     OwidVariableWithSource,
-    EntityCode,
     EntityId,
     EntityName,
 } from "@ourworldindata/types"
 
-type Entity = { id: EntityId; code?: EntityCode; name?: EntityName }
+type Entity = { id: EntityId; name?: EntityName }
 type TestDatum = { year: number; entity: Entity; value: string | number }
 
 export type TestData = TestDatum[]
@@ -22,7 +21,7 @@ const fakeRegions = regions.map((region: Region, index: number) => ({
 export const fakeEntities = Object.fromEntries(
     fakeRegions.map((entity: Region & { id: number }) => [
         entity.name,
-        { id: entity.id, code: entity.code, name: entity.name },
+        { id: entity.id, name: entity.name },
     ])
 )
 

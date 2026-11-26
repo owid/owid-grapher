@@ -1450,7 +1450,6 @@ describe("creating a table from legacy", () => {
         expect(table.columnSlugs).toEqual([
             "entityName",
             "entityId",
-            "entityCode",
             "year",
             "3512",
             "time", // todo: what is the best design here?
@@ -1460,7 +1459,6 @@ describe("creating a table from legacy", () => {
         expect(table.columnNames).toEqual([
             "Entity",
             "entityId",
-            "Code",
             "Year",
             name,
             "time",
@@ -1488,10 +1486,10 @@ describe("creating a table from legacy", () => {
     })
 
     it("can export legacy to CSV", () => {
-        const expected = `Entity,Code,Year,Some Display Name,Year,entityColor
-Cape Verde,CPV,1985,4.2,1985,blue
-Kiribati,KIR,1985,12.6,1985,
-Papua New Guinea,PNG,1983,5.5,1983,`
+        const expected = `Entity,Year,Some Display Name,Year,entityColor
+Cape Verde,1985,4.2,1985,blue
+Kiribati,1985,12.6,1985,
+Papua New Guinea,1983,5.5,1983,`
         expect(table.toPrettyCsv()).toEqual(expected)
     })
 
