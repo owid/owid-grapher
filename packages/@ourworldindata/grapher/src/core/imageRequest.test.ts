@@ -92,32 +92,42 @@ describe(serializeImageRequest, () => {
     })
 })
 
+describe("legacy requests", () => {
+    it.each([
+        { query: "imType=og&imWidth=400&imHeight=400", same: "imPreset=og" },
+        { query: "imType=twitter&imFontSize=16", same: "imPreset=twitter" },
+        { query: "imType=square&imDetails=1", same: "imPreset=square" },
+        { query: "imType=og&imMinimal=1", same: "imPreset=og" },
+        { query: "imMinimal=1", same: "" },
+        { query: "imMinimal=2&imWidth=1200", same: "imWidth=1200" },
+        { query: "imType=unknown&imFontSize=16", same: "imFontSize=16" },
+    ])("ignores what '$query' used to ignore", ({ query, same }) => {
+        expect(parse(query)).toEqual(parse(same))
+    })
+})
+
 describe("rejected image requests", () => {
     const ERROR_CASES: { query: string; param: string }[] = [
         { query: "imPreset=og&imFontSize=16", param: "imFontSize" },
-        { query: "imType=twitter&imFontSize=16", param: "imFontSize" },
         { query: "imPreset=og&imDetails=1", param: "imDetails" },
-        { query: "imType=square&imDetails=1", param: "imDetails" },
         { query: "imVariant=fancy", param: "imVariant" },
         { query: "imLabels=some", param: "imLabels" },
         { query: "imPreset=huge", param: "imPreset" },
         { query: "imDetails=2", param: "imDetails" },
-        { query: "imMinimal=2", param: "imMinimal" },
+        { query: "imType=thumbnail&imMinimal=2", param: "imMinimal" },
         { query: "imWidth=abc", param: "imWidth" },
         { query: "imWidth=0", param: "imWidth" },
         { query: "imHeight=1.5", param: "imHeight" },
         { query: "imFontSize=-3", param: "imFontSize" },
-        { query: "imType=unknown", param: "imType" },
         { query: "imType=thumbnail&imVariant=uncaptioned", param: "imType" },
         { query: "imType=og&imPreset=og", param: "imType" },
         { query: "imMinimal=1&imLabels=names", param: "imMinimal" },
-        { query: "imMinimal=1", param: "imMinimal" },
+        { query: "imVariant=captioned&imMinimal=1", param: "imMinimal" },
         { query: "imVariant=uncaptioned&imLabels=names", param: "imLabels" },
         { query: "imVariant=simplified&imLabels=names", param: "imLabels" },
         { query: "imVariant=simplified&imLabels=none", param: "imLabels" },
         { query: "imPreset=og&imWidth=400", param: "imWidth" },
         { query: "imPreset=og&imHeight=400", param: "imHeight" },
-        { query: "imType=twitter&imWidth=1700", param: "imWidth" },
         { query: "imPreset=og&imVariant=simplified", param: "imPreset" },
         { query: "imPreset=square&imVariant=uncaptioned", param: "imPreset" },
         { query: "imVariant=simplified&imDetails=1", param: "imDetails" },

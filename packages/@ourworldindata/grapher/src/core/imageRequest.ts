@@ -81,15 +81,16 @@ const URL_TOKEN_BY_VARIANT = {
     [GrapherVariant.Thumbnail]: "simplified",
 } as const satisfies Record<GrapherVariant, string>
 
-const LEGACY_IMAGE_TYPES = new Map<
-    string,
-    { variant: GrapherVariant; preset?: ImageSizePreset }
->([
-    ["og", { variant: GrapherVariant.Default, preset: "og" }],
-    ["twitter", { variant: GrapherVariant.Default, preset: "twitter" }],
-    ["square", { variant: GrapherVariant.Default, preset: "square" }],
-    ["thumbnail", { variant: GrapherVariant.Thumbnail }],
-    ["uncaptioned", { variant: GrapherVariant.Uncaptioned }],
+const LEGACY_PARAMS = ["imType", "imMinimal"]
+const NEW_PARAMS = ["imVariant", "imPreset", "imLabels"]
+const PRESET_IGNORED_PARAMS = ["imWidth", "imHeight", "imFontSize", "imDetails"]
+
+const LEGACY_IMAGE_TYPES = new Map<string, Record<string, string>>([
+    ["og", { imPreset: "og" }],
+    ["twitter", { imPreset: "twitter" }],
+    ["square", { imPreset: "square" }],
+    ["thumbnail", { imVariant: "simplified" }],
+    ["uncaptioned", { imVariant: "uncaptioned" }],
 ])
 
 export function parseImageRequest(
@@ -138,34 +139,46 @@ class ImageRequestParseError extends Error {
 }
 
 function parseImageRequestOrThrow(params: URLSearchParams): ImageRequest {
-    if (params.has("imType") && params.has("imVariant"))
+    return parseNewImageParams(translateLegacyImageParams(params))
+}
+
+/** Rewrites imType and imMinimal into the params that replace them */
+function translateLegacyImageParams(params: URLSearchParams): URLSearchParams {
+    const legacyParam = LEGACY_PARAMS.find((param) => params.has(param))
+    if (!legacyParam) return params
+
+    const newParam = NEW_PARAMS.find((param) => params.has(param))
+    if (newParam)
         throw new ImageRequestParseError(
-            "imType",
-            "cannot be combined with imVariant"
-        )
-    if (params.has("imType") && params.has("imPreset"))
-        throw new ImageRequestParseError(
-            "imType",
-            "cannot be combined with imPreset"
-        )
-    if (params.has("imMinimal") && params.has("imLabels"))
-        throw new ImageRequestParseError(
-            "imMinimal",
-            "cannot be combined with imLabels"
+            legacyParam,
+            `cannot be combined with ${newParam}`
         )
 
-    const legacyType = parseLegacyType(params.get("imType"))
+    const translated = new URLSearchParams(params)
+    for (const param of LEGACY_PARAMS) translated.delete(param)
+
+    // An unknown imType or an imMinimal without one renders the default image
+    const replacement = LEGACY_IMAGE_TYPES.get(params.get("imType") ?? "")
+    if (!replacement) return translated
+
+    for (const [param, value] of Object.entries(replacement))
+        translated.set(param, value)
+
+    if (replacement.imPreset) {
+        for (const param of PRESET_IGNORED_PARAMS) translated.delete(param)
+    } else if (params.has("imMinimal")) {
+        translated.set("imLabels", parseLegacyMinimal(params.get("imMinimal")))
+    }
+
+    return translated
+}
+
+function parseNewImageParams(params: URLSearchParams): ImageRequest {
     const variant =
-        parseVariant(params.get("imVariant")) ??
-        legacyType?.variant ??
-        GrapherVariant.Default
+        parseVariant(params.get("imVariant")) ?? GrapherVariant.Default
     const variantToken = URL_TOKEN_BY_VARIANT[variant]
-    const preset = parsePreset(params.get("imPreset")) ?? legacyType?.preset
-    const labelParam = params.has("imMinimal") ? "imMinimal" : "imLabels"
-    const labelMode =
-        labelParam === "imMinimal"
-            ? parseLegacyMinimal(params.get("imMinimal"))
-            : parseLabelMode(params.get("imLabels"))
+    const preset = parsePreset(params.get("imPreset"))
+    const labelMode = parseLabelMode(params.get("imLabels"))
     const fontSize = parsePositiveInteger("imFontSize", params)
     const includeDetails = parseFlag("imDetails", params.get("imDetails"))
     const width = parsePositiveInteger("imWidth", params)
@@ -208,7 +221,7 @@ function parseImageRequestOrThrow(params: URLSearchParams): ImageRequest {
     const variantWithLabelMode = { variant, labelMode }
     if (!isLabelModeAllowed(variantWithLabelMode))
         throw new ImageRequestParseError(
-            labelParam,
+            "imLabels",
             `not allowed with imVariant=${variantToken}`
         )
 
@@ -283,16 +296,6 @@ function parseLabelMode(value: string | null): ChartLabelMode {
     if (labelMode === undefined)
         throw new ImageRequestParseError("imLabels", `unknown value "${value}"`)
     return labelMode
-}
-
-function parseLegacyType(
-    value: string | null
-): { variant: GrapherVariant; preset?: ImageSizePreset } | undefined {
-    if (value === null) return undefined
-    const legacyType = LEGACY_IMAGE_TYPES.get(value)
-    if (legacyType === undefined)
-        throw new ImageRequestParseError("imType", `unknown value "${value}"`)
-    return legacyType
 }
 
 function parseLegacyMinimal(value: string | null): ChartLabelMode {
