@@ -25,6 +25,9 @@ const measuredLegacyToOwidTableAndDimensions = (
             start: startMark,
             end: performance.now(),
             detail: {
+                // Top-level so Sentry's userTimingIntegration records it as
+                // its own span attribute
+                slug,
                 devtools: {
                     track: "Grapher",
                     properties: [["slug", slug]],
