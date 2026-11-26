@@ -18,7 +18,6 @@ import {
     IndicatorDimensionInterface,
     OwidChartDimensionInterface,
     OwidColumnDef,
-    OwidEntityCodeColumnDef,
     OwidEntityIdColumnDef,
     OwidEntityNameColumnDef,
     OwidTableSlugs,
@@ -84,7 +83,7 @@ export const legacyToOwidTableAndDimensions = (
     dimensions: OwidChartDimensionInterface[],
     selectedEntityColors: SelectedEntityColors | undefined
 ): OwidTable => {
-    const entityLookup = makeEntityLookup(json)
+    const lookupEntityName = makeEntityNameLookup(json)
 
     // One column per unique [variable, targetTime] pair, so a variable can
     // contribute several columns
@@ -106,7 +105,7 @@ export const legacyToOwidTableAndDimensions = (
         const variableFrame = buildVariableFrame(
             variable,
             dimension,
-            entityLookup
+            lookupEntityName
         )
         const { targetYear } = dimension
         if (typeof targetYear === "number")
@@ -237,45 +236,36 @@ const makeEntityColorColumn = (
 // Per-variable frames
 // ---------------------------------------------------------------------------
 
-interface EntityInfo {
-    name: CoreValueType
-    code: CoreValueType
-}
-
 /**
- * Resolves entity ids to their (already parsed) name and code, caching per id.
+ * Resolves entity ids to their (already parsed) name, caching per id.
  *
  * Data comes from S3 and metadata from MySQL, so an id can be missing from the
  * metadata; such entities are named after their id.
  */
-const makeEntityLookup = (
+const makeEntityNameLookup = (
     json: MultipleOwidVariableDataDimensionsMap
-): ((id: number) => EntityInfo) => {
+): ((id: number) => CoreValueType) => {
     // Later variables win, matching the previous object-based lookup
-    const metaById = new Map<string, { name?: string; code?: string }>()
+    const metaNameById = new Map<string, string | undefined>()
     for (const variable of json.values())
         for (const entity of variable.metadata.dimensions.entities.values)
-            metaById.set(entity.id.toString(), entity)
+            metaNameById.set(entity.id.toString(), entity.name)
 
-    const cache = new Map<number, EntityInfo>()
-    return (id: number): EntityInfo => {
-        let info = cache.get(id)
-        if (info === undefined) {
-            const meta = metaById.get(String(id))
-            info = {
-                name: parseString(meta?.name ?? id.toString()),
-                code: parseString(meta?.code),
-            }
-            cache.set(id, info)
+    const cache = new Map<number, CoreValueType>()
+    return (id: number): CoreValueType => {
+        let name = cache.get(id)
+        if (name === undefined) {
+            name = parseString(metaNameById.get(String(id)) ?? id.toString())
+            cache.set(id, name)
         }
-        return info
+        return name
     }
 }
 
 const buildVariableFrame = (
     variable: OwidVariableDataMetadataDimensions,
     dimension: IndicatorDimensionInterface,
-    lookupEntity: (id: number) => EntityInfo
+    lookupEntityName: (id: number) => CoreValueType
 ): VariableFrame => {
     const { metadata, data } = variable
     const interval = getTimeInterval(metadata.display)
@@ -287,13 +277,10 @@ const buildVariableFrame = (
     const numRows = entityIds.length
     const parsedIds: CoreValueType[] = []
     const names: CoreValueType[] = []
-    const codes: CoreValueType[] = []
     for (let i = 0; i < numRows; i++) {
         const id = entityIds[i]
-        const entity = lookupEntity(id)
         parsedIds.push(parseNumber(id))
-        names.push(entity.name)
-        codes.push(entity.code)
+        names.push(lookupEntityName(id))
     }
 
     return {
@@ -304,7 +291,6 @@ const buildVariableFrame = (
             columns: [
                 { def: OwidEntityNameColumnDef, values: names },
                 { def: OwidEntityIdColumnDef, values: parsedIds },
-                { def: OwidEntityCodeColumnDef, values: codes },
                 {
                     def: timeDef,
                     values: timeValuesFromOwidVariable(

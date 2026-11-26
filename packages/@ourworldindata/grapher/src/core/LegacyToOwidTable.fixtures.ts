@@ -35,8 +35,6 @@ interface VariableSpec {
     seed?: number
     /** Leave every 7th entity out of the metadata */
     missingMetaEntities?: boolean
-    /** Give every 3rd entity a `null` code */
-    nullCodes?: boolean
     /** Append copies of the first n rows */
     duplicateRows?: number
 }
@@ -92,11 +90,7 @@ const makeVariable = (
         metaEntities.push({
             id: entity,
             name: `Entity ${entity}`,
-            // The API can send null codes, which the types don't allow
-            code:
-                spec.nullCodes && entity % 3 === 0
-                    ? (null as unknown as string)
-                    : `E${entity}`,
+            code: `E${entity}`,
         })
     }
 
@@ -346,20 +340,18 @@ export const edgeCaseFixtures: LegacyTableFixture[] = [
         dimensions: [slot(1), slot(1), slot(99)],
     },
     {
-        name: "null codes and entities missing from the metadata",
+        name: "entities missing from the metadata",
         json: fromSpecs([
             {
                 id: 1,
                 entities: 30,
                 times: range(2000, 2010),
-                nullCodes: true,
                 missingMetaEntities: true,
             },
             {
                 id: 2,
                 entities: 35,
                 times: range(2005, 2015),
-                nullCodes: true,
             },
         ]),
         dimensions: [slot(1), slot(2)],

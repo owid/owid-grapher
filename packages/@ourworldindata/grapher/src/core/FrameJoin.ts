@@ -47,7 +47,7 @@ export const frameToTable = (frame: Frame): OwidTable =>
  * Full outer join of frames that all share the given 2-column `key`.
  *
  * Columns present in every frame (the key columns plus shared entity metadata
- * like entityName/entityCode) appear once in the result, taken from the first
+ * like entityName) appear once in the result, taken from the first
  * frame that introduces each key; we assume they agree across frames. All other
  * columns are kept from their originating frame, with
  * `ErrorValueTypes.NoMatchingValueAfterJoin` where a frame has no row for a key.
