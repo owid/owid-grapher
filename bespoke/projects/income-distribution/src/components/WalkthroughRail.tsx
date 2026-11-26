@@ -217,10 +217,7 @@ const WalkthroughThumbnail = memo(function WalkthroughThumbnail({
         const incomes = model.grid.incomes
         const x = makeXScale(incomes, [0, THUMBNAIL_WIDTH])
         const y = makeYScale(model.yMax, [THUMBNAIL_HEIGHT, THUMBNAIL_TOP])
-        // Too small for trimmed tails to show, so the plain paths will do
-        const ds = computeAreaPaths(model.series, incomes, x, y, {
-            trimEmptyEnds: false,
-        })
+        const ds = computeAreaPaths(model.series, incomes, x, y)
         const paths = model.series.map((series, i) => ({
             key: series.key,
             color: series.color,

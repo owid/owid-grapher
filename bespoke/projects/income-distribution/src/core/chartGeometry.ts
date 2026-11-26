@@ -63,28 +63,22 @@ export function makeYScale(
 const EMPTY_HEIGHT_RATIO = 1e-3
 
 /**
- * One area path per series. By default, outside the range where a series
- * has any height, as beyond a country's data, the path stops rather than
- * running on along the axis as a flat line; within that range it stays in
- * one piece, through any dip to nothing between bumps. `trimEmptyEnds:
- * false` draws the whole grid.
+ * One area path per series. Outside the range where a series has any height,
+ * as beyond a country's data, the path stops rather than running on along
+ * the axis as a flat line; within that range it stays in one piece, through
+ * any dip to nothing between bumps.
  */
 export function computeAreaPaths(
     series: Pick<ChartSeries, "y0" | "y1">[],
     incomes: number[],
     xScale: ScaleLogarithmic<number, number>,
-    yScale: ScaleLinear<number, number>,
-    { trimEmptyEnds = true }: { trimEmptyEnds?: boolean } = {}
+    yScale: ScaleLinear<number, number>
 ): string[] {
     return series.map((s) => {
         const heights = s.y1.map((y, i) => y - s.y0[i])
         const threshold = Math.max(...heights) * EMPTY_HEIGHT_RATIO
-        const first = trimEmptyEnds
-            ? heights.findIndex((h) => h > threshold)
-            : 0
-        const last = trimEmptyEnds
-            ? heights.findLastIndex((h) => h > threshold)
-            : heights.length - 1
+        const first = heights.findIndex((h) => h > threshold)
+        const last = heights.findLastIndex((h) => h > threshold)
         const generator = area<number>()
             .defined((_, i) => i >= first && i <= last)
             .x((_, i) => xScale(incomes[i]))

@@ -42,11 +42,4 @@ describe(computeAreaPaths, () => {
         const [d] = computeAreaPaths(series, incomes, xScale, yScale)
         expect(startX(d)).toBeCloseTo(xScale(4))
     })
-
-    it("can draw the whole grid instead", () => {
-        const [d] = computeAreaPaths(series, incomes, xScale, yScale, {
-            trimEmptyEnds: false,
-        })
-        expect(startX(d)).toBeCloseTo(xScale(1))
-    })
 })
