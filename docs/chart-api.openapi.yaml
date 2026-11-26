@@ -976,6 +976,11 @@ components:
           format: date
           description: Expected date of next update.
           example: "2024-11-30"
+        annotations:
+          type: array
+          description: Notes on the data, such as a change in methodology. Absent when the indicator has none.
+          items:
+            $ref: "#/components/schemas/ChartMetadataAnnotation"
         citationShort:
           type: string
           description: Short citation for the data.
@@ -988,6 +993,39 @@ components:
           format: uri
           description: URL to the full indicator metadata.
           example: https://api.ourworldindata.org/v1/indicators/815383.metadata.json
+
+    ChartMetadataAnnotation:
+      type: object
+      description: A note on a column's data, optionally limited to some entities and a time or time range.
+      required:
+        - text
+      properties:
+        text:
+          type: string
+          description: Text of the note.
+          example: Data before 1990 refers to the territory of the former Soviet Union.
+        entities:
+          type: array
+          description: Entities the note applies to. Absent when it applies to every entity.
+          items:
+            type: string
+          example: [Russia]
+        time:
+          oneOf:
+            - type: integer
+            - type: string
+              format: date
+          description: >-
+            Time the note applies to, or the start of its range. A year for
+            yearly data, a YYYY-MM-DD date for sub-yearly data. Absent when
+            the note applies to every time.
+          example: 1990
+        timeEnd:
+          oneOf:
+            - type: integer
+            - type: string
+              format: date
+          description: End of the time range the note applies to, in the same format as `time`. Absent unless the note covers a range.
 
     GrapherValuesJson:
       type: object

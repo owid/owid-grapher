@@ -34,6 +34,7 @@ import {
     CoreColumnDef,
     OwidColumnDef,
     EntityName,
+    IndicatorAnnotation,
     OwidVariableRow,
     ErrorValue,
     OwidVariableRoundingMode,
@@ -107,6 +108,11 @@ export abstract class AbstractCoreColumn<
 
     @imemo get display(): OwidVariableDisplayConfigInterface | undefined {
         return this.def.display
+    }
+
+    @imemo get annotations(): IndicatorAnnotation[] {
+        if (!this.isOwidColumn()) return []
+        return this.def.annotations ?? []
     }
 
     @imemo get timeInterval(): TimeInterval {
@@ -629,10 +635,6 @@ class StringColumn<
     }
 }
 
-class SeriesAnnotationColumn<
-    TABLE_TYPE extends CoreTable = CoreTable,
-    DEF_TYPE extends CoreColumnDef = CoreColumnDef,
-> extends StringColumn<TABLE_TYPE, DEF_TYPE> {}
 class CategoricalColumn<
     TABLE_TYPE extends CoreTable = CoreTable,
     DEF_TYPE extends CoreColumnDef = CoreColumnDef,
@@ -1277,7 +1279,6 @@ class AgeColumn<
 
 export const ColumnTypeMap = {
     String: StringColumn,
-    SeriesAnnotation: SeriesAnnotationColumn,
     Categorical: CategoricalColumn,
     Ordinal: OrdinalColumn,
     Region: RegionColumn,

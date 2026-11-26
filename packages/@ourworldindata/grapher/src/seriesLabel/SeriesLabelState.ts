@@ -17,6 +17,12 @@ import { ParsedLabel, parseLabel } from "../core/RegionGroups.js"
 import { FontSettings } from "../core/GrapherConstants.js"
 import { hasTooltipData, TooltipKey } from "./RegionTooltipData.js"
 
+export interface SeriesLabelAnnotation {
+    heading?: string
+    text: string
+    timeScope: "point" | "range"
+}
+
 export interface SeriesLabelStateOptions {
     text: string
     maxWidth: number
@@ -27,9 +33,11 @@ export interface SeriesLabelStateOptions {
     formattedValue?: string
     placeFormattedValueInNewLine?: boolean
     showRegionTooltip?: boolean
+    annotations?: SeriesLabelAnnotation[]
+    hasAnnotationMarkers?: boolean
 }
 
-export type TextRole = "name" | "value" | "suffix" | "regionIcon"
+export type TextRole = "name" | "value" | "suffix"
 
 export interface TextSpan {
     role: TextRole
@@ -39,16 +47,13 @@ export interface TextSpan {
 
 export type SpanLine = TextSpan[]
 
-interface TextFragment extends TextSpan {
-    type: "text"
-    width: number
+export interface RegionTooltipTarget {
+    tooltipKey: TooltipKey
+    regionName: EntityName
 }
 
-interface IconFragment {
-    type: "icon"
-    tooltipKey: TooltipKey // e.g. "un"
-    regionName: EntityName // e.g. "Africa (UN)"
-    iconSize: number
+interface TextFragment extends TextSpan {
+    type: "text"
     width: number
 }
 
@@ -57,14 +62,25 @@ interface SpaceFragment {
     width: number
 }
 
-type ContentFragment = TextFragment | IconFragment | SpaceFragment
+type ContentFragment = TextFragment | SpaceFragment
 
 type ContentLine = ContentFragment[]
 
 export type PositionedTextFragment = TextFragment & Point
-export type PositionedIconFragment = IconFragment & Point
 
-export type PositionedFragment = PositionedTextFragment | PositionedIconFragment
+type TooltipTargetRole = Extract<TextRole, "name" | "suffix">
+
+export interface SeriesLabelTooltipContent {
+    annotations?: SeriesLabelAnnotation[]
+    regionTooltip?: RegionTooltipTarget
+}
+
+export interface SeriesLabelTooltipTarget {
+    role: TooltipTargetRole
+    fragments: PositionedTextFragment[]
+    textBounds: Bounds
+    content: SeriesLabelTooltipContent
+}
 
 /**
  * Computes layout and positioning for a series label typically rendered
@@ -83,6 +99,8 @@ export class SeriesLabelState {
         lineHeight: 1.1,
         placeFormattedValueInNewLine: false,
         showRegionTooltip: false,
+        annotations: [],
+        hasAnnotationMarkers: false,
         textAnchor: "start",
     } as const satisfies Partial<SeriesLabelStateOptions>
 
@@ -158,10 +176,6 @@ export class SeriesLabelState {
         return this.nameWrap.singleLineHeight
     }
 
-    @computed private get iconSize(): number {
-        return Math.round(this.options.fontSize * 0.9)
-    }
-
     @computed private get spaceWidth(): number {
         return Bounds.forText(" ", this.fontSettings).width
     }
@@ -170,8 +184,8 @@ export class SeriesLabelState {
         return { type: "space", width: this.spaceWidth }
     }
 
-    @computed private get regionIconInfo():
-        | { tooltipKey: TooltipKey; regionName: EntityName }
+    @computed private get regionTooltipTarget():
+        | RegionTooltipTarget
         | undefined {
         if (!this.options.showRegionTooltip) return
 
@@ -199,63 +213,26 @@ export class SeriesLabelState {
         return
     }
 
-    /**
-     * Lines for the parenthetical suffix (e.g. "(WHO)")
-     *
-     * Some region sets have an associated tooltip, in which case we render
-     * an info icon inside the parentheses. If there is no info icon, the
-     * suffix is rendered in a muted style to visually differentiate it from
-     * the main name.
-     */
+    /** Lines for the parenthetical suffix (e.g. "(WHO)") */
     @computed private get suffixLines(): ContentLine[] | undefined {
         if (!this.parsedText.suffix) return undefined
 
         const fontSettings = { ...this.fontSettings, fontWeight: 400 }
-        const makeTextFragment = (
-            text: string,
-            width: number
-        ): TextFragment => ({
-            type: "text",
-            role: "suffix",
-            text,
-            width,
-            fontWeight: fontSettings.fontWeight,
-        })
-
-        const iconInfo = this.regionIconFragments
-            ? undefined
-            : this.regionIconInfo
-        const closingParenthesis = ")"
-        const trailingFragments: ContentFragment[] = iconInfo
-            ? [
-                  this.spaceFragment,
-                  {
-                      type: "icon",
-                      width: this.iconSize,
-                      iconSize: this.iconSize,
-                      ...iconInfo,
-                  },
-                  makeTextFragment(
-                      closingParenthesis,
-                      Bounds.forText(closingParenthesis, fontSettings).width
-                  ),
-              ]
-            : []
-        const trailingWidth = _.sumBy(trailingFragments, (f) => f.width)
-
         const suffixWrap = new TextWrap({
-            text: iconInfo
-                ? `(${this.parsedText.suffix}`
-                : `(${this.parsedText.suffix})`,
-            maxWidth: this.options.maxWidth - trailingWidth,
+            text: `(${this.parsedText.suffix})`,
+            maxWidth: this.options.maxWidth,
             ...fontSettings,
         })
 
-        const lines: ContentLine[] = suffixWrap.lines.map((line) => [
-            makeTextFragment(line.text, line.width),
+        return suffixWrap.lines.map((line) => [
+            {
+                type: "text",
+                role: "suffix",
+                text: line.text,
+                width: line.width,
+                fontWeight: fontSettings.fontWeight,
+            },
         ])
-        lines[lines.length - 1].push(...trailingFragments)
-        return lines
     }
 
     @computed private get valueFragments(): ContentFragment[] | undefined {
@@ -276,20 +253,6 @@ export class SeriesLabelState {
         ]
     }
 
-    @computed private get regionIconFragments(): ContentFragment[] | undefined {
-        if (!this.regionIconInfo || this.parsedText.publisherKey)
-            return undefined
-
-        return [
-            {
-                type: "icon",
-                width: this.iconSize,
-                iconSize: this.iconSize,
-                ...this.regionIconInfo,
-            },
-        ]
-    }
-
     /**
      * Which fragment group (if any) shares the last line with the name.
      *
@@ -300,20 +263,12 @@ export class SeriesLabelState {
     @computed private get roleOnNameLine():
         | Exclude<TextRole, "name">
         | undefined {
-        // If there's a region icon (income group or continent),
-        // it must be placed on the same line as the name
-        if (this.regionIconFragments) return "regionIcon"
-
         // Suffix has priority
         if (this.suffixLines) {
             const suffixText = `(${this.parsedText.suffix})`
-            const reservedWidth = this.regionIconInfo
-                ? this.iconSize + this.spaceWidth
-                : 0
             const fits = canAppendTextToLastLine({
                 existingTextWrap: this.nameWrap,
                 textToAppend: suffixText,
-                reservedWidth,
             })
             return fits ? "suffix" : undefined
         }
@@ -337,9 +292,6 @@ export class SeriesLabelState {
         return excludeUndefined([
             this.suffixLines
                 ? { role: "suffix", lines: this.suffixLines }
-                : undefined,
-            this.regionIconFragments
-                ? { role: "regionIcon", lines: [this.regionIconFragments] }
                 : undefined,
             this.valueFragments
                 ? { role: "value", lines: [this.valueFragments] }
@@ -381,17 +333,15 @@ export class SeriesLabelState {
         return lines
     }
 
-    @computed get hasIcon(): boolean {
-        return this.contentLines.some((line) =>
-            line.some((f) => f.type === "icon")
-        )
-    }
-
     @computed get width(): number {
         const lineWidths = this.contentLines.map((line) =>
             _.sumBy(line, (fragment) => fragment.width)
         )
         return lineWidths.length > 0 ? Math.max(...lineWidths) : 0
+    }
+
+    @computed get hasAnnotationMarkers(): boolean {
+        return this.options.hasAnnotationMarkers
     }
 
     @computed get height(): number {
@@ -404,7 +354,7 @@ export class SeriesLabelState {
     }
 
     /** List of positioned fragments ready for rendering */
-    @computed get positionedFragments(): PositionedFragment[] {
+    @computed get positionedFragments(): PositionedTextFragment[] {
         return this.contentLines.flatMap((fragments, lineIndex) =>
             positionLineFragments({
                 fragments: fragments,
@@ -413,18 +363,72 @@ export class SeriesLabelState {
             })
         )
     }
+
+    @computed get tooltipTargets(): SeriesLabelTooltipTarget[] {
+        return excludeUndefined([
+            this.nameTooltipTarget,
+            this.suffixTooltipTarget,
+        ])
+    }
+
+    @computed private get nameTooltipTarget():
+        | SeriesLabelTooltipTarget
+        | undefined {
+        return this.makeTooltipTarget("name", {
+            annotations: this.options.annotations,
+            regionTooltip: this.parsedText.publisherKey
+                ? undefined
+                : this.regionTooltipTarget,
+        })
+    }
+
+    @computed private get suffixTooltipTarget():
+        | SeriesLabelTooltipTarget
+        | undefined {
+        if (!this.parsedText.publisherKey) return undefined
+        return this.makeTooltipTarget("suffix", {
+            regionTooltip: this.regionTooltipTarget,
+        })
+    }
+
+    private makeTooltipTarget(
+        role: TooltipTargetRole,
+        { annotations, regionTooltip }: SeriesLabelTooltipContent
+    ): SeriesLabelTooltipTarget | undefined {
+        if (!annotations?.length && !regionTooltip) return undefined
+
+        const fragments = this.positionedFragments.filter(
+            (fragment) => fragment.role === role
+        )
+        if (fragments.length === 0) return undefined
+
+        const { fontSize } = this.fontSettings
+        const textBounds = Bounds.merge(
+            fragments.map(
+                (fragment) =>
+                    new Bounds(
+                        fragment.x,
+                        fragment.y - fontSize,
+                        fragment.width,
+                        fontSize
+                    )
+            )
+        )
+        return {
+            role,
+            fragments,
+            textBounds,
+            content: { annotations, regionTooltip },
+        }
+    }
 }
 
 /** Convert line fragments to text spans, merging spaces into adjacent text */
 function extractTextSpans(line: ContentLine): TextSpan[] {
-    const fragments = line.filter(
-        (f) => f.type === "text" || f.type === "space"
-    )
-
-    return fragments
+    return line
         .map((fragment, i) => {
             if (fragment.type === "space") return undefined
-            const followsSpace = fragments[i - 1]?.type === "space"
+            const followsSpace = line[i - 1]?.type === "space"
             return {
                 text: followsSpace ? " " + fragment.text : fragment.text,
                 fontWeight: fragment.fontWeight,
@@ -443,8 +447,8 @@ function positionLineFragments({
     fragments: ContentLine
     y: number
     textAnchor: SeriesLabelStateOptions["textAnchor"]
-}): PositionedFragment[] {
-    const positionedFragments: PositionedFragment[] = []
+}): PositionedTextFragment[] {
+    const positionedFragments: PositionedTextFragment[] = []
 
     // Calculate total line width
     const totalWidth = _.sumBy(fragments, (f) => f.width)
@@ -456,11 +460,6 @@ function positionLineFragments({
         match(fragment)
             .with({ type: "text" }, (fragment) => {
                 positionedFragments.push({ ...fragment, x, y })
-                x += fragment.width
-            })
-            .with({ type: "icon" }, (fragment) => {
-                const iconYOffset = -fragment.iconSize + 1.5 // Small visual correction
-                positionedFragments.push({ ...fragment, x, y: y + iconYOffset })
                 x += fragment.width
             })
             .with({ type: "space" }, (fragment) => {

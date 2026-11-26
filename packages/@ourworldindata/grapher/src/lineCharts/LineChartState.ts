@@ -13,6 +13,7 @@ import {
     ColorScaleConfigInterface,
     ColorSchemeName,
     ChartErrorInfo,
+    TimeRange,
 } from "@ourworldindata/types"
 import { ColorSchemes } from "../color/ColorSchemes"
 import { ChartState } from "../chart/ChartInterface"
@@ -25,6 +26,7 @@ import {
 import {
     OwidTable,
     CoreColumn,
+    OwidColumn,
     isNotErrorValue,
 } from "@ourworldindata/core-table"
 import {
@@ -40,14 +42,13 @@ import { ColorScale, ColorScaleManager } from "../color/ColorScale"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import { OWID_NO_DATA_GRAY } from "../color/ColorConstants"
 import { CategoricalColorAssigner } from "../color/CategoricalColorAssigner"
-import {
-    AnnotationsMap,
-    getAnnotationsMap,
-    getColorKey,
-    getDisplayName,
-    getSeriesName,
-} from "./LineChartHelpers"
+import { getColorKey, getDisplayName, getSeriesName } from "./LineChartHelpers"
 import { FocusArray } from "../focus/FocusArray"
+import {
+    selectEntityAnnotation,
+    selectEntityPointAnnotations,
+    selectEntityRangeAnnotations,
+} from "../annotations/EntityAnnotations"
 import { AxisConfig } from "../axis/AxisConfig"
 import { HorizontalAxis, VerticalAxis } from "../axis/Axis"
 
@@ -153,7 +154,7 @@ export class LineChartState implements ChartState, ColorScaleManager {
         return this.manager.colorColumnSlug
     }
 
-    @computed get yColumns(): CoreColumn[] {
+    @computed get yColumns(): OwidColumn[] {
         return this.yColumnSlugs.map((slug) => this.transformedTable.get(slug))
     }
 
@@ -215,10 +216,6 @@ export class LineChartState implements ChartState, ColorScaleManager {
         return this.colorScale.getColor(value) ?? DEFAULT_LINE_COLOR
     }
 
-    @computed get annotationsMap(): AnnotationsMap | undefined {
-        return getAnnotationsMap(this.inputTable, this.yColumnSlugs[0])
-    }
-
     @computed get hasNoDataBin(): boolean {
         if (!this.hasColorScale) return false
         return this.colorColumn.valuesIncludingErrorValues.some(
@@ -273,10 +270,10 @@ export class LineChartState implements ChartState, ColorScaleManager {
 
     private constructSingleSeries(
         entityName: EntityName,
-        column: CoreColumn
+        column: OwidColumn
     ): LineChartSeries {
         const {
-            manager: { canSelectMultipleEntities },
+            manager: { canSelectMultipleEntities, startTime, endTime },
             transformedTable: { availableEntityNames },
             seriesStrategy,
             hasColorScale,
@@ -342,16 +339,43 @@ export class LineChartState implements ChartState, ColorScaleManager {
             )
         }
 
+        const timeRange: TimeRange = [
+            startTime ?? -Infinity,
+            endTime ?? Infinity,
+        ]
+        const pointAnnotations = selectEntityPointAnnotations(
+            column.annotations,
+            entityName,
+            timeRange
+        )
+
+        const rangeAnnotations = selectEntityRangeAnnotations(
+            column.annotations,
+            entityName,
+            timeRange
+        )
+        const entityAnnotation =
+            seriesStrategy === SeriesStrategy.entity
+                ? selectEntityAnnotation(
+                      this.yColumns[0].annotations,
+                      entityName
+                  )
+                : undefined
+
         return {
             points,
             seriesName,
             entityName,
+            columnSlug: column.slug,
             columnName,
             displayName,
             isProjection: column.isProjection,
             plotMarkersOnly: column.display?.plotMarkersOnlyInLineChart,
             color: seriesColor,
             focus: this.focusArray.state(seriesName),
+            pointAnnotations,
+            rangeAnnotations,
+            entityAnnotation,
         }
     }
 

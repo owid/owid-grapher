@@ -368,7 +368,7 @@ export class SlopeChart
             maxWidth: this.maxLabelsWidth,
             baseFontSize: this.fontSize,
             verticalAlign: VerticalAlign.top,
-            showRegionTooltip: !this.manager.isStatic,
+            isInteractive: !this.manager.isStatic,
         }
     }
 
@@ -572,13 +572,15 @@ export class SlopeChart
             showAnnotation?: boolean
         }
     ): LabelSeries {
-        const { seriesName, displayName, color, annotation } = series
+        const { seriesName, displayName, color, entityAnnotation } = series
         const value = getValue(series)
         const formattedValue = this.formatValue(value)
         return {
             color,
             seriesName,
-            annotation: showAnnotation ? annotation : undefined,
+            inlineAnnotation: showAnnotation
+                ? entityAnnotation?.text
+                : undefined,
             label: showSeriesName ? displayName : formattedValue,
             formattedValue: showSeriesName ? formattedValue : undefined,
             placeFormattedValueInNewLine: this.useCompactLayout,
@@ -752,7 +754,7 @@ export class SlopeChart
         const formatTime = (time: Time) => formatColumn.formatTime(time)
 
         const title = series.displayName
-        const titleAnnotation = series.annotation
+        const titleAnnotation = series.entityAnnotation?.text
 
         const actualStartTime = series.start.originalTime
         const actualEndTime = series.end.originalTime
@@ -1082,7 +1084,6 @@ export class SlopeChart
                 outline={true}
                 onMouseEnter={this.onVerticalLabelMouseEnter}
                 onMouseLeave={this.onVerticalLabelMouseLeave}
-                interactive={!this.manager.isStatic}
             />
         )
     }
@@ -1121,7 +1122,6 @@ export class SlopeChart
                 outline={true}
                 onMouseEnter={this.onVerticalLabelMouseEnter}
                 onMouseLeave={this.onVerticalLabelMouseLeave}
-                interactive={!this.manager.isStatic}
             />
         )
     }

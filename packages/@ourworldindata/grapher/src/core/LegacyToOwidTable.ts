@@ -15,12 +15,15 @@ import {
     EntityName,
     TimeInterval,
     SelectedEntityColors,
+    AnnotationTimeScope,
+    IndicatorAnnotation,
+    OwidVariableAnnotation,
+    Time,
 } from "@ourworldindata/types"
 import {
     OwidTable,
     ErrorValueTypes,
     makeKeyFn,
-    makeAnnotationsSlug,
 } from "@ourworldindata/core-table"
 import {
     diffDatesInDays,
@@ -41,6 +44,7 @@ import {
     findFinestCommonTimeInterval,
     snapToIntervalStart,
     dayjs,
+    convertDateToDaysSinceEpoch,
 } from "@ourworldindata/utils"
 import { isContinentsVariableId } from "./GrapherConstants"
 import * as R from "remeda"
@@ -107,10 +111,6 @@ export const legacyToOwidTableAndDimensions = (
             valueColumnDef.targetTime = dimension.targetYear
         columnDefs.set(valueColumnDef.slug, valueColumnDef)
 
-        // Annotations column
-        const [annotationMap, annotationColumnDef] =
-            annotationMapAndDefFromOwidVariable(variable.metadata)
-
         // Column values
 
         const times = timeColumnValuesFromOwidVariable(
@@ -136,12 +136,6 @@ export const legacyToOwidTableAndDimensions = (
             [valueColumnDef.slug]: variable.data.values || [],
         }
 
-        if (annotationColumnDef) {
-            columnStore[annotationColumnDef.slug] = entityNames.map(
-                (entityName) => annotationMap!.get(entityName)
-            )
-            columnDefs.set(annotationColumnDef.slug, annotationColumnDef)
-        }
         // Build the tables
 
         let variableTable = new OwidTable(
@@ -671,6 +665,8 @@ const columnDefFromOwidVariable = (
             ? getSortFromDimensions(variable.dimensions)
             : undefined
 
+    const annotations = parseIndicatorAnnotations(variable)
+
     return {
         name,
         slug,
@@ -695,6 +691,7 @@ const columnDefFromOwidVariable = (
         additionalInfo: source?.additionalInfo,
         timespan,
         origins,
+        annotations,
         presentation,
         catalogPath,
         updatePeriodDays,
@@ -789,27 +786,6 @@ const convertLegacyYears = (years: number[], zeroDay: string): number[] => {
     return years.map((y) => y + diff)
 }
 
-const annotationMapAndDefFromOwidVariable = (
-    variable: OwidVariableWithSourceAndDimension
-): [Map<string, string>, OwidColumnDef] | [] => {
-    if (variable.display?.entityAnnotationsMap) {
-        const slug = variable.id.toString()
-        const annotationsSlug = makeAnnotationsSlug(slug)
-        const annotationMap = annotationsToMap(
-            variable.display.entityAnnotationsMap
-        )
-        const columnDef: OwidColumnDef = {
-            slug: annotationsSlug,
-            type: ColumnTypeNames.SeriesAnnotation,
-            name: annotationsSlug,
-            display: { includeInTable: false },
-            derivedFrom: { columnSlug: slug, relationship: "annotations" },
-        }
-        return [annotationMap, columnDef]
-    }
-    return []
-}
-
 const annotationsToMap = (annotations: string): Map<string, string> => {
     // Todo: let's delete this and switch to traditional columns
     const entityAnnotationsMap = new Map<string, string>()
@@ -819,4 +795,107 @@ const annotationsToMap = (annotations: string): Map<string, string> => {
         entityAnnotationsMap.set(key.trim(), words.join(delimiter).trim())
     })
     return entityAnnotationsMap
+}
+
+const parseIndicatorAnnotations = (
+    variable: OwidVariableWithSourceAndDimension
+): IndicatorAnnotation[] | undefined => {
+    const legacyAnnotations = parseLegacyEntityAnnotations(
+        variable.display?.entityAnnotationsMap
+    )
+    if (!variable.annotations?.length && !legacyAnnotations.length)
+        return undefined
+
+    const annotations = (variable.annotations ?? []).flatMap((annotation) => {
+        const parsed = parseIndicatorAnnotation(annotation, variable)
+        return parsed ? [parsed] : []
+    })
+    return [...annotations, ...legacyAnnotations]
+}
+
+const parseLegacyEntityAnnotations = (
+    entityAnnotationsMap: string | undefined
+): IndicatorAnnotation[] =>
+    [...annotationsToMap(entityAnnotationsMap ?? "")].flatMap(
+        ([entityName, text]) =>
+            entityName && text
+                ? [{ text, entityNames: [entityName], timeScope: "all" }]
+                : []
+    )
+
+const parseIndicatorAnnotation = (
+    annotation: OwidVariableAnnotation,
+    variable: OwidVariableWithSourceAndDimension
+): IndicatorAnnotation | undefined => {
+    const { text, entities } = annotation
+    const timeScope = parseTimeScope(annotation, variable)
+    if (!timeScope) return undefined
+
+    const [firstEntityName, ...otherEntityNames] = entities ?? []
+    return firstEntityName === undefined
+        ? { text, ...timeScope }
+        : {
+              text,
+              entityNames: [firstEntityName, ...otherEntityNames],
+              ...timeScope,
+          }
+}
+
+const parseTimeScope = (
+    annotation: OwidVariableAnnotation,
+    variable: OwidVariableWithSourceAndDimension
+): AnnotationTimeScope | undefined => {
+    if (annotation.time === undefined) {
+        if (annotation.timeEnd === undefined) return { timeScope: "all" }
+        console.warn(
+            `Dropping annotation of variable ${variable.id} with a timeEnd but no time: ${annotation.timeEnd}`
+        )
+        return undefined
+    }
+
+    const interval = getTimeInterval(variable.display)
+    const parsedTime = parseAnnotationTime(annotation.time, interval)
+    const parsedTimeEnd =
+        annotation.timeEnd === undefined
+            ? undefined
+            : parseAnnotationTime(annotation.timeEnd, interval)
+
+    if (parsedTime === undefined) {
+        console.warn(
+            `Dropping annotation of variable ${variable.id} with an invalid time: ${annotation.time}`
+        )
+        return undefined
+    }
+
+    if (annotation.timeEnd !== undefined && parsedTimeEnd === undefined) {
+        console.warn(
+            `Dropping annotation of variable ${variable.id} with an invalid timeEnd: ${annotation.timeEnd}`
+        )
+        return undefined
+    }
+
+    if (parsedTimeEnd === undefined || parsedTimeEnd === parsedTime)
+        return { timeScope: "point", time: parsedTime }
+
+    if (parsedTimeEnd < parsedTime) {
+        console.warn(
+            `Dropping annotation of variable ${variable.id} with end time ${annotation.timeEnd} before start time ${annotation.time}`
+        )
+        return undefined
+    }
+
+    return { timeScope: "range", startTime: parsedTime, endTime: parsedTimeEnd }
+}
+
+const parseAnnotationTime = (
+    value: Time | string,
+    interval: TimeInterval
+): Time | undefined => {
+    if (!isSubYearly(interval))
+        return typeof value === "number" ? value : undefined
+
+    if (typeof value !== "string") return undefined
+    const date = dayjs.utc(value)
+    if (!date.isValid() || date.format("YYYY-MM-DD") !== value) return undefined
+    return snapToIntervalStart(convertDateToDaysSinceEpoch(date), interval)
 }

@@ -1,22 +1,33 @@
 import * as _ from "lodash-es"
-import { Bounds, isMobile, PointVector } from "@ourworldindata/utils"
-import { OwidTable } from "@ourworldindata/core-table"
+import {
+    Bounds,
+    excludeUndefined,
+    isMobile,
+    PointVector,
+} from "@ourworldindata/utils"
+import { CoreColumn } from "@ourworldindata/core-table"
+import { match } from "ts-pattern"
+import { scaleLinear } from "d3-scale"
 import {
     AxisAlign,
     AxisConfigInterface,
-    ColumnSlug,
     EntityName,
-    PrimitiveType,
     ScaleType,
     SeriesName,
     SeriesStrategy,
     Time,
 } from "@ourworldindata/types"
 import {
+    AnnotationTooltipEvent,
+    AnnotationTooltipState,
     LineChartSeries,
     LinePoint,
     PlacedLineChartSeries,
     PlacedPoint,
+    PlacedRangeAnnotation,
+    RANGE_ANNOTATION_TOOLTIP_BELOW_PREFERENCE_PX,
+    RANGE_ANNOTATION_TOOLTIP_MARGIN,
+    PlaceRangeAnnotationTooltipArgs,
     RenderLineChartSeries,
 } from "./LineChartConstants"
 import { DualAxis, HorizontalAxis } from "../axis/Axis"
@@ -27,8 +38,11 @@ import {
     getHoverStateForSeries,
 } from "../chart/ChartUtils"
 import { Emphasis, resolveEmphasis } from "../interaction/Emphasis"
-
-export type AnnotationsMap = Map<PrimitiveType, Set<PrimitiveType>>
+import {
+    AnnotationMarker,
+    RangeAnnotation,
+} from "../annotations/EntityAnnotations"
+import { SeriesLabelAnnotation } from "../seriesLabel/SeriesLabelState"
 
 export interface GetSeriesNameArgs {
     entityName: EntityName
@@ -94,26 +108,6 @@ export function getColorKey({
         : columnName
 }
 
-export function getAnnotationsMap(
-    table: OwidTable,
-    slug: ColumnSlug
-): AnnotationsMap | undefined {
-    return table
-        .getAnnotationColumnForColumn(slug)
-        ?.getUniqueValuesGroupedBy(table.entityNameSlug)
-}
-
-export function getAnnotationsForSeries(
-    annotationsMap: AnnotationsMap | undefined,
-    seriesName: SeriesName
-): string | undefined {
-    const annotations = annotationsMap?.get(seriesName)
-    if (!annotations) return undefined
-    return Array.from(annotations.values())
-        .filter((anno) => anno)
-        .join(" & ")
-}
-
 export function getYAxisConfigDefaults(
     config?: AxisConfigInterface
 ): AxisConfigInterface {
@@ -149,8 +143,174 @@ export function toPlacedLineChartSeries(
                 color,
             }
         })
-        return { ...series, placedPoints }
+        const placedPointsByTime = new Map(
+            placedPoints.map((point) => [point.time, point])
+        )
+        const placedPointAnnotations = excludeUndefined(
+            series.pointAnnotations.map((annotation) => {
+                const point = placedPointsByTime.get(annotation.time)
+                return point ? { annotation, point } : undefined
+            })
+        )
+        const placedRangeAnnotations = excludeUndefined(
+            series.rangeAnnotations.map((annotation) =>
+                placeRangeAnnotation(annotation, placedPoints)
+            )
+        )
+        return {
+            ...series,
+            placedPoints,
+            placedPointAnnotations,
+            placedRangeAnnotations,
+        }
     })
+}
+
+/** Clip a range annotation to the series' placed points, interpolating ends that fall between two points */
+export function placeRangeAnnotation(
+    annotation: RangeAnnotation,
+    placedPoints: readonly PlacedPoint[]
+): PlacedRangeAnnotation | undefined {
+    const { startTime, endTime } = annotation
+    const startIndex = placedPoints.findIndex(
+        (point) => point.time >= startTime
+    )
+    const endIndex = placedPoints.findLastIndex(
+        (point) => point.time <= endTime
+    )
+    if (startIndex === -1 || endIndex === -1) return undefined
+
+    const startsMidSegment =
+        startIndex > 0 && placedPoints[startIndex].time > startTime
+    const endsMidSegment =
+        endIndex < placedPoints.length - 1 &&
+        placedPoints[endIndex].time < endTime
+
+    const midSegmentStart = startsMidSegment
+        ? placePointOnSegment(
+              placedPoints[startIndex - 1],
+              placedPoints[startIndex],
+              startTime
+          )
+        : undefined
+    const midSegmentEnd = endsMidSegment
+        ? placePointOnSegment(
+              placedPoints[endIndex],
+              placedPoints[endIndex + 1],
+              endTime
+          )
+        : undefined
+
+    const points = excludeUndefined([
+        midSegmentStart,
+        ...placedPoints.slice(startIndex, endIndex + 1),
+        midSegmentEnd,
+    ])
+    if (points.length < 2) return undefined
+
+    const snappedTimeRange = {
+        startTime: startsMidSegment
+            ? placedPoints[startIndex - 1].time
+            : placedPoints[startIndex].time,
+        endTime: endsMidSegment
+            ? placedPoints[endIndex + 1].time
+            : placedPoints[endIndex].time,
+    }
+
+    return { annotation, points, snappedTimeRange }
+}
+
+function placePointOnSegment(
+    a: PlacedPoint,
+    b: PlacedPoint,
+    time: Time
+): PlacedPoint {
+    const fraction = (time - a.time) / (b.time - a.time)
+    return {
+        time,
+        x: a.x + (b.x - a.x) * fraction,
+        y: a.y + (b.y - a.y) * fraction,
+        color: a.color,
+    }
+}
+
+/**
+ * Move the tooltip vertically to sit above or below the annotated stretch
+ * where it runs under the tooltip. When both sides fit the container, take
+ * the one nearer the click, favoring above; when one fits, take that one;
+ * when neither fits, clamp the less overflowing one inside the container.
+ */
+export function placeRangeAnnotationTooltip({
+    points,
+    clickPosition,
+    tooltipBounds,
+    containerBounds,
+    outlineWidth,
+}: PlaceRangeAnnotationTooltipArgs): Bounds {
+    const minDistanceFromLine =
+        outlineWidth / 2 + RANGE_ANNOTATION_TOOLTIP_MARGIN
+    const [spanStart, spanEnd] = tooltipBounds
+        .expand({ left: minDistanceFromLine, right: minDistanceFromLine })
+        .xRange()
+    const ys = [
+        clickPosition.y,
+        ...findLineYsInXRange(points, spanStart, spanEnd),
+    ]
+
+    const lineTop = Math.min(...ys)
+    const lineBottom = Math.max(...ys)
+    const boundsAbove = tooltipBounds.set({
+        y: lineTop - minDistanceFromLine - tooltipBounds.height,
+    })
+    const boundsBelow = tooltipBounds.set({
+        y: lineBottom + minDistanceFromLine,
+    })
+
+    const aboveOverflow = containerBounds.top - boundsAbove.top
+    const belowOverflow = boundsBelow.bottom - containerBounds.bottom
+
+    if (aboveOverflow <= 0 && belowOverflow <= 0) {
+        const aboveDistance = clickPosition.y - boundsAbove.bottom
+        const belowDistance = boundsBelow.top - clickPosition.y
+        return belowDistance + RANGE_ANNOTATION_TOOLTIP_BELOW_PREFERENCE_PX <=
+            aboveDistance
+            ? boundsBelow
+            : boundsAbove
+    }
+
+    if (aboveOverflow <= 0) return boundsAbove
+    if (belowOverflow <= 0) return boundsBelow
+
+    const lessOverflowing =
+        aboveOverflow <= belowOverflow ? boundsAbove : boundsBelow
+    return lessOverflowing.set({
+        y: _.clamp(
+            lessOverflowing.top,
+            containerBounds.top,
+            containerBounds.bottom - tooltipBounds.height
+        ),
+    })
+}
+
+function findLineYsInXRange(
+    points: readonly PointVector[],
+    xStart: number,
+    xEnd: number
+): number[] {
+    if (points.length === 0) return []
+
+    const xs = points.map((point) => point.x)
+    const start = Math.max(xStart, xs[0])
+    const end = Math.min(xEnd, xs[xs.length - 1])
+    if (start >= end) return []
+
+    // Piecewise-linear over screen-space points, matching the drawn line even on a log axis
+    const lineYAtX = scaleLinear(
+        xs,
+        points.map((point) => point.y)
+    )
+    const xsInRange = xs.filter((x) => x > start && x < end)
+    return [start, ...xsInRange, end].map(lineYAtX)
 }
 
 /**
@@ -226,4 +386,78 @@ export function toRenderLineChartSeries(
     }
 
     return series
+}
+
+export function toSeriesLabelAnnotations(
+    series: Pick<LineChartSeries, "pointAnnotations" | "rangeAnnotations">,
+    timeColumn: CoreColumn
+): SeriesLabelAnnotation[] {
+    const entries = [
+        ...series.pointAnnotations.map(({ time, text }) => ({
+            startTime: time,
+            timeScope: "point" as const,
+            heading: timeColumn.formatTime(time),
+            text,
+        })),
+        ...series.rangeAnnotations.map(({ startTime, endTime, text }) => ({
+            startTime,
+            timeScope: "range" as const,
+            heading: timeColumn.formatTimeRange(startTime, endTime),
+            text,
+        })),
+    ]
+    return _.sortBy(entries, (entry) => entry.startTime).map(
+        ({ heading, text, timeScope }) => ({ heading, text, timeScope })
+    )
+}
+
+export function transitionAnnotationTooltipState(
+    state: AnnotationTooltipState,
+    event: AnnotationTooltipEvent
+): AnnotationTooltipState {
+    return match<AnnotationTooltipEvent, AnnotationTooltipState>(event)
+        .with(
+            { type: "labelTooltipShow" },
+            ({ seriesName, hasAnnotations }) => ({
+                kind: "labelOpen",
+                seriesName,
+                hasAnnotations,
+            })
+        )
+        .with({ type: "labelTooltipHide" }, ({ seriesName }) =>
+            state.kind === "labelOpen" && state.seriesName === seriesName
+                ? { kind: "idle" }
+                : state
+        )
+        .with({ type: "markerClick" }, ({ seriesName, marker }) =>
+            isMarkerTooltipOpen(state, seriesName, marker)
+                ? { kind: "idle" }
+                : { kind: "markerOpen", seriesName, marker }
+        )
+        .with({ type: "markerTooltipClose" }, () =>
+            state.kind === "markerOpen" ? { kind: "idle" } : state
+        )
+        .exhaustive()
+}
+
+export function isMarkerTooltipOpen(
+    state: AnnotationTooltipState,
+    seriesName: SeriesName,
+    marker: AnnotationMarker
+): boolean {
+    return (
+        state.kind === "markerOpen" &&
+        state.seriesName === seriesName &&
+        isSameMarker(state.marker, marker)
+    )
+}
+
+function isSameMarker(a: AnnotationMarker, b: AnnotationMarker): boolean {
+    if (a.timeScope === "point")
+        return b.timeScope === "point" && a.time === b.time
+    return (
+        b.timeScope === "range" &&
+        a.startTime === b.startTime &&
+        a.endTime === b.endTime
+    )
 }

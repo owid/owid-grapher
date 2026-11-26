@@ -60,6 +60,8 @@
     @import "../sidePanel/SidePanel.scss";
     @import "../scatterCharts/NoDataSection.scss";
     @import "../mapCharts/MapChart.scss";
+    @import "../annotations/AnnotationInfoIcon.scss";
+    @import "../lineCharts/LineChartAnnotations.scss";
     @import "../controls/SearchField.scss";
     @import "../controls/DataTableSearchField.scss";
 }
@@ -75,6 +77,7 @@
 @import "../../../components/src/RadioButton.scss";
 @import "../../../components/src/loadingIndicator/LoadingIndicator.scss";
 @import "../seriesLabel/RegionTooltip.scss";
+@import "../seriesLabel/SeriesLabelAnnotations.scss";
 
 @import "../../../components/src/closeButton/CloseButton.scss";
 @import "../../../components/src/OverlayHeader.scss";
@@ -223,6 +226,8 @@
 }
 .tippy-box[data-theme="grapher-explanation"] {
     .tippy-content {
+        box-sizing: border-box;
+        max-width: min(350px, 100vw - 16px);
         padding: 15px;
     }
 }
