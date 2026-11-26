@@ -275,12 +275,12 @@ const buildVariableFrame = (
 
     const entityIds = data.entities ?? []
     const numRows = entityIds.length
-    const parsedIds: CoreValueType[] = []
-    const names: CoreValueType[] = []
+    const parsedIds: CoreValueType[] = new Array(numRows)
+    const parsedEntityNames: CoreValueType[] = new Array(numRows)
     for (let i = 0; i < numRows; i++) {
         const id = entityIds[i]
-        parsedIds.push(parseNumber(id))
-        names.push(lookupEntityName(id))
+        parsedIds[i] = parseNumber(id)
+        parsedEntityNames[i] = lookupEntityName(id)
     }
 
     return {
@@ -289,7 +289,7 @@ const buildVariableFrame = (
         valueSlug: valueColumn.def.slug,
         frame: {
             columns: [
-                { def: OwidEntityNameColumnDef, values: names },
+                { def: OwidEntityNameColumnDef, values: parsedEntityNames },
                 { def: OwidEntityIdColumnDef, values: parsedIds },
                 {
                     def: timeDef,
