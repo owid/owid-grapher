@@ -203,6 +203,42 @@ export function TestIndexPage() {
                     </li>
                 </ul>
 
+                <h2>Test Thumbnails</h2>
+                <ul>
+                    <li>
+                        <Link native target="_blank" to="/test/thumbnails">
+                            Chart thumbnails
+                        </Link>
+                    </li>
+                    <li>
+                        <Link
+                            native
+                            target="_blank"
+                            to="/test/search-thumbnails"
+                        >
+                            Search result thumbnails
+                        </Link>
+                    </li>
+                    <li>
+                        <Link
+                            native
+                            target="_blank"
+                            to="/test/key-charts-thumbnails"
+                        >
+                            Key-charts block thumbnails
+                        </Link>
+                    </li>
+                    <li>
+                        <Link
+                            native
+                            target="_blank"
+                            to="/test/thumbnail-comparison"
+                        >
+                            Thumbnails: prod vs staging vs local
+                        </Link>
+                    </li>
+                </ul>
+
                 <h2>Test Explorer Embeds</h2>
                 <ul>
                     <li>

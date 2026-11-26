@@ -34,6 +34,7 @@ import { ExplorerChartCreationMode } from "@ourworldindata/explorer"
 import { getPlainRouteWithROTransaction } from "./plainRouterHelpers.js"
 import { getAllPublishedMultiDimDataPages } from "../db/model/MultiDimDataPage.js"
 import { addThumbnailTestRoutes } from "./thumbnailTestPage.js"
+import { addThumbnailComparisonRoutes } from "./thumbnailComparisonPage.js"
 import { addSearchThumbnailTestRoutes } from "./searchThumbnailTestPage.js"
 import { addKeyChartsThumbnailsRoutes } from "./keyChartsThumbnailsTestPage.js"
 
@@ -46,6 +47,7 @@ const explorerAdminServer = new ExplorerAdminServer()
 
 const testPageRouter = Router()
 addThumbnailTestRoutes(testPageRouter)
+addThumbnailComparisonRoutes(testPageRouter)
 addSearchThumbnailTestRoutes(testPageRouter)
 addKeyChartsThumbnailsRoutes(testPageRouter)
 

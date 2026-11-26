@@ -1,4 +1,4 @@
-import { Router } from "express"
+import { Request, Router } from "express"
 import { runInAction } from "mobx"
 import ReactDOMServer from "react-dom/server"
 import {
@@ -19,6 +19,7 @@ import {
 } from "@ourworldindata/types"
 import { Bounds } from "@ourworldindata/utils"
 import { getChartConfigBySlug } from "../db/model/Chart.js"
+import { KnexReadonlyTransaction } from "../db/db.js"
 import { renderToHtmlPage } from "../serverUtils/serverUtil.js"
 import { getPlainRouteWithROTransaction } from "./plainRouterHelpers.js"
 import { CATALOG_URL, DATA_API_URL } from "../settings/serverSettings.js"
@@ -36,7 +37,7 @@ export const LIVE_BASE_URL = "https://ourworldindata.org"
 
 export const SAMPLE_COUNT_OPTIONS = [5, 10, 20]
 
-const LABEL_MODES = Object.values(ChartLabelMode)
+export const LABEL_MODES = Object.values(ChartLabelMode)
 
 interface ThumbnailSize {
     label: string
@@ -44,7 +45,7 @@ interface ThumbnailSize {
     displayWidthPx: number
 }
 
-const THUMBNAIL_SIZES = {
+export const THUMBNAIL_SIZES = {
     default: {
         label: "Default size",
         fontSize: THUMBNAIL_FONT_SIZE,
@@ -58,11 +59,19 @@ const THUMBNAIL_SIZES = {
     },
 } satisfies Record<string, ThumbnailSize>
 
-type ThumbnailSizeId = keyof typeof THUMBNAIL_SIZES
+export type ThumbnailSizeId = keyof typeof THUMBNAIL_SIZES
 
 export interface SampleOptions {
     countPerSection: number
     seed: number
+}
+
+/** Page params that pick which test cases to render */
+export interface ThumbnailCaseSelection {
+    sample?: SampleOptions
+    sectionId?: string
+    select?: string
+    focus?: string
 }
 
 export function addThumbnailTestRoutes(router: Router): void {
@@ -70,47 +79,18 @@ export function addThumbnailTestRoutes(router: Router): void {
         router,
         "/thumbnails",
         async (req, res, trx) => {
-            const countPerSection = readPositiveIntParam(req.query.sample)
-            const seed = readPositiveIntParam(req.query.seed)
-            if (countPerSection !== undefined && seed === undefined) {
-                const params = new URLSearchParams(
-                    req.query as Record<string, string>
-                )
-                params.set("seed", String(makeRandomSeed()))
-                res.redirect(`${req.baseUrl}${req.path}?${params}`)
+            const seedRedirectUrl = makeSeedRedirectUrl(req)
+            if (seedRedirectUrl) {
+                res.redirect(seedRedirectUrl)
                 return
             }
-            const sample =
-                countPerSection !== undefined && seed !== undefined
-                    ? { countPerSection, seed }
-                    : undefined
-            const sectionId = readStringParam(req.query.type)
-            const select = readStringParam(req.query.select)
-            const focus = readStringParam(req.query.focus)
-            const entityParams = {
-                selectedEntityNames: parseEntityNames(select),
-                focusedEntityNames: parseEntityNames(focus),
-            }
-            const sections = (
-                sample
-                    ? await sampleThumbnailTestSections(trx, sample)
-                    : THUMBNAIL_TEST_SECTIONS
-            )
-                .filter((section) => !sectionId || section.id === sectionId)
-                .map((section) => ({
-                    ...section,
-                    cases: section.cases.map((testCase) =>
-                        applyEntityParams(testCase, entityParams)
-                    ),
-                }))
+            const selection = readCaseSelection(req)
+            const sections = await findThumbnailTestSections(trx, selection)
             res.send(
                 renderToHtmlPage(
                     <ThumbnailTestPage
                         sections={sections}
-                        sectionId={sectionId}
-                        sample={sample}
-                        select={select}
-                        focus={focus}
+                        selection={selection}
                         shouldCompareWithLive={req.query.compare === "1"}
                         scale={readScaleParam(req.query.scale)}
                         sizeId={readSizeParam(req.query.size)}
@@ -205,31 +185,19 @@ export async function renderImageSvg(
 
 function ThumbnailTestPage({
     sections,
-    sectionId,
-    sample,
-    select,
-    focus,
+    selection,
     shouldCompareWithLive,
     scale,
     sizeId,
 }: {
     sections: ThumbnailTestSection[]
-    sectionId?: string
-    sample?: SampleOptions
-    select?: string
-    focus?: string
+    selection: ThumbnailCaseSelection
     shouldCompareWithLive: boolean
     scale: number
     sizeId: ThumbnailSizeId
 }): React.ReactElement {
     const size = THUMBNAIL_SIZES[sizeId]
-    const zoom = (scale * size.displayWidthPx) / GRAPHER_THUMBNAIL_WIDTH
-    const style = PAGE_STYLE.replaceAll(
-        "{{width}}",
-        String(GRAPHER_THUMBNAIL_WIDTH)
-    )
-        .replaceAll("{{height}}", String(GRAPHER_THUMBNAIL_HEIGHT))
-        .replaceAll("{{zoom}}", String(zoom))
+    const style = makePageStyle(scale, sizeId)
     return (
         <html>
             <head>
@@ -243,59 +211,7 @@ function ThumbnailTestPage({
             </head>
             <body>
                 <form className="controls" method="get">
-                    <select name="type" defaultValue={sectionId ?? ""}>
-                        <option value="">All chart types</option>
-                        {THUMBNAIL_TEST_SECTIONS.map((section) => (
-                            <option key={section.id} value={section.id}>
-                                {section.title}
-                            </option>
-                        ))}
-                    </select>
-                    <select
-                        name="sample"
-                        defaultValue={String(sample?.countPerSection ?? "")}
-                    >
-                        <option value="">Curated cases</option>
-                        {SAMPLE_COUNT_OPTIONS.map((count) => (
-                            <option key={count} value={count}>
-                                Random sample, {count} per type
-                            </option>
-                        ))}
-                    </select>
-                    {sample && (
-                        <>
-                            <label>
-                                Seed{" "}
-                                <input
-                                    className="controls__seed"
-                                    type="number"
-                                    name="seed"
-                                    defaultValue={sample.seed}
-                                />
-                            </label>
-                            <button type="button" className="controls__shuffle">
-                                Shuffle
-                            </button>
-                        </>
-                    )}
-                    <label>
-                        Select{" "}
-                        <input
-                            type="text"
-                            name="select"
-                            placeholder="France, Germany"
-                            defaultValue={select}
-                        />
-                    </label>
-                    <label>
-                        Focus{" "}
-                        <input
-                            type="text"
-                            name="focus"
-                            placeholder="France, Germany"
-                            defaultValue={focus}
-                        />
-                    </label>
+                    <ThumbnailCaseControls selection={selection} />
                     <label>
                         <input
                             type="checkbox"
@@ -305,20 +221,7 @@ function ThumbnailTestPage({
                         />{" "}
                         Compare with live
                     </label>
-                    <select name="scale" defaultValue={String(scale)}>
-                        <option value="1">1×</option>
-                        <option value="1.5">1.5×</option>
-                        <option value="2">2×</option>
-                    </select>
-                    <select name="size" defaultValue={sizeId}>
-                        {Object.entries(THUMBNAIL_SIZES).map(
-                            ([id, { label }]) => (
-                                <option key={id} value={id}>
-                                    {label}
-                                </option>
-                            )
-                        )}
-                    </select>
+                    <ThumbnailSizeControls scale={scale} sizeId={sizeId} />
                 </form>
                 {sections.map((section) => (
                     <ThumbnailTestSectionView
@@ -396,6 +299,96 @@ function ThumbnailTestSectionView({
                 ))}
             </div>
         </section>
+    )
+}
+
+/** Form controls for the params in `ThumbnailCaseSelection` */
+export function ThumbnailCaseControls({
+    selection: { sectionId, sample, select, focus },
+}: {
+    selection: ThumbnailCaseSelection
+}): React.ReactElement {
+    return (
+        <>
+            <select name="type" defaultValue={sectionId ?? ""}>
+                <option value="">All chart types</option>
+                {THUMBNAIL_TEST_SECTIONS.map((section) => (
+                    <option key={section.id} value={section.id}>
+                        {section.title}
+                    </option>
+                ))}
+            </select>
+            <select
+                name="sample"
+                defaultValue={String(sample?.countPerSection ?? "")}
+            >
+                <option value="">Curated cases</option>
+                {SAMPLE_COUNT_OPTIONS.map((count) => (
+                    <option key={count} value={count}>
+                        Random sample, {count} per type
+                    </option>
+                ))}
+            </select>
+            {sample && (
+                <>
+                    <label>
+                        Seed{" "}
+                        <input
+                            className="controls__seed"
+                            type="number"
+                            name="seed"
+                            defaultValue={sample.seed}
+                        />
+                    </label>
+                    <button type="button" className="controls__shuffle">
+                        Shuffle
+                    </button>
+                </>
+            )}
+            <label>
+                Select{" "}
+                <input
+                    type="text"
+                    name="select"
+                    placeholder="France, Germany"
+                    defaultValue={select}
+                />
+            </label>
+            <label>
+                Focus{" "}
+                <input
+                    type="text"
+                    name="focus"
+                    placeholder="France, Germany"
+                    defaultValue={focus}
+                />
+            </label>
+        </>
+    )
+}
+
+export function ThumbnailSizeControls({
+    scale,
+    sizeId,
+}: {
+    scale: number
+    sizeId: ThumbnailSizeId
+}): React.ReactElement {
+    return (
+        <>
+            <select name="scale" defaultValue={String(scale)}>
+                <option value="1">1×</option>
+                <option value="1.5">1.5×</option>
+                <option value="2">2×</option>
+            </select>
+            <select name="size" defaultValue={sizeId}>
+                {Object.entries(THUMBNAIL_SIZES).map(([id, { label }]) => (
+                    <option key={id} value={id}>
+                        {label}
+                    </option>
+                ))}
+            </select>
+        </>
     )
 }
 
@@ -485,6 +478,15 @@ body {
 }
 `
 
+export function makePageStyle(scale: number, sizeId: ThumbnailSizeId): string {
+    const zoom =
+        (scale * THUMBNAIL_SIZES[sizeId].displayWidthPx) /
+        GRAPHER_THUMBNAIL_WIDTH
+    return PAGE_STYLE.replaceAll("{{width}}", String(GRAPHER_THUMBNAIL_WIDTH))
+        .replaceAll("{{height}}", String(GRAPHER_THUMBNAIL_HEIGHT))
+        .replaceAll("{{zoom}}", String(zoom))
+}
+
 export const PAGE_SCRIPT = `
 const form = document.querySelector(".controls")
 form.addEventListener("change", () => form.submit())
@@ -531,6 +533,51 @@ export function hashQueryStr(queryStr: string): string {
     let value = 0
     for (const char of queryStr) value = (value * 31 + char.charCodeAt(0)) | 0
     return (value >>> 0).toString(36)
+}
+
+/** URL that adds a random seed to a sample request without one */
+export function makeSeedRedirectUrl(req: Request): string | undefined {
+    const countPerSection = readPositiveIntParam(req.query.sample)
+    const seed = readPositiveIntParam(req.query.seed)
+    if (countPerSection === undefined || seed !== undefined) return undefined
+    const params = new URLSearchParams(req.query as Record<string, string>)
+    params.set("seed", String(makeRandomSeed()))
+    return `${req.baseUrl}${req.path}?${params}`
+}
+
+export function readCaseSelection(req: Request): ThumbnailCaseSelection {
+    const countPerSection = readPositiveIntParam(req.query.sample)
+    const seed = readPositiveIntParam(req.query.seed)
+    return {
+        sample:
+            countPerSection !== undefined && seed !== undefined
+                ? { countPerSection, seed }
+                : undefined,
+        sectionId: readStringParam(req.query.type),
+        select: readStringParam(req.query.select),
+        focus: readStringParam(req.query.focus),
+    }
+}
+
+export async function findThumbnailTestSections(
+    trx: KnexReadonlyTransaction,
+    { sample, sectionId, select, focus }: ThumbnailCaseSelection
+): Promise<ThumbnailTestSection[]> {
+    const entityParams = {
+        selectedEntityNames: parseEntityNames(select),
+        focusedEntityNames: parseEntityNames(focus),
+    }
+    const sections = sample
+        ? await sampleThumbnailTestSections(trx, sample)
+        : THUMBNAIL_TEST_SECTIONS
+    return sections
+        .filter((section) => !sectionId || section.id === sectionId)
+        .map((section) => ({
+            ...section,
+            cases: section.cases.map((testCase) =>
+                applyEntityParams(testCase, entityParams)
+            ),
+        }))
 }
 
 export function readStringParam(value: unknown): string | undefined {
@@ -581,18 +628,18 @@ export function readScaleParam(value: unknown): number {
     return Number.isFinite(scale) && scale > 0 ? scale : 1
 }
 
-function readSizeParam(value: unknown): ThumbnailSizeId {
+export function readSizeParam(value: unknown): ThumbnailSizeId {
     return value === "all-charts" ? value : "default"
 }
 
-function readLabelModeParam(value: string | null): ChartLabelMode {
+export function readLabelModeParam(value: unknown): ChartLabelMode {
     return (
         LABEL_MODES.find((labelMode) => labelMode === value) ??
         ChartLabelMode.All
     )
 }
 
-function makeSvgUrl(
+export function makeSvgUrl(
     { slug, queryStr }: ThumbnailTestCase,
     labelMode: ChartLabelMode,
     fontSize: number
@@ -607,7 +654,10 @@ export function makeLiveUrl({ slug, queryStr }: ThumbnailTestCase): string {
     return `${LIVE_BASE_URL}/grapher/${slug}${queryStr ? `?${queryStr}` : ""}`
 }
 
-function makeLivePngUrl(testCase: ThumbnailTestCase, fontSize: number): string {
+export function makeLivePngUrl(
+    testCase: ThumbnailTestCase,
+    fontSize: number
+): string {
     const params = new URLSearchParams(testCase.queryStr)
     params.set("imType", "thumbnail")
     params.set("imFontSize", String(fontSize))
