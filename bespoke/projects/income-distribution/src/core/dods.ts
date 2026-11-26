@@ -9,18 +9,19 @@ export interface DodDetails {
 }
 
 /**
- * The note's details on demand: the two welfare types, and "nowcasts". The
- * nowcast text is the site's `nowcast` DoD (managed in the admin) as of
- * November 2026, kept here as a constant like the rest of this project's
- * copy rather than fetched.
+ * The note's details on demand: the two welfare types, and "World Bank
+ * nowcasts". Kept here as constants like the rest of this project's copy,
+ * rather than fetched from the site's DoD dictionary.
  */
 export const DODS: Record<WelfareType | "nowcast", DodDetails> = {
     ...WELFARE_TYPE_DETAILS,
     nowcast: {
         term: "World\u00a0Bank nowcasts",
-        title: "Nowcast",
+        title: "World Bank nowcasts",
         description: [
-            "A nowcast is an estimate of the current state of something, worked out before the official data is in. It fills the gap between what has already been measured and what will only be confirmed later.",
+            "Household surveys take a lot of time to process, and in many countries they aren't run every year.",
+            "Also, they don't run in every country at the same time — the latest survey in France might've been in 2023 and in Guinea in 2018.",
+            "For this reason, the World Bank extrapolates its poverty statistics up to the current year based on economic growth estimates and forecasts. They are updated once a newer survey is available.",
         ],
     },
 }
