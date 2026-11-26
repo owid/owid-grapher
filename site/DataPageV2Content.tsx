@@ -159,7 +159,6 @@ export const DataPageV2Content = ({
                             canonicalUrl={canonicalUrl}
                             archiveContext={archiveContext}
                             id={DATAPAGE_ABOUT_THIS_DATA_SECTION_ID}
-                            license={grapherConfig.license}
                         />
                         {relatedResearch && relatedResearch.length > 0 && (
                             <div className="datapage-research-and-writing-v2 col-start-2 span-cols-12">

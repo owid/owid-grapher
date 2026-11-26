@@ -1,4 +1,3 @@
-import cx from "clsx"
 import { faCaretDown, faCaretUp } from "@fortawesome/free-solid-svg-icons"
 import {
     DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
@@ -190,7 +189,7 @@ function IndicatorFaqs({
                     }
                     onToggle={(isOpen) =>
                         analytics.logExpandableToggle(
-                            // untranslated source text
+                            // The question itself, kept short for the event
                             faq.question.slice(0, 100),
                             isOpen
                         )
@@ -341,7 +340,7 @@ function IndicatorCitations({
                     label="How to cite this data"
                     content={
                         <>
-                            <p className="citation__paragraph">
+                            <p>
                                 If you have limited space (e.g. in data
                                 visualizations), you can use this abbreviated
                                 in-line citation:
@@ -352,9 +351,7 @@ function IndicatorCitations({
                             />
                             {citationLong && (
                                 <>
-                                    <p className="citation__paragraph">
-                                        Full citation
-                                    </p>
+                                    <p>Full citation</p>
                                     <CitationSnippet
                                         citation={citationLong}
                                         trackingContext="citation_data_full"
@@ -404,99 +401,18 @@ function IndicatorFinePrint({
     )
 }
 
-function IndicatorMetadataSections({
-    datapageData,
-    faqEntries,
-    detailsRef,
-    detailsId,
-    canonicalUrl,
-    archiveContext,
-    descriptionProcessing,
-    license,
-}: {
-    datapageData: DataPageDataV2
-    faqEntries: FaqEntryData | undefined
-    detailsRef: React.RefObject<HTMLDetailsElement | null>
-    detailsId?: string
-    canonicalUrl: string
-    archiveContext: ArchiveContext | undefined
-    descriptionProcessing: string | undefined
-    license?: LicenseOption
-}): React.ReactElement {
-    // Only the start of a long descriptionKey is shown above the fold; the
-    // rest goes inside the <details> so that it works without JavaScript and
-    // browsers auto-expand it when in-page search matches hidden text.
-    const { preview: descriptionKeyPreview, remainder: descriptionKeyRest } =
-        splitDescriptionKey(datapageData.descriptionKey ?? "")
-
-    return (
-        <MetadataBoxExpander
-            detailsRef={detailsRef}
-            detailsId={detailsId}
-            showMoreIcon={faCaretDown}
-            showLessIcon={faCaretUp}
-            preview={
-                descriptionKeyPreview ? (
-                    <>
-                        <h2 className="indicator-metadata-box__description-key-title">
-                            What you should know about this data
-                        </h2>
-                        <SimpleMarkdownText
-                            text={descriptionKeyPreview}
-                            dataTrackNote="wysk_link"
-                            dodTrackNote="wysk/preview"
-                        />
-                    </>
-                ) : undefined
-            }
-            onToggle={(isOpen) =>
-                analytics.logSiteClick(
-                    isOpen ? "expand_metadata_box" : "collapse_metadata_box"
-                )
-            }
-        >
-            {descriptionKeyRest && (
-                <div className="metadata-box-expander__remainder metadata-box-expander__prose">
-                    <SimpleMarkdownText
-                        text={descriptionKeyRest}
-                        dataTrackNote="wysk_link"
-                        dodTrackNote="wysk/expanded"
-                    />
-                </div>
-            )}
-            <IndicatorDataDetails datapageData={datapageData} />
-            <IndicatorFaqs
-                descriptionProcessing={descriptionProcessing}
-                faqEntries={faqEntries}
-            />
-            <IndicatorProducerDocs datapageData={datapageData} />
-            <IndicatorDataSources datapageData={datapageData} />
-            <IndicatorCitations
-                datapageData={datapageData}
-                canonicalUrl={canonicalUrl}
-                archiveContext={archiveContext}
-            />
-            <IndicatorFinePrint license={license} />
-        </MetadataBoxExpander>
-    )
-}
-
 export default function IndicatorMetadataBox({
     datapageData,
     faqEntries,
-    className,
     id,
     canonicalUrl,
     archiveContext,
-    license,
 }: {
     datapageData: DataPageDataV2
-    className?: string
     id?: string
     faqEntries: FaqEntryData | undefined
     canonicalUrl: string
     archiveContext: ArchiveContext | undefined
-    license?: LicenseOption
 }): React.ReactElement {
     // Owners of the dataset backing this indicator. For now we show a single
     // indicator's owners; multi-indicator charts will get a separate metadata
@@ -512,6 +428,12 @@ export default function IndicatorMetadataBox({
             ? INDICATOR_PROCESSING_SECTION_ID
             : null,
     })
+
+    // Only the start of a long descriptionKey is shown above the fold; the
+    // rest goes inside the <details> so that it works without JavaScript and
+    // browsers auto-expand it when in-page search matches hidden text.
+    const { preview: descriptionKeyPreview, remainder: descriptionKeyRest } =
+        splitDescriptionKey(datapageData.descriptionKey ?? "")
 
     const detailsRef = useRef<HTMLDetailsElement | null>(null)
     const rootRef = useRef<HTMLDivElement | null>(null)
@@ -533,7 +455,7 @@ export default function IndicatorMetadataBox({
 
     return (
         <div
-            className={cx("metadata-box indicator-metadata-box", className)}
+            className="metadata-box indicator-metadata-box"
             id={id}
             ref={rootRef}
             onClick={openDetailsAroundLinkTarget}
@@ -541,9 +463,11 @@ export default function IndicatorMetadataBox({
             <div className="indicator-metadata-box__header">
                 <h2 className="indicator-metadata-box__title">
                     {datapageData.title.title}
-                    <span className="indicator-metadata-box__title-variant">
-                        {datapageData.titleVariant}
-                    </span>
+                    {datapageData.titleVariant && (
+                        <span className="indicator-metadata-box__title-variant">
+                            {datapageData.titleVariant}
+                        </span>
+                    )}
                 </h2>
                 <MetadataBoxToggleButton
                     detailsRef={detailsRef}
@@ -583,16 +507,54 @@ export default function IndicatorMetadataBox({
                     </MetadataBoxKeyDataRow>
                 )}
             </MetadataBoxKeyData>
-            <IndicatorMetadataSections
-                datapageData={datapageData}
-                faqEntries={faqEntries}
+            <MetadataBoxExpander
                 detailsRef={detailsRef}
                 detailsId={detailsId}
-                canonicalUrl={canonicalUrl}
-                archiveContext={archiveContext}
-                descriptionProcessing={descriptionProcessing}
-                license={license}
-            />
+                showMoreIcon={faCaretDown}
+                showLessIcon={faCaretUp}
+                preview={
+                    descriptionKeyPreview ? (
+                        <>
+                            <h2 className="indicator-metadata-box__description-key-title">
+                                What you should know about this data
+                            </h2>
+                            <SimpleMarkdownText
+                                text={descriptionKeyPreview}
+                                dataTrackNote="wysk_link"
+                                dodTrackNote="wysk/preview"
+                            />
+                        </>
+                    ) : undefined
+                }
+                onToggle={(isOpen) =>
+                    analytics.logSiteClick(
+                        isOpen ? "expand_metadata_box" : "collapse_metadata_box"
+                    )
+                }
+            >
+                {descriptionKeyRest && (
+                    <div className="metadata-box-expander__remainder metadata-box-expander__prose">
+                        <SimpleMarkdownText
+                            text={descriptionKeyRest}
+                            dataTrackNote="wysk_link"
+                            dodTrackNote="wysk/expanded"
+                        />
+                    </div>
+                )}
+                <IndicatorDataDetails datapageData={datapageData} />
+                <IndicatorFaqs
+                    descriptionProcessing={descriptionProcessing}
+                    faqEntries={faqEntries}
+                />
+                <IndicatorProducerDocs datapageData={datapageData} />
+                <IndicatorDataSources datapageData={datapageData} />
+                <IndicatorCitations
+                    datapageData={datapageData}
+                    canonicalUrl={canonicalUrl}
+                    archiveContext={archiveContext}
+                />
+                <IndicatorFinePrint license={datapageData.license} />
+            </MetadataBoxExpander>
         </div>
     )
 }
