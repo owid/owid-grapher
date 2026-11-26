@@ -176,7 +176,7 @@ export function IncomeUnitPicker({
                             checked={visibleChoice === "other"}
                             onSelect={() => chooseCurrency("other")}
                             label="Other currency"
-                            detail="Select another country's currency and price level"
+                            detail="Select another country’s currency and price level"
                         />
                     </div>
                     {visibleChoice === "other" && (

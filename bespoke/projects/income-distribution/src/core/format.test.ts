@@ -50,7 +50,7 @@ describe(formatCountryList, () => {
             "Germany and China"
         )
         expect(formatCountryList(["Germany", "China", "India"])).toBe(
-            "Germany, China and India"
+            "Germany, China, and India"
         )
     })
 

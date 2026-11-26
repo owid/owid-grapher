@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest"
 
+import { noteText } from "./dods.js"
 import {
     chartNoteSegments,
     chartSubtitle,
@@ -20,7 +21,7 @@ const EURO: Currency = {
 describe(chartTitle, () => {
     it("asks about the world in the global view, whatever is selected", () => {
         expect(chartTitle("global", ["China"])).toBe(
-            "How is income distributed across the world's population?"
+            "How is income distributed across the world’s population?"
         )
     })
 
@@ -36,7 +37,7 @@ describe(chartTitle, () => {
                 "Nigeria",
             ])
         ).toBe(
-            "How is income distributed in China, the United States, India and Nigeria?"
+            "How is income distributed in China, the United States, India, and Nigeria?"
         )
     })
 
@@ -98,12 +99,17 @@ describe(chartNoteSegments, () => {
     })
 
     it("adds the international line's definition, the nowcast caveat and the conversion", () => {
-        const [note] = chartNoteSegments(EURO, 2025, true)
-        expect(note).toBe(
-            `${GENERAL} The International Poverty Line is set by the World Bank as its definition of extreme poverty. Figures for 2025 are World Bank nowcasts, which extrapolate the latest household surveys using economic growth. Incomes in local currencies are converted from international-$ using PPP conversion factors and adjusted for inflation to the latest year available.`
+        const segments = chartNoteSegments(EURO, 2025, true)
+        expect(noteText(segments)).toBe(
+            `${GENERAL} The International Poverty Line is set by the World\u00a0Bank as its definition of extreme poverty. Figures for 2025 are World\u00a0Bank nowcasts, which extrapolate the latest household surveys using economic growth. Incomes in local currencies are converted from international-$ using purchasing power parity (PPP) conversion factors and adjusted for inflation to the latest year available.`
         )
+        // "nowcasts" is a term with a card; the strings around it are merged
+        expect(segments).toHaveLength(3)
+        expect(segments[1]).toEqual({ dod: "nowcast" })
         expect(
-            chartNoteSegments({ ...EURO, pricesYear: 2024 }, 2020, false)[0]
+            noteText(
+                chartNoteSegments({ ...EURO, pricesYear: 2024 }, 2020, false)
+            )
         ).toContain("adjusted for inflation to 2024 prices.")
     })
 
@@ -111,14 +117,15 @@ describe(chartNoteSegments, () => {
         expect(
             chartNoteSegments(INTERNATIONAL_DOLLAR, 2025, false, [
                 "Germany reports ",
-                { welfareType: "income" },
+                { dod: "income" },
                 ".",
             ])
         ).toEqual([
             "Germany reports ",
-            { welfareType: "income" },
-            ".",
-            " Figures for 2025 are World Bank nowcasts, which extrapolate the latest household surveys using economic growth.",
+            { dod: "income" },
+            ". Figures for 2025 are World\u00a0Bank ",
+            { dod: "nowcast" },
+            ", which extrapolate the latest household surveys using economic growth.",
         ])
     })
 })

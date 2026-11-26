@@ -37,9 +37,10 @@ export function formatPeople(count: number): string {
     return Math.round(rounded).toLocaleString("en-US")
 }
 
-/** "A", "A and B", "A, B and C", with names as they read mid-sentence ("the United States") */
+/** "A", "A and B", "A, B, and C" (Oxford comma from three on), with names as they read mid-sentence ("the United States") */
 export function formatCountryList(countries: string[]): string {
     const names = countries.map((name) => formatEntityNameForSentence(name))
     if (names.length <= 1) return names.join("")
-    return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`
+    const comma = names.length > 2 ? "," : ""
+    return `${names.slice(0, -1).join(", ")}${comma} and ${names[names.length - 1]}`
 }

@@ -2,9 +2,7 @@ import { Tippy } from "@ourworldindata/utils"
 import { DOD_TIPPY_PROPS } from "@ourworldindata/components/src/detailsOnDemand.js"
 
 import { useTippyContainer } from "../../../../hooks/useTippyContainer.js"
-import type { WelfareType } from "../core/types.js"
-import { WELFARE_TYPE_DETAILS } from "../core/welfareType.js"
-import type { WelfareSentenceSegment } from "../core/welfareSentence.js"
+import { DODS, type DodId, type NoteSegment } from "../core/dods.js"
 
 // tippy.js types `content` and `render` more widely than the React wrapper
 // does; the DoD props set neither
@@ -19,13 +17,9 @@ export const WELFARE_DOD_TIPPY_PROPS: Partial<
     maxWidth: 320,
 }
 
-/** A welfare type's card, styled like OWID's .dod-container (WelfareDetails.scss) */
-export function WelfareDetailsCard({
-    welfareType,
-}: {
-    welfareType: WelfareType
-}): React.ReactElement {
-    const { title, description } = WELFARE_TYPE_DETAILS[welfareType]
+/** A term's card (DODS), styled like OWID's .dod-container (WelfareDetails.scss) */
+export function DodCard({ dod }: { dod: DodId }): React.ReactElement {
+    const { title, description } = DODS[dod]
     return (
         <div className="income-distribution-dod-card">
             <div className="income-distribution-dod-card__title">{title}</div>
@@ -42,14 +36,13 @@ export function WelfareDetailsCard({
 }
 
 /**
- * The note's sentence on which countries report income and which
- * consumption (welfareTypeSentence), each type's term a dotted-underlined
- * span that shows its card on hover or focus
+ * The note's text with its terms (the welfare types, "nowcasts") as
+ * dotted-underlined spans that show their card on hover or focus
  */
-export function WelfareSentence({
+export function NoteWithDods({
     segments,
 }: {
-    segments: WelfareSentenceSegment[]
+    segments: NoteSegment[]
 }): React.ReactElement {
     // The cards mount in the shadow root, where the footer is
     const { ref, getTippyContainer } = useTippyContainer<HTMLSpanElement>()
@@ -62,18 +55,14 @@ export function WelfareSentence({
                     <Tippy
                         key={i}
                         {...WELFARE_DOD_TIPPY_PROPS}
-                        content={
-                            <WelfareDetailsCard
-                                welfareType={segment.welfareType}
-                            />
-                        }
+                        content={<DodCard dod={segment.dod} />}
                         appendTo={getTippyContainer}
                     >
                         <span
                             className="income-distribution-dod-span"
                             tabIndex={0}
                         >
-                            {WELFARE_TYPE_DETAILS[segment.welfareType].term}
+                            {DODS[segment.dod].term}
                         </span>
                     </Tippy>
                 )

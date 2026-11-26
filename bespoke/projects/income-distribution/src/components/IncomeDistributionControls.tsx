@@ -123,9 +123,9 @@ const POVERTY_LINE_ITEMS: SwitcherItem<PovertyLineMode>[] = [
     { key: "off", element: "Off", hint: "Remove poverty line" },
     {
         key: "international",
-        element: "International poverty line",
+        element: "International Poverty Line",
         // Always in international-$ per day, whatever the chart is measured in
-        hint: "The extreme poverty line set by the World Bank, of $3 a day",
+        hint: "The extreme poverty line set by the World\u00a0Bank, of $3 a day",
     },
     { key: "custom", element: "Custom", hint: "Select your own poverty line" },
 ]

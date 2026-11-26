@@ -32,7 +32,7 @@ import type {
     FrameLegendMode,
 } from "../core/presentation.js"
 import { IncomeDistributionChart } from "./IncomeDistributionChart.js"
-import { WelfareSentence } from "./WelfareDetails.js"
+import { NoteWithDods } from "./WelfareDetails.js"
 import {
     IncomeDistributionLegend,
     LegendEntry,
@@ -246,13 +246,13 @@ export function IncomeDistributionFrame({
         isInternationalPovertyLine,
         welfareSentence
     )
-    // A plain string unless a welfare term needs its details-on-demand span
+    // A plain string unless a term needs its details-on-demand span
     const note = noteSegments.every(
         (segment) => typeof segment === "string"
     ) ? (
         noteSegments.join("")
     ) : (
-        <WelfareSentence segments={noteSegments} />
+        <NoteWithDods segments={noteSegments} />
     )
 
     return (

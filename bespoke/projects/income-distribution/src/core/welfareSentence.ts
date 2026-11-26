@@ -1,12 +1,6 @@
+import type { NoteSegment } from "./dods.js"
 import { formatCountryList } from "./format.js"
 import { WELFARE_TYPES, type WelfareType } from "./types.js"
-import { WELFARE_TYPE_DETAILS } from "./welfareType.js"
-
-/**
- * A piece of a sentence: plain text, or a welfare type's term
- * (WELFARE_TYPE_DETAILS), which the UI renders as a details-on-demand span
- */
-export type WelfareSentenceSegment = string | { welfareType: WelfareType }
 
 /**
  * Which of `countries` report income and which consumption, as one sentence
@@ -17,7 +11,7 @@ export type WelfareSentenceSegment = string | { welfareType: WelfareType }
 export function welfareTypeSentence(
     countries: string[],
     welfareTypeOf: (name: string) => WelfareType
-): WelfareSentenceSegment[] | undefined {
+): NoteSegment[] | undefined {
     if (countries.length === 0) return undefined
     const groups = WELFARE_TYPES.map((type) => ({
         type,
@@ -28,35 +22,22 @@ export function welfareTypeSentence(
         const subject = countries.length === 2 ? "Both" : "All"
         return [
             `${subject} of these countries report `,
-            { welfareType: groups[0].type },
+            { dod: groups[0].type },
             ".",
         ]
     }
 
-    const segments: WelfareSentenceSegment[] = []
+    const segments: NoteSegment[] = []
     groups.forEach((group, i) => {
         const verb = group.countries.length === 1 ? "reports" : "report"
         const subject = formatCountryList(group.countries)
         segments.push(
             `${i > 0 ? "; " : ""}${i === 0 ? capitalize(subject) : subject} ${verb} `,
-            { welfareType: group.type }
+            { dod: group.type }
         )
     })
     segments.push(".")
     return segments
-}
-
-/** The sentence as plain text */
-export function welfareSentenceText(
-    segments: WelfareSentenceSegment[]
-): string {
-    return segments
-        .map((segment) =>
-            typeof segment === "string"
-                ? segment
-                : WELFARE_TYPE_DETAILS[segment.welfareType].term
-        )
-        .join("")
 }
 
 function capitalize(text: string): string {

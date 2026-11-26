@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest"
 
 import type { WelfareType } from "./types.js"
-import { welfareSentenceText, welfareTypeSentence } from "./welfareSentence.js"
+import { noteText } from "./dods.js"
+import { welfareTypeSentence } from "./welfareSentence.js"
 
 const WELFARE_TYPE_BY_COUNTRY: Record<string, WelfareType> = {
     China: "consumption",
@@ -16,7 +17,7 @@ const welfareTypeOf = (name: string): WelfareType =>
 /** The sentence for `countries` as plain text */
 function sentence(countries: string[]): string | undefined {
     const segments = welfareTypeSentence(countries, welfareTypeOf)
-    return segments && welfareSentenceText(segments)
+    return segments && noteText(segments)
 }
 
 describe(welfareTypeSentence, () => {
@@ -38,7 +39,7 @@ describe(welfareTypeSentence, () => {
         expect(
             sentence(["China", "Germany", "India", "United States", "Nigeria"])
         ).toBe(
-            "Germany and the United States report income after taxes and benefits; China, India and Nigeria report consumption."
+            "Germany and the United States report income after taxes and benefits; China, India, and Nigeria report consumption."
         )
         expect(sentence(["United States", "China"])).toBe(
             "The United States reports income after taxes and benefits; China reports consumption."
@@ -60,9 +61,9 @@ describe(welfareTypeSentence, () => {
             welfareTypeSentence(["Germany", "China"], welfareTypeOf)
         ).toEqual([
             "Germany reports ",
-            { welfareType: "income" },
+            { dod: "income" },
             "; China reports ",
-            { welfareType: "consumption" },
+            { dod: "consumption" },
             ".",
         ])
     })

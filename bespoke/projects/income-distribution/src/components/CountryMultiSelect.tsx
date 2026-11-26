@@ -32,10 +32,7 @@ import { useUserCountryInformation } from "../../../../hooks/useUserCountryInfor
 import { MAX_SELECTED_COUNTRIES } from "../core/constants.js"
 import type { WelfareType } from "../core/types.js"
 import { WELFARE_TYPE_DETAILS } from "../core/welfareType.js"
-import {
-    WELFARE_DOD_TIPPY_PROPS,
-    WelfareDetailsCard,
-} from "./WelfareDetails.js"
+import { DodCard, WELFARE_DOD_TIPPY_PROPS } from "./WelfareDetails.js"
 // The popover is in the light DOM, out of reach of the shadow root's styles,
 // so it brings the label cards' own (see the file's header)
 import popoverCss from "./CountryMultiSelectPopover.scss?inline"
@@ -319,7 +316,7 @@ function WelfareTypeLabel({
             placement="left"
             // Above react-aria's popover, which sits at z-index 100000
             zIndex={100001}
-            content={<WelfareDetailsCard welfareType={welfareType} />}
+            content={<DodCard dod={welfareType} />}
             appendTo={() => document.body}
         >
             <span
