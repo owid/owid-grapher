@@ -18,6 +18,7 @@ import { describeInvalidRequest } from "../../_common/requestValidation.js"
 import {
     MailchimpCleanedContactError,
     enableOwidBriefSubscription,
+    isMailchimpSubscriber,
 } from "../../_common/mailchimp.js"
 import {
     POSTMARK_REACTIVATION_USER_MESSAGE,
@@ -59,6 +60,18 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
         // page can manage both products. A Brief-only identity has email
         // notifications disabled and no notification preferences row.
         const user = await ensureUserIdentity(db, email)
+
+        // Mailchimp already sent its subscribers a welcome email, so they
+        // don't get ours. Checked before the Brief opt-in below can subscribe
+        // the address, and only until a welcome email is recorded as sent.
+        let isWelcomeEmailSent = user.welcomeEmailSentAt !== null
+        if (
+            !isWelcomeEmailSent &&
+            (await checkIsMailchimpSubscriber(env, email))
+        ) {
+            await markWelcomeEmailSent(db, user.id)
+            isWelcomeEmailSent = true
+        }
 
         // Mailchimp runs before the remaining writes and welcome email because
         // it is idempotent. Do not expose active vs pending: this tokenless
@@ -113,7 +126,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 
         const subscribeEmail = chooseSubscribeEmail({
             preferences,
-            isWelcomeEmailSent: user.welcomeEmailSentAt !== null,
+            isWelcomeEmailSent,
             isBriefActive,
         })
         if (subscribeEmail) {
@@ -153,6 +166,26 @@ interface EmailNotificationsUser {
     email: string
     token: string
     welcomeEmailSentAt: string | null
+}
+
+/**
+ * Whether Mailchimp lists the address as a subscriber. If Mailchimp can't be
+ * reached, the address counts as not one: an extra welcome email is better
+ * than a failed signup.
+ */
+async function checkIsMailchimpSubscriber(
+    env: Env,
+    email: string
+): Promise<boolean> {
+    try {
+        return await isMailchimpSubscriber(env, email)
+    } catch (error) {
+        logErrorAndCaptureInSentry(
+            "Failed to check whether a subscriber is in Mailchimp",
+            error
+        )
+        return false
+    }
 }
 
 async function markWelcomeEmailSent(

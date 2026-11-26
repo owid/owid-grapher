@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest"
 import type { EmailNotificationsPreferences } from "@ourworldindata/types"
 import { chooseSubscribeEmail } from "./subscribeEmail.js"
 
-// Each address gets the full welcome email once.
+// Each address gets the full welcome email once, from us or from Mailchimp.
 // Every later notifications submission gets a short confirmation email
 // (so the owner can notice a submission they didn't make).
 // A later Brief-only submission gets no email from us. Mailchimp sends its own
@@ -36,7 +36,7 @@ describe(chooseSubscribeEmail, () => {
             ).toEqual({ template: "welcomeWithBrief", preferences })
         })
 
-        it("sends a short confirmation if the full welcome was already sent", () => {
+        it("sends a short confirmation if a welcome email was already sent", () => {
             expect(
                 chooseSubscribeEmail({
                     preferences,
@@ -58,7 +58,7 @@ describe(chooseSubscribeEmail, () => {
             ).toEqual({ template: "welcomeBriefOnly" })
         })
 
-        it("sends nothing to someone who already got the full welcome", () => {
+        it("sends nothing to someone who already got a welcome email", () => {
             expect(
                 chooseSubscribeEmail({
                     preferences: null,

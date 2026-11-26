@@ -90,6 +90,19 @@ async function writeMember(
     return true
 }
 
+/**
+ * Whether the address is subscribed to the Mailchimp audience (to any of its
+ * newsletters), which means Mailchimp already sent it a welcome email.
+ */
+export async function isMailchimpSubscriber(
+    env: Env,
+    email: string
+): Promise<boolean> {
+    validateMailchimpConfiguration(env)
+    const member = await fetchMember(env, await makeMemberUrl(email))
+    return member?.status === "subscribed"
+}
+
 /** Mailchimp blocks API resubscription of hard-bounced contacts. */
 export class MailchimpCleanedContactError extends Error {
     constructor() {
