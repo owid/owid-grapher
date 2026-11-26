@@ -529,9 +529,11 @@ export class CoreTable<
     rowIndex(columnSlugs: ColumnSlug[]): Map<string, number[]> {
         const index = new Map<string, number[]>()
         const keyFn = makeKeyFn(this.columnStore, columnSlugs)
-        for (let i = 0; i < this.numRows; i++) {
+        const numRows = this.numRows
+        for (let i = 0; i < numRows; i++) {
             const key = keyFn(i)
-            if (index.has(key)) index.get(key)!.push(i)
+            const rows = index.get(key)
+            if (rows) rows.push(i)
             else index.set(key, [i])
         }
         return index

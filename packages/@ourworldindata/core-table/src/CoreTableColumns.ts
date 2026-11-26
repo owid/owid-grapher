@@ -376,20 +376,22 @@ export abstract class AbstractCoreColumn<
     }
 
     @imemo get validRowIndices(): number[] {
+        // Read the memoized getter once; going through it per element is slow
+        const allValues = this.valuesIncludingErrorValues
         const indices: number[] = []
-        for (let i = 0; i < this.valuesIncludingErrorValues.length; i++) {
-            const value = this.valuesIncludingErrorValues[i]
-            if (isNotErrorValue(value)) indices.push(i)
+        for (let i = 0; i < allValues.length; i++) {
+            if (isNotErrorValue(allValues[i])) indices.push(i)
         }
         return indices
     }
 
     @imemo get values(): JS_TYPE[] {
+        // Read the memoized getter once; going through it per element is slow
+        const allValues = this.valuesIncludingErrorValues
         const values: JS_TYPE[] = []
-
         // eslint-disable-next-line @typescript-eslint/prefer-for-of
-        for (let i = 0; i < this.valuesIncludingErrorValues.length; i++) {
-            const value = this.valuesIncludingErrorValues[i]
+        for (let i = 0; i < allValues.length; i++) {
+            const value = allValues[i]
             if (isNotErrorValue(value)) values.push(value as JS_TYPE)
         }
         return values
