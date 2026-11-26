@@ -59,6 +59,26 @@ describe(tailFades, () => {
         expect(fades.left).toEqual({ from: 0.28, to: avgs[19] })
     })
 
+    it("fades from the 0.1th to the 1st percentile when only the very end is far out", () => {
+        // A smaller near-zero group: just the poorest tenth of a percent (this
+        // synthetic distribution's 0.5th percentile is at $0.80, so the end
+        // has to sit well below the $0.28 real bottom-codes land at)
+        const avgs = regularAvgs()
+        avgs[0] = 0.1
+        const fades = tailFades(avgs)
+        expect(fades.right).toBeUndefined()
+        expect(fades.left).toEqual({ from: 0.1, to: avgs[9] })
+    })
+
+    it("mirrors that at the top end", () => {
+        const avgs = regularAvgs()
+        avgs[999] = avgs[998] * 10
+        expect(tailFades(avgs).right).toEqual({
+            from: avgs[999],
+            to: avgs[990],
+        })
+    })
+
     it("fades a long right tail the same way", () => {
         const avgs = regularAvgs()
         for (let i = 995; i < 1000; i++) avgs[i] = avgs[994] * 5
