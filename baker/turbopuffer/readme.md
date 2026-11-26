@@ -146,12 +146,13 @@ T4 with zerank-2 on every section, against production Algolia on fresh volume-we
 
 - **Losses:** abbreviations and other languages ("pib", "rni", "bip"), broad one-word queries ("population pyramid", "weather"), articles found at rank 2 instead of 1 ("literacy rate", "life expectancy"), and author queries, since the rerank text has no authors.
 - **Latency** from a laptop in Europe to Frankfurt, median: production (Algolia, called directly) 63–65 ms; T4 through the function 224 ms for charts, 277 ms for articles, 238 ms for data insights, of which 186–265 ms is turbopuffer's server time. A results page queries its sections in parallel, so it waits for the slowest. From America, Frankfurt adds roughly 60–80 ms.
-- **Cost** at ~7,700 searches/day: the three reranks bill ~16,500 tokens per search, ≈ $96/month with zerank-2; queries ≈ $2; a full reindex of both namespaces is $0.40 per region (≤ $12/month if daily). About $100–115/month in one region, which covers the $16 plan minimum.
+- **Cost** at ~7,700 searches/day: the three reranks bill ~16,500 tokens per search, ≈ $96/month with zerank-2 (GA4 counted 7,470 non-empty searches a day on the search page for Nov 19–25; Algolia's request counts are higher because each search page, topic browse and autocomplete keystroke sends several requests); queries ≈ $2; a full reindex of both namespaces is $0.40 per region (≤ $12/month if daily). About $100–115/month in one region, which covers the $16 plan minimum.
 
 ## Open items
 
 - **Cost gate before production:** `pool`, `model` and `arm` come from the request, so with the key in production anyone could make each search cost more (`pool=200`, voyage on pages). Fix them server-side, or keep `engine=tpuf` off production.
 - `--namespace` on the indexer deletes rows the run didn't write, so pointing it at another index's namespace would empty that namespace.
+- **Cold starts:** Pages Functions compile every route into one Worker, so `/api/search` loads the grapher and thumbnail code too, and a cold isolate could add noticeable time to a search. If it does, a search-only Worker on a route under `/api/search*` keeps the origin but loses the per-branch staging copy.
 - Peak search rate against the rerank rate limit (2,500 candidates per second per model; a search page sends up to ~180 across its three sections, so about 14 searches per second).
 - Facet counts: `/latest` (pages-chronological index) and the tag list in `functions/api/search/searchApi.ts` use Algolia facet counts. Neither is part of the charts spike.
 - Topic-page recommendations (`type=topics`), profiles and featured-viz pins still read Algolia; the pages namespace holds their records but no backend queries them.
