@@ -141,7 +141,7 @@
         "mobx-react": "^7.6.0",
         "multer": "^2.5.0",
         "mysql2": "^3.24.6",
-        "nodejs-polars": "^0.7.2",
+        "nodejs-polars": "^0.26.2",
         "normalize.css": "^8.0.1",
         "p-map": "^7.1.1",
         "polylabel": "^2.1.0",
