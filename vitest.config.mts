@@ -18,5 +18,11 @@ export default defineConfig({
         ],
         pool: "threads",
         setupFiles: ["devTools/vitest-setup.ts"],
+        benchmark: {
+            // Benchmarks run from source, so every cross-module access goes
+            // through a module-runner getter. That overhead is the same for
+            // the branches being compared, and we can't skip the transforms
+            suppressExportGetterWarnings: true,
+        },
     },
 })
