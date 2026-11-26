@@ -261,10 +261,6 @@ export class FacetChart
         }
     }
 
-    @computed private get hideFacetLegends(): boolean {
-        return true
-    }
-
     // Passing this color map is important to ensure that all facets use the same entity colors
     seriesColorMap: SeriesColorMap = this.manager?.seriesColorMap ?? new Map()
 
@@ -341,9 +337,6 @@ export class FacetChart
         // all possible color values from `inputTable`.
         const colorScaleColumnOverride = this.inputTable.get(colorColumnSlug)
 
-        // Hide the legends in all facets
-        const showLegend = !this.hideFacetLegends
-
         const labelMode = toFacetLabelMode(this.manager.labelMode, this.variant)
         // Hide the start value label only when facets are auto-switched to
         // thumbnail mode because they are small (not when the whole chart
@@ -351,8 +344,7 @@ export class FacetChart
         const hideStartValueLabel =
             this.variant === GrapherVariant.Thumbnail &&
             this.manager.variant !== GrapherVariant.Thumbnail
-        const showSeriesLabels =
-            labelMode === ChartLabelMode.Values || !this.hideFacetLegends
+        const showSeriesLabels = labelMode === ChartLabelMode.Values
 
         return series.map((series, index) => {
             const { bounds } = gridBoundsArr[index]
@@ -365,7 +357,7 @@ export class FacetChart
             const manager: ChartManager = {
                 table,
                 fontSize,
-                showLegend,
+                showLegend: false,
                 showSeriesLabels,
                 hidePoints,
                 yColumnSlug,
@@ -849,7 +841,7 @@ export class FacetChart
     }
 
     @computed get numericLegendData(): ColorScaleBin[] {
-        if (!this.isNumericLegend || !this.hideFacetLegends) return []
+        if (!this.isNumericLegend) return []
         const allBins: ColorScaleBin[] = this.externalLegends.flatMap(
             (legend) => [
                 ...(legend.numericLegendData ?? []),
@@ -865,7 +857,7 @@ export class FacetChart
     }
 
     @computed get categoricalLegendData(): CategoricalBin[] {
-        if (this.isNumericLegend || !this.hideFacetLegends) return []
+        if (this.isNumericLegend) return []
 
         const allBins: CategoricalBin[] = this.externalLegends
             .flatMap((legend) => [
