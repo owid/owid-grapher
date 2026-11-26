@@ -35,7 +35,15 @@ import { AnchoredLabelsState } from "../anchoredLabels/AnchoredLabelsState"
 import { AnchoredLabels } from "../anchoredLabels/AnchoredLabels"
 import { NoDataMessage } from "../noDataMessage/NoDataMessage"
 import { resolveEmphasis } from "../interaction/Emphasis.js"
-import { THUMBNAIL_LINE_STYLE } from "../lineCharts/LineChartConstants.js"
+import {
+    THUMBNAIL_LINE_STYLE,
+    THUMBNAIL_NAME_LABEL_MAX_WIDTH_SHARE,
+} from "../lineCharts/LineChartConstants.js"
+import {
+    getSeriesLabelText,
+    SeriesLabelText,
+    SeriesLabelTextBySide,
+} from "../lineCharts/LineChartHelpers.js"
 
 const DOT_RADIUS = 3.5
 const SPACE_BETWEEN_DOT_AND_LABEL = 4
@@ -47,8 +55,6 @@ const MAX_MIRRORED_PADDING_SHARE = 0.15
 
 /** Widest the slope area gets, as a multiple of its height */
 const MAX_SLOPE_AREA_ASPECT_RATIO = 1.25
-
-type SeriesLabelText = "name" | "value"
 
 @observer
 export class SlopeChartThumbnail
@@ -323,21 +329,14 @@ export class SlopeChartThumbnail
         return this.makeEndLabelsState({ yAxis: this.yAxis, endX: this.endX })
     }
 
-    @computed private get seriesLabelText(): {
-        start?: SeriesLabelText
-        end?: SeriesLabelText
-    } {
-        const { endLabelNames, values } = getVisibleLabels(
-            this.manager.labelMode
-        )
-        return {
-            start: values ? (endLabelNames ? "name" : "value") : undefined,
-            end: values ? "value" : endLabelNames ? "name" : undefined,
-        }
+    @computed private get seriesLabelText(): SeriesLabelTextBySide {
+        return getSeriesLabelText(this.manager.labelMode)
     }
 
     private labelsMaxWidth(text?: SeriesLabelText): number {
-        return text === "name" ? 0.25 * this.bounds.width : Infinity
+        return text === "name"
+            ? THUMBNAIL_NAME_LABEL_MAX_WIDTH_SHARE * this.bounds.width
+            : Infinity
     }
 
     @computed private get startLabelsSeries(): Omit<

@@ -89,6 +89,9 @@ export const THUMBNAIL_LINE_STYLE: Record<Emphasis, LineStyleConfig> = {
     },
 }
 
+/** Widest a name label in a line or slope thumbnail gets, as a share of the chart width */
+export const THUMBNAIL_NAME_LABEL_MAX_WIDTH_SHARE = 0.25
+
 // Legend
 export const LEGEND_PADDING = 25
 export const NUMERIC_LEGEND_STYLE: LegendStyleConfig = {

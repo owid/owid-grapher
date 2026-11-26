@@ -18,6 +18,7 @@ import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import {
     CATEGORICAL_LEGEND_STYLE,
     THUMBNAIL_LINE_STYLE,
+    THUMBNAIL_NAME_LABEL_MAX_WIDTH_SHARE,
     LINE_CHART_CLASS_NAME,
     LineChartManager,
     LineChartSeries,
@@ -38,7 +39,10 @@ import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { Lines } from "./Lines"
 import {
     findClosestTimeAtMouse,
+    getSeriesLabelText,
     getYAxisConfigDefaults,
+    SeriesLabelText,
+    SeriesLabelTextBySide,
     toPlacedLineChartSeries,
     toRenderLineChartSeries,
 } from "./LineChartHelpers"
@@ -63,8 +67,6 @@ import { getVisibleLabels } from "../chart/VisibleChartLabels"
 import { TooltipState } from "../tooltip/Tooltip"
 import { LineChartTooltip } from "./LineChartTooltip"
 import { LineChartActiveTimeMarkers } from "./LineChartActiveTimeMarkers"
-
-type SeriesLabelText = "name" | "value"
 
 @observer
 export class LineChartThumbnail
@@ -429,21 +431,14 @@ export class LineChartThumbnail
         )
     }
 
-    @computed private get seriesLabelText(): {
-        start?: SeriesLabelText
-        end?: SeriesLabelText
-    } {
-        const { endLabelNames, values } = getVisibleLabels(
-            this.manager.labelMode
-        )
-        return {
-            start: values ? (endLabelNames ? "name" : "value") : undefined,
-            end: values ? "value" : endLabelNames ? "name" : undefined,
-        }
+    @computed private get seriesLabelText(): SeriesLabelTextBySide {
+        return getSeriesLabelText(this.manager.labelMode)
     }
 
     private labelsMaxWidth(text?: SeriesLabelText): number {
-        return text === "name" ? 0.25 * this.bounds.width : Infinity
+        return text === "name"
+            ? THUMBNAIL_NAME_LABEL_MAX_WIDTH_SHARE * this.bounds.width
+            : Infinity
     }
 
     @computed private get startLabelsSeries(): Omit<
