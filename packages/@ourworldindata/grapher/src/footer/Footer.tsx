@@ -123,11 +123,7 @@ abstract class AbstractFooter<
     // On data pages the sources line itself links to the metadata box, in place
     // of "Learn more about this data". Multi-dim pages and embeds keep that.
     @computed protected get linkSourcesToDatapageMetadata(): boolean {
-        return (
-            !!this.manager.useNewDatapageMetadataLayout &&
-            !!this.manager.isEmbeddedInADataPage &&
-            !this.manager.isInIFrame
-        )
+        return !!this.manager.isEmbeddedInADataPage && !this.manager.isInIFrame
     }
 
     @computed protected get sourcesText(): string {

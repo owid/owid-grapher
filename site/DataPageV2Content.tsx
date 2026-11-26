@@ -82,7 +82,6 @@ export const DataPageV2Content = ({
             bakedGrapherURL: BAKED_GRAPHER_URL,
             enableKeyboardShortcuts: typeof window !== "undefined",
             archiveContext,
-            useNewDatapageMetadataLayout: true,
         }),
         [grapherConfig, archiveContext]
     )
