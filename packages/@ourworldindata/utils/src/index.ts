@@ -181,6 +181,7 @@ export {
     prepareSourcesForDisplay,
     getOriginIdentityKey,
     formatSourceDate,
+    parseTimespan,
     getDateRange,
     getDateRangeLabel,
     getIndicatorCitations,

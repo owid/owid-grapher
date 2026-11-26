@@ -108,18 +108,18 @@ export interface StitchedIndicator {
 }
 
 /** One indicator's link and citation for a data source several indicators share. */
-export interface IndicatorSourceLink {
+export interface IndicatorLink {
     /** The indicator's title */
     label: string
     retrievedFrom?: string
     citation?: string
 }
 
-/** Each indicator's link and citation for one source of a stitched pane. */
-export interface SourceLinksByIndicator {
+/** A source of a stitched pane that its indicators link or cite differently. */
+export interface SourceWithIndicatorLinks {
     /** The source's index in the pane's origins */
     originIndex: number
-    links: IndicatorSourceLink[]
+    indicatorLinks: IndicatorLink[]
 }
 
 /**
@@ -138,8 +138,7 @@ export type MultiIndicatorMetadata =
           indicators: StitchedIndicator[]
           /** False when the list would only repeat the chart's legend */
           showIndicatorList: boolean
-          /** Only for sources whose link or citation differs between the indicators */
-          sourceLinksByIndicator?: SourceLinksByIndicator[]
+          sourcesWithIndicatorLinks: SourceWithIndicatorLinks[]
       }
 
 export interface DataPageV2ContentFields {
@@ -167,7 +166,7 @@ export interface DisplaySource {
      * differ. The Sources UI then shows these in place of retrievedFrom and
      * citation.
      */
-    indicatorLinks?: IndicatorSourceLink[]
+    indicatorLinks?: IndicatorLink[]
     // Only the data-download readme reads these; the Sources UIs render the
     // fields above. They are here so both start from one shape.
     producer?: string

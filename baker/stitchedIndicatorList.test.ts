@@ -1,18 +1,15 @@
 import { expect, it, describe } from "vitest"
+import { StitchedIndicator, VariableSliceMetadata } from "@ourworldindata/types"
 import {
-    StitchedIndicator,
-    VariableSliceDimensions,
-} from "@ourworldindata/types"
-import {
-    classifySliceFromDimensions,
+    classifySliceFromMetadata,
     classifySliceFromTitles,
     shouldShowIndicatorList,
 } from "./stitchedIndicatorList.js"
 
 const sliceDimensions = (
     filters: Record<string, string>,
-    overrides: Partial<VariableSliceDimensions> = {}
-): VariableSliceDimensions => ({
+    overrides: Partial<VariableSliceMetadata> = {}
+): VariableSliceMetadata => ({
     originalShortName: "deaths",
     tablePath: "grapher/un/2024-07-12/un_wpp/deaths",
     filters: Object.entries(filters).map(([name, value]) => ({ name, value })),
@@ -21,10 +18,10 @@ const sliceDimensions = (
 
 const AGES = ["0-4", "5-9", "10-14", "15-19", "20-24"]
 
-describe(classifySliceFromDimensions, () => {
+describe(classifySliceFromMetadata, () => {
     it("detects one measure sliced by age", () => {
         expect(
-            classifySliceFromDimensions(
+            classifySliceFromMetadata(
                 AGES.map((age) =>
                     sliceDimensions({ sex: "all", age, variant: "estimates" })
                 )
@@ -33,20 +30,20 @@ describe(classifySliceFromDimensions, () => {
     })
     it("maps the dataset-specific dimension names", () => {
         expect(
-            classifySliceFromDimensions(
+            classifySliceFromMetadata(
                 AGES.map((age) =>
                     sliceDimensions({ agegroup_code: age, sex_code: "both" })
                 )
             )
         ).toBe("age")
         expect(
-            classifySliceFromDimensions([
+            classifySliceFromMetadata([
                 sliceDimensions({ gender: "women" }),
                 sliceDimensions({ gender: "men" }),
             ])
         ).toBe("sex")
     })
-    it.each<[string, (VariableSliceDimensions | undefined)[]]>([
+    it.each<[string, (VariableSliceMetadata | undefined)[]]>([
         [
             "differ by something other than age, sex or year",
             [
@@ -86,11 +83,11 @@ describe(classifySliceFromDimensions, () => {
             [sliceDimensions({ age: "0-4" }), undefined],
         ],
     ])("finds no slice when the indicators %s", (_case, dimensions) => {
-        expect(classifySliceFromDimensions(dimensions)).toBeUndefined()
+        expect(classifySliceFromMetadata(dimensions)).toBeUndefined()
     })
     it("counts a filter missing from some indicators as varying", () => {
         expect(
-            classifySliceFromDimensions([
+            classifySliceFromMetadata([
                 sliceDimensions({ age: "0-4", sex: "both" }),
                 sliceDimensions({ age: "5-9", sex: "both" }),
                 sliceDimensions({ age: "10-14", sex: "both" }),
@@ -100,7 +97,7 @@ describe(classifySliceFromDimensions, () => {
     })
     it("keeps the list when an age-standardized series sits among the brackets", () => {
         expect(
-            classifySliceFromDimensions(
+            classifySliceFromMetadata(
                 [...AGES, "Age-standardized"].map((age) =>
                     sliceDimensions({ age })
                 )
@@ -189,6 +186,18 @@ describe(shouldShowIndicatorList, () => {
                 [undefined, undefined, undefined]
             )
         ).toBe(false)
+    })
+
+    it("shows a list of titles whose variants differ", () => {
+        expect(
+            shouldShowIndicatorList(
+                [
+                    { title: "Population", titleVariant: "estimates" },
+                    { title: "Population", titleVariant: "projections" },
+                ],
+                [undefined, undefined]
+            )
+        ).toBe(true)
     })
 
     it("hides the list of an age slice, known from its slice metadata", () => {

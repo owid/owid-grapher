@@ -22,7 +22,7 @@ import {
 import {
     renderDataPageV2,
     renderPreviewDataPageOrGrapherPage,
-    parseDatapageQaParams,
+    parseDatapageRenderOptions,
 } from "../baker/GrapherBaker.js"
 import { getChartConfigById, getChartConfigBySlug } from "../db/model/Chart.js"
 import { getVariableMetadata } from "../db/model/Variable.js"
@@ -214,7 +214,7 @@ getPlainRouteWithROTransaction(
                     chart.config,
                     chart.id,
                     trx,
-                    parseDatapageQaParams(req.query)
+                    parseDatapageRenderOptions(req.query)
                 )
             res.send(previewDataPageOrGrapherPage)
             return

@@ -3,7 +3,7 @@ import {
     OwidVariableWithSource,
     OwidProcessingLevel,
     DisplaySource,
-    SourceLinksByIndicator,
+    SourceWithIndicatorLinks,
     IndicatorTitleWithFragments,
     OwidSource,
     PrimaryTopic,
@@ -173,8 +173,8 @@ export const getProcessingPhraseForAttribution = (
 /**
  * A key for what identifies an origin as a data source to a reader: two
  * origins with the same key are the same source, even if they link to
- * different pages of it. Fields the data page doesn't show are left out, so
- * one source split across ETL snapshots still counts once.
+ * different pages of it or differ in what the data page doesn't show (their
+ * license, their download link).
  */
 export const getOriginIdentityKey = (origin: OwidOrigin): string =>
     JSON.stringify([
@@ -207,7 +207,7 @@ const prepareOriginForDisplay = (origin: OwidOrigin): DisplaySource => {
 
 export const prepareSourcesForDisplay = (
     variable: Pick<OwidVariableWithSource, "origins" | "source">,
-    sourceLinksByIndicator: SourceLinksByIndicator[] = []
+    sourcesWithIndicatorLinks: SourceWithIndicatorLinks[] = []
 ): DisplaySource[] => {
     const { origins, source } = variable
 
@@ -229,9 +229,9 @@ export const prepareSourcesForDisplay = (
         sourcesForDisplay.push(
             ...origins.map((origin, originIndex) => {
                 const source = prepareOriginForDisplay(origin)
-                const indicatorLinks = sourceLinksByIndicator.find(
+                const indicatorLinks = sourcesWithIndicatorLinks.find(
                     (source) => source.originIndex === originIndex
-                )?.links
+                )?.indicatorLinks
                 return indicatorLinks ? { ...source, indicatorLinks } : source
             })
         )
@@ -454,7 +454,7 @@ export const formatSourceDate = (
 }
 
 /** The years of "1990-2020" or "2023" (BCE years negative), else null */
-const parseTimespan = (
+export const parseTimespan = (
     timespan: string
 ): { firstYear: number; lastYear: number } | null => {
     const match = timespan.match(

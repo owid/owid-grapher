@@ -29,10 +29,11 @@ import {
     LicenseOption,
     MultiIndicatorMetadata,
     OwidEnrichedGdocBlock,
-    SourceLinksByIndicator,
+    SourceWithIndicatorLinks,
     StitchedIndicator,
 } from "@ourworldindata/types"
 import cx from "clsx"
+import * as _ from "lodash-es"
 import { createRef, useEffect, useRef, useState } from "react"
 import {
     formatAttributions,
@@ -406,16 +407,16 @@ function IndicatorProducerDocs({
 
 function IndicatorDataSources({
     datapageData,
-    sourceLinksByIndicator,
+    sourcesWithIndicatorLinks,
     idSuffix,
 }: {
     datapageData: DataPageDataV2
-    sourceLinksByIndicator?: SourceLinksByIndicator[]
+    sourcesWithIndicatorLinks?: SourceWithIndicatorLinks[]
     idSuffix: string
 }): React.ReactElement {
     const sourcesForDisplay = prepareSourcesForDisplay(
         { origins: datapageData.origins, source: datapageData.source },
-        sourceLinksByIndicator
+        sourcesWithIndicatorLinks
     )
     return (
         <MetadataBoxSection
@@ -630,8 +631,10 @@ function IndicatorPane({
      */
     hideTitle?: boolean
 }): React.ReactElement {
-    // Each pane shows who manages its own indicator's dataset
-    const owners = datapageData.owners?.[0]?.owners ?? []
+    // A stitched pane's indicators can come from several datasets
+    const owners = _.uniq(
+        (datapageData.owners ?? []).flatMap((dataset) => dataset.owners)
+    )
 
     const descriptionProcessing = datapageData.descriptionProcessing?.trim()
     const attribution = formatAttributions(datapageData.attributions ?? [])
@@ -773,7 +776,9 @@ function IndicatorPane({
                 />
                 <IndicatorDataSources
                     datapageData={datapageData}
-                    sourceLinksByIndicator={stitched?.sourceLinksByIndicator}
+                    sourcesWithIndicatorLinks={
+                        stitched?.sourcesWithIndicatorLinks
+                    }
                     idSuffix={idSuffix}
                 />
                 <IndicatorCitations

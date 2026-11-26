@@ -186,13 +186,16 @@ describe(stitchIndicatorPanes, () => {
         ).toEqual(["1950-2023", "2024-2100"])
     })
 
-    it("reads a date range of a single year", () => {
-        const stitched = stitchIndicatorPanes([
-            pane(),
-            deaths({ dateRange: "2030" }),
-        ])
-        expect(stitched?.datapageData.dateRange).toBe("1950-2030")
-    })
+    it.each(["2030", "2024–2030", "2024 - 2030"])(
+        "reads a date range written as %s",
+        (dateRange) => {
+            const stitched = stitchIndicatorPanes([
+                pane(),
+                deaths({ dateRange }),
+            ])
+            expect(stitched?.datapageData.dateRange).toBe("1950-2030")
+        }
+    )
 
     it("does not stitch when a differing date range can't be read", () => {
         expect(
@@ -209,10 +212,10 @@ describe(stitchIndicatorPanes, () => {
                 origins: [origin({ urlMain: "https://b", citationFull: "B" })],
             }),
         ])
-        expect(stitched?.sourceLinksByIndicator).toEqual([
+        expect(stitched?.sourcesWithIndicatorLinks).toEqual([
             {
                 originIndex: 0,
-                links: [
+                indicatorLinks: [
                     {
                         label: "Births",
                         retrievedFrom: "https://a",
@@ -228,9 +231,21 @@ describe(stitchIndicatorPanes, () => {
         ])
     })
 
+    it("lists no links when the indicators list a source's two snapshots in a different order", () => {
+        const snapshots = [
+            origin({ citationFull: "Snapshot A." }),
+            origin({ citationFull: "Snapshot B." }),
+        ]
+        const stitched = stitchIndicatorPanes([
+            pane({ origins: snapshots }),
+            deaths({ origins: [...snapshots].reverse() }),
+        ])
+        expect(stitched?.sourcesWithIndicatorLinks).toEqual([])
+    })
+
     it("lists no links for a source every indicator links the same way", () => {
         const stitched = stitchIndicatorPanes([pane(), deaths()])
-        expect(stitched?.sourceLinksByIndicator).toEqual([])
+        expect(stitched?.sourcesWithIndicatorLinks).toEqual([])
     })
 
     it("shows the highest processing level when the levels differ", () => {
@@ -256,7 +271,7 @@ describe(stitchIndicatorPanes, () => {
             pane({ title: { title: "Migration" } }),
         ])
         expect(stitched?.datapageData).toMatchObject({
-            owners: [{ owners: ["Alice", "Bob"] }],
+            owners: [{ owners: ["Alice"] }, { owners: ["Bob"] }],
             lastUpdated: "2025-01-01",
             nextUpdate: "2026-01-01",
         })

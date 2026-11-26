@@ -47,7 +47,7 @@ import {
     DbPlainDataset,
     normalizeDescriptionKey,
     parseVariableDisplayConfig,
-    VariableSliceDimensions,
+    VariableSliceMetadata,
     parseVariableDimensions,
 } from "@ourworldindata/types"
 import { knexRaw, knexRawFirst } from "../db.js"
@@ -1798,37 +1798,38 @@ export async function deleteIndicators(
 }
 
 /**
- * The ETL slice metadata of each variable (`variables.dimensions`: base column
- * + the filter values this indicator was cut at), plus the table part of its
- * catalog path. Variables without slice metadata are absent from the map.
+ * How the ETL cut each variable from its table (`variables.dimensions`).
+ * Variables that weren't cut from a table are absent from the map.
  */
-export async function getVariableSliceDimensions(
+export async function getVariableSliceMetadata(
     knex: db.KnexReadonlyTransaction,
     variableIds: number[]
-): Promise<Map<number, VariableSliceDimensions>> {
-    const result = new Map<number, VariableSliceDimensions>()
-    if (!variableIds.length) return result
+): Promise<Map<number, VariableSliceMetadata>> {
+    const sliceMetadata = new Map<number, VariableSliceMetadata>()
+    if (!variableIds.length) return sliceMetadata
     const rows = await knexRaw<{
         id: number
-        dimensions: string | null
-        catalogPath: string | null
+        dimensions: string
+        catalogPath: string
     }>(
         knex,
         `-- sql
             SELECT id, dimensions, catalogPath
             FROM variables
-            WHERE id IN (?) AND dimensions IS NOT NULL
+            WHERE id IN (?)
+              AND dimensions IS NOT NULL
+              AND catalogPath IS NOT NULL
         `,
         [variableIds]
     )
     for (const row of rows) {
         const dimensions = parseVariableDimensions(row.dimensions)
         if (!dimensions?.originalShortName) continue
-        result.set(row.id, {
+        sliceMetadata.set(row.id, {
             originalShortName: dimensions.originalShortName,
             filters: dimensions.filters ?? [],
-            tablePath: row.catalogPath?.split("#")[0],
+            tablePath: row.catalogPath.split("#")[0],
         })
     }
-    return result
+    return sliceMetadata
 }

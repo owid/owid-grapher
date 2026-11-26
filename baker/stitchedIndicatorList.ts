@@ -1,26 +1,8 @@
 import * as _ from "lodash-es"
-import {
-    StitchedIndicator,
-    VariableSliceDimensions,
-} from "@ourworldindata/types"
+import { StitchedIndicator, VariableSliceMetadata } from "@ourworldindata/types"
+import { differ } from "./stitchIndicatorPanes.js"
 
-/**
- * Whether a stitched data page lists its indicators. The list is left out
- * when it would only repeat the chart's legend:
- * - when the indicators differ in nothing but their titles, or
- * - when they are one measure sliced by age group, sex or year, so that the
- *   list would read "0–4, 5–9, 10–14, …". Their short descriptions may then
- *   differ only in the way their titles do.
- *
- * Units, "What you should know" or title variants that differ are always
- * worth listing.
- *
- * A slice is recognised from the ETL's slice metadata where the indicators
- * have it (see classifySliceFromDimensions), and otherwise from their titles
- * (see classifySliceFromTitles).
- */
-
-export type SliceClass = "age" | "sex" | "year"
+type SliceClass = "age" | "sex" | "year"
 
 const SLICE_CLASS_BY_FILTER_NAME: Record<string, SliceClass> = {
     age: "age",
@@ -39,8 +21,8 @@ const SLICE_CLASS_BY_FILTER_NAME: Record<string, SliceClass> = {
 // beside it, so a list that contains one stays.
 const AGE_STANDARDIZED = /standardi[sz]ed/i
 
-// Two or three years ("2022, 2024, 2026") are as often report editions or
-// price bases as a time series.
+// Two or three years in titles ("2022, 2024, 2026") are as often report
+// editions or price bases as a time series
 const MIN_YEARS_FROM_TITLES = 4
 
 const YEAR = /^(?:19|20)\d\d$/
@@ -52,33 +34,31 @@ const AGE_VOCABULARY =
 // Digits in the shape of an age: a range, "70+" or "<5"
 const AGE_SHAPE = /\d+\s*[-–]\s*\d+|\d+\s*\+|[<>≥≤]\s*\d+/
 const AGE_WORD =
-    /\b(?:under|over|aged|ages?|years?|yrs?|olds?|birth|infancy|older|younger)\b|all ages/
-
-const differ = (values: unknown[]): boolean => _.uniq(values).length > 1
+    /\b(?:under|over|aged|ages?|years?|yrs?|olds?|birth|infancy|older|younger)\b/
 
 /**
  * The slice the indicators differ by, going by the ETL's slice metadata: they
  * must be cut from the same column of the same table, and differ in exactly
  * one filter, which is an age, sex or year.
  */
-export function classifySliceFromDimensions(
-    sliceDimensions: (VariableSliceDimensions | undefined)[]
+export function classifySliceFromMetadata(
+    sliceMetadata: (VariableSliceMetadata | undefined)[]
 ): SliceClass | undefined {
-    const dimensions = _.compact(sliceDimensions)
-    if (dimensions.length < 2 || dimensions.length < sliceDimensions.length)
+    const slices = _.compact(sliceMetadata)
+    if (slices.length < 2 || slices.length < sliceMetadata.length)
         return undefined
-    if (differ(dimensions.map((d) => d.originalShortName))) return undefined
-    if (differ(dimensions.map((d) => d.tablePath))) return undefined
+    if (differ(slices.map((slice) => slice.originalShortName))) return undefined
+    if (differ(slices.map((slice) => slice.tablePath))) return undefined
 
     const filterNames = _.uniq(
-        dimensions.flatMap((d) => d.filters.map((filter) => filter.name))
+        slices.flatMap((slice) => slice.filters.map((filter) => filter.name))
     )
     // A filter only some indicators have differs between them too: null
     // counts as one more value
     const valuesByFilterName = filterNames.map((name) => ({
         name,
-        values: dimensions.map((d) => {
-            const filter = d.filters.find((filter) => filter.name === name)
+        values: slices.map((slice) => {
+            const filter = slice.filters.find((filter) => filter.name === name)
             return filter ? String(filter.value) : null
         }),
     }))
@@ -168,38 +148,40 @@ export function classifySliceFromTitles(
     return residuesReadAsAges && hasAgeWord ? "age" : undefined
 }
 
+/**
+ * Whether a stitched pane lists its indicators. The list is left out when it
+ * would only repeat the chart's legend:
+ * - when the indicators differ in nothing but their titles, or
+ * - when they are one measure sliced by age group, sex or year, so that the
+ *   list would read "0–4, 5–9, 10–14, …". Their short descriptions may then
+ *   differ only in the way their titles do.
+ *
+ * Title variants, units or "What you should know" that differ are always
+ * worth listing.
+ */
 export function shouldShowIndicatorList(
     indicators: StitchedIndicator[],
-    /** Each indicator's ETL slice metadata, in the same order */
-    sliceDimensions: (VariableSliceDimensions | undefined)[]
+    /** Each indicator's, in the same order */
+    sliceMetadata: (VariableSliceMetadata | undefined)[]
 ): boolean {
-    const hasMoreThanTitles = indicators.some(
+    // Fields are only set on the indicators when they differ between them
+    const differsBeyondDescriptions = indicators.some(
         (indicator) =>
-            indicator.descriptionShort ||
-            indicator.unit ||
-            indicator.descriptionKey
+            indicator.titleVariant || indicator.unit || indicator.descriptionKey
     )
-    if (!hasMoreThanTitles) return false
-    if (
-        indicators.some(
-            (indicator) =>
-                indicator.unit ||
-                indicator.descriptionKey ||
-                indicator.titleVariant
-        )
+    if (differsBeyondDescriptions) return true
+    const descriptionsDiffer = indicators.some(
+        (indicator) => indicator.descriptionShort
     )
-        return true
+    if (!descriptionsDiffer) return false
 
     const sliceClass =
-        classifySliceFromDimensions(sliceDimensions) ??
+        classifySliceFromMetadata(sliceMetadata) ??
         classifySliceFromTitles(indicators.map((indicator) => indicator.title))
     if (!sliceClass) return true
 
-    const descriptions = _.uniq(
-        indicators.map((indicator) => indicator.descriptionShort ?? "")
+    const descriptions = indicators.map(
+        (indicator) => indicator.descriptionShort ?? ""
     )
-    return (
-        descriptions.length > 1 &&
-        classifySliceFromTitles(descriptions) !== sliceClass
-    )
+    return classifySliceFromTitles(descriptions) !== sliceClass
 }

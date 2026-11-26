@@ -157,10 +157,10 @@ describe("a chart with several indicators", () => {
                         },
                     ],
                     showIndicatorList: true,
-                    sourceLinksByIndicator: [
+                    sourcesWithIndicatorLinks: [
                         {
                             originIndex: 0,
-                            links: [
+                            indicatorLinks: [
                                 {
                                     label: "Urban population",
                                     retrievedFrom:
@@ -208,6 +208,7 @@ describe("a chart with several indicators", () => {
                     type: "stitched",
                     indicators: [{ title: "Coal" }, { title: "Gas" }],
                     showIndicatorList: false,
+                    sourcesWithIndicatorLinks: [],
                 }}
                 canonicalUrl="https://ourworldindata.org/grapher/example"
                 archiveContext={undefined}
