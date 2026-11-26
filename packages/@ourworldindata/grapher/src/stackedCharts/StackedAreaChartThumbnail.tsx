@@ -11,7 +11,10 @@ import {
     FontSettings,
 } from "../core/GrapherConstants"
 import { scaleFontSize } from "../chart/ChartUtils"
-import { getVisibleLabels } from "../chart/VisibleChartLabels"
+import {
+    getAxisTextOverrides,
+    getVisibleLabels,
+} from "../chart/VisibleChartLabels"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { ChartManager } from "../chart/ChartManager"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
@@ -70,12 +73,12 @@ export class StackedAreaChartThumbnail
     @computed private get xAxisConfig(): AxisConfig {
         const { xAxisConfig } = this.manager
         const custom = { hideGridlines: true, labelPadding: 0 }
-        const { axisText } = getVisibleLabels(this.manager.labelMode)
-        const labelModeOverrides = axisText
-            ? {}
-            : { hideTickLabels: true, label: "" }
         return new AxisConfig(
-            { ...custom, ...xAxisConfig, ...labelModeOverrides },
+            {
+                ...custom,
+                ...xAxisConfig,
+                ...getAxisTextOverrides(this.manager.labelMode),
+            },
             this
         )
     }

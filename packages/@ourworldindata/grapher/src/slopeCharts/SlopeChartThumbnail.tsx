@@ -25,7 +25,7 @@ import {
     FontSettings,
 } from "../core/GrapherConstants"
 import { scaleFontSize } from "../chart/ChartUtils"
-import { getVisibleLabels } from "../chart/VisibleChartLabels"
+import { getAxisTextOverrides } from "../chart/VisibleChartLabels"
 import { Bounds, SeriesName } from "@ourworldindata/utils"
 import { HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { Slope } from "./Slope"
@@ -181,12 +181,12 @@ export class SlopeChartThumbnail
             startTime: this.chartState.startTime,
             endTime: this.chartState.endTime,
         })
-        const { axisText } = getVisibleLabels(this.manager.labelMode)
-        const labelModeOverrides = axisText
-            ? {}
-            : { hideTickLabels: true, label: "" }
         return new AxisConfig(
-            { ...xAxisConfig, ...overrides, ...labelModeOverrides },
+            {
+                ...xAxisConfig,
+                ...overrides,
+                ...getAxisTextOverrides(this.manager.labelMode),
+            },
             this
         )
     }

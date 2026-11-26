@@ -63,7 +63,7 @@ import {
     isTargetOutsideElement,
     scaleFontSize,
 } from "../chart/ChartUtils"
-import { getVisibleLabels } from "../chart/VisibleChartLabels"
+import { getAxisTextOverrides } from "../chart/VisibleChartLabels"
 import { TooltipState } from "../tooltip/Tooltip"
 import { LineChartTooltip } from "./LineChartTooltip"
 import { LineChartActiveTimeMarkers } from "./LineChartActiveTimeMarkers"
@@ -120,12 +120,12 @@ export class LineChartThumbnail
     @computed private get xAxisConfig(): AxisConfig {
         const { xAxisConfig } = this.manager
         const custom = { labelPadding: 0, tickPadding: 2 }
-        const { axisText } = getVisibleLabels(this.manager.labelMode)
-        const labelModeOverrides = axisText
-            ? {}
-            : { hideTickLabels: true, label: "" }
         return new AxisConfig(
-            { ...custom, ...xAxisConfig, ...labelModeOverrides },
+            {
+                ...custom,
+                ...xAxisConfig,
+                ...getAxisTextOverrides(this.manager.labelMode),
+            },
             this
         )
     }

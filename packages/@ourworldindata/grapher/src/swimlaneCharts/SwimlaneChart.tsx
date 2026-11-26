@@ -36,7 +36,10 @@ import { HorizontalAxis } from "../axis/Axis"
 import { ChartInterface } from "../chart/ChartInterface"
 import { TooltipState } from "../tooltip/Tooltip"
 import { roundFontSize, scaleFontSize } from "../chart/ChartUtils"
-import { getVisibleLabels } from "../chart/VisibleChartLabels"
+import {
+    getAxisTextOverrides,
+    getVisibleLabels,
+} from "../chart/VisibleChartLabels"
 import { GRAPHER_LIGHT_TEXT } from "../color/ColorConstants.js"
 import { ChartComponentProps } from "../chart/ChartTypeMap"
 import {
@@ -267,14 +270,11 @@ export class SwimlaneChart
     }
 
     @computed private get xAxisConfig(): AxisConfig {
-        const labelModeOverrides = this.shouldShowAxis
-            ? {}
-            : { hideTickLabels: true, label: "" }
         return new AxisConfig(
             {
                 isDomainEndExclusive: true,
                 ...this.manager.xAxisConfig,
-                ...labelModeOverrides,
+                ...getAxisTextOverrides(this.manager.labelMode),
             },
             this
         )

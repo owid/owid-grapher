@@ -1,4 +1,4 @@
-import { ChartLabelMode } from "@ourworldindata/types"
+import { AxisConfigInterface, ChartLabelMode } from "@ourworldindata/types"
 
 export interface VisibleChartLabels {
     /** Names in the end labels of lines, slopes, stacked areas and bars */
@@ -45,4 +45,13 @@ export function getVisibleLabels(
     labelMode: ChartLabelMode = ChartLabelMode.All
 ): VisibleChartLabels {
     return VISIBLE_LABELS_BY_MODE[labelMode]
+}
+
+/** Axis config that hides an axis's text when the label mode has none */
+export function getAxisTextOverrides(
+    labelMode?: ChartLabelMode
+): Pick<AxisConfigInterface, "hideTickLabels" | "label"> {
+    return getVisibleLabels(labelMode).axisText
+        ? {}
+        : { hideTickLabels: true, label: "" }
 }
