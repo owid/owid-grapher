@@ -373,7 +373,7 @@ const getIndicatorDisplayOverride = (
  * Checks that no two rows of the table share the same values in the index
  * columns, with the same string keys the general join uses.
  */
-const hasUniqueIndexValues = (
+export const hasUniqueIndexValues = (
     table: OwidTable,
     indexColumnNames: OwidTableSlugs[]
 ): boolean => {
@@ -418,7 +418,7 @@ const hasUniqueIndexValues = (
 // | Haiti  | 2024 |
 // | Aruba  | 2020 |
 // | Aruba  | 2021 |
-const hasEntityRunsWithIncreasingTimes = (
+export const hasEntityRunsWithIncreasingTimes = (
     entities: unknown[],
     times: unknown[],
     numRows: number
