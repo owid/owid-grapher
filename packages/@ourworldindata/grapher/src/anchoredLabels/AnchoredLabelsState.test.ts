@@ -100,15 +100,14 @@ describe(AnchoredLabelsState, () => {
         expect(visibleNames([...series].reverse(), options)).toEqual(["A"])
     })
 
-    it("keeps two labels at the same anchor, a gap apart", () => {
+    it("shifts text position and bounds together when separating two labels at one anchor", () => {
         const [a, b] = makeState([makeSeries("A"), makeSeries("B")]).series
+        const shift = (labelHeight + VERTICAL_GAP) / 2
 
-        expect(
-            Math.abs(a.textPosition.y - b.textPosition.y)
-        ).toBeGreaterThanOrEqual(labelHeight + VERTICAL_GAP - 0.01)
-        expect(Math.abs(a.bounds.y - b.bounds.y)).toBeGreaterThanOrEqual(
-            labelHeight + VERTICAL_GAP - 0.01
-        )
+        expect(a.textPosition.y).toBeCloseTo(50 - shift)
+        expect(b.textPosition.y).toBeCloseTo(50 + shift)
+        expect(a.bounds.y).toBeCloseTo(50 - shift - labelHeight / 2)
+        expect(b.bounds.y).toBeCloseTo(50 + shift - labelHeight / 2)
     })
 
     it("hides the lowest-ranked label that would be pushed more than a font size", () => {
@@ -135,7 +134,7 @@ describe(AnchoredLabelsState, () => {
         expect(placedClear.bounds.y).toBe(makeState([clear]).series[0].bounds.y)
     })
 
-    it("places labels anchored short of the plot edge in the chart, even when none reaches it", () => {
+    it("treats a label as in-chart when its anchor stops short of the end of xRange", () => {
         const series = [
             makeSeries("A", undefined, { x: 100, y: 50 }),
             makeSeries("B", undefined, { x: 100, y: 50 }),
@@ -158,14 +157,7 @@ describe(AnchoredLabelsState, () => {
         expect(visibleNames([edge, inChart])).toEqual(["InChart"])
     })
 
-    it("hides an in-chart label that overlaps an in-chart label ranked above it", () => {
-        const edge = makeSeries("Edge", undefined, { x: 100, y: 0 })
-        const first = makeSeries("First", undefined, { x: 0, y: 100 })
-        const second = makeSeries("Second", undefined, { x: 0, y: 100 })
-        expect(visibleNames([edge, first, second])).toEqual(["Edge", "First"])
-    })
-
-    it("hides an in-chart label outside the range", () => {
+    it("uses the edge range for in-chart labels when no in-chart range is given", () => {
         const edge = makeSeries("Edge", undefined, { x: 100, y: 50 })
         const outside = makeSeries("Outside", undefined, { x: 0, y: 500 })
         expect(
@@ -173,7 +165,7 @@ describe(AnchoredLabelsState, () => {
         ).toEqual(["Edge"])
     })
 
-    it("keeps in-chart labels inside the in-chart range and edge labels inside the edge range", () => {
+    it("applies the in-chart range only to in-chart labels", () => {
         const edge = makeSeries("Edge", undefined, { x: 100, y: 150 })
         const inChart = makeSeries("InChart", undefined, { x: 0, y: 150 })
         const options = {
@@ -205,6 +197,25 @@ describe(AnchoredLabelsState, () => {
         ).toBe(50)
     })
 
+    it("shifts an in-chart label's text position and bounds together to the nearest free spot", () => {
+        const edge = makeSeries("Edge", undefined, { x: 100, y: 0 })
+        const blocker = makeSeries("Blocker", Emphasis.Highlighted, {
+            x: 0,
+            y: 100,
+        })
+        // Half a label below the blocker, the padded labels overlap by 8px
+        const anchorY = 100 + labelHeight / 2
+        const mover = makeSeries("Mover", undefined, { x: 0, y: anchorY })
+
+        const placed = makeState([edge, blocker, mover]).series.find(
+            (s) => s.seriesName === "Mover"
+        )!
+        const unshifted = makeState([mover]).series[0]
+
+        expect(placed.textPosition.y - anchorY).toBe(8.5)
+        expect(placed.bounds.y - unshifted.bounds.y).toBeCloseTo(8.5)
+    })
+
     it("computes the width from the visible labels only", () => {
         const short = makeSeries("A")
         const long = makeSeries(
@@ -220,89 +231,5 @@ describe(AnchoredLabelsState, () => {
         expect(state.series.map((s) => s.seriesName)).toEqual(["A"])
         expect(state.width).toBe(makeState([short]).width)
         expect(state.width).toBeLessThan(makeState([long]).width)
-    })
-
-    describe("shifting in-chart labels", () => {
-        const edge = makeSeries("Edge", undefined, { x: 100, y: 0 })
-        const blocker = makeSeries("Blocker", Emphasis.Highlighted, {
-            x: 0,
-            y: 100,
-        })
-        const anchorY = 100 + labelHeight / 2
-        const mover = makeSeries("Mover", undefined, { x: 0, y: anchorY })
-
-        it("moves an in-chart label that collides at its anchor to a free spot within the font size", () => {
-            const placed = makeState([edge, blocker, mover]).series.find(
-                (s) => s.seriesName === "Mover"
-            )!
-
-            expect(placed).toBeDefined()
-            const distance = Math.abs(placed.textPosition.y - anchorY)
-            expect(distance).toBeGreaterThan(0)
-            expect(distance).toBeLessThanOrEqual(FONT_SIZE)
-            expect(placed.bounds.y).toBeCloseTo(
-                makeState([mover]).series[0].bounds.y +
-                    (placed.textPosition.y - anchorY)
-            )
-        })
-
-        it("tries above before below when both are free", () => {
-            const centered = makeSeries("Mover", undefined, { x: 0, y: 100 })
-            const dotOwner = makeSeries("DotOwner", undefined, {
-                x: 10,
-                y: 100,
-            })
-            const placed = makeState([edge, centered, dotOwner], {
-                anchorCollisionRadius: 3,
-            }).series.find((s) => s.seriesName === "Mover")!
-            expect(placed.textPosition.y).toBeLessThan(100)
-        })
-
-        it("keeps later labels clear of a label at its shifted position", () => {
-            const nextAnchorY = anchorY + labelHeight + VERTICAL_GAP
-            const next = makeSeries("Next", undefined, { x: 0, y: nextAnchorY })
-            const rankMoverFirst: Compare = (a, b) =>
-                Number(b.seriesName === "Mover") -
-                Number(a.seriesName === "Mover")
-            const state = makeState([edge, blocker, mover, next], {
-                compare: rankMoverFirst,
-            })
-            const [placedMover, placedNext] = ["Mover", "Next"].map((name) =>
-                state.series.find((s) => s.seriesName === name)!
-            )
-            expect(
-                Math.abs(placedNext.textPosition.y - placedMover.textPosition.y)
-            ).toBeGreaterThanOrEqual(labelHeight + VERTICAL_GAP - 0.01)
-        })
-
-        it("hides an in-chart label with no free spot within the font size", () => {
-            // On the blocker's anchor, the label has to move 14px either way
-            const centered = makeSeries("Mover", undefined, { x: 0, y: 100 })
-            expect(visibleNames([edge, blocker, centered])).toEqual([
-                "Edge",
-                "Blocker",
-            ])
-        })
-
-        it("keeps the higher-ranked label at its anchor when two compete for one free spot", () => {
-            const first = makeSeries("First", undefined, { x: 0, y: 100 })
-            const second = makeSeries("Second", undefined, { x: 0, y: 100 })
-            const state = makeState([edge, first, second], {
-                yRanges: {
-                    edge: [
-                        100 + labelHeight / 2 + 0.5,
-                        100 - labelHeight / 2 - 0.5,
-                    ],
-                },
-            })
-
-            const placedFirst = state.series.find(
-                (s) => s.seriesName === "First"
-            )!
-            expect(placedFirst.textPosition.y).toBe(100)
-            expect(state.series.some((s) => s.seriesName === "Second")).toBe(
-                false
-            )
-        })
     })
 })

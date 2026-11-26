@@ -36,23 +36,39 @@ describe(placeInChartLabels, () => {
         expect(offsetYs.get("a")).toBe(-6)
     })
 
-    it("keeps labels inside the range", () => {
-        // Up is blocked by the range top, so the label moves down
-        const toAvoid = new Bounds(0, 2.5, 20, 1)
-        const offsetYs = placeInChartLabels([label("a", 0, [toAvoid])], {
+    it("moves a label down when moving up would leave the range", () => {
+        // Clearing the strip takes 3px up but would push the label's top
+        // above the range, so it moves 9px down instead
+        const toAvoid = new Bounds(0, 9.5, 20, 1)
+        const offsetYs = placeInChartLabels([label("a", 2, [toAvoid])], {
             range,
             maxShift: 10,
         })
-        expect(offsetYs.get("a")).toBe(4)
+        expect(offsetYs.get("a")).toBe(9)
     })
 
-    it("avoids labels placed earlier", () => {
+    it("keeps a label clear of labels placed before it", () => {
         const offsetYs = placeInChartLabels([label("a", 40), label("b", 45)], {
             range,
             maxShift: 10,
         })
         expect(offsetYs.get("a")).toBe(0)
         expect(offsetYs.get("b")).toBe(5.5)
+    })
+
+    it("keeps a label clear of an earlier label at its shifted position", () => {
+        // a moves up from 40–50 to 34–44, onto b at 28–38, which then moves up too
+        const toAvoid = new Bounds(0, 44.5, 20, 1)
+        const offsetYs = placeInChartLabels(
+            [label("a", 40, [toAvoid]), label("b", 28)],
+            { range, maxShift: 10 }
+        )
+        expect(offsetYs).toEqual(
+            new Map([
+                ["a", -6],
+                ["b", -4.5],
+            ])
+        )
     })
 
     it("ignores earlier labels that don't overlap horizontally", () => {
@@ -68,11 +84,19 @@ describe(placeInChartLabels, () => {
         )
     })
 
-    it("leaves out a label with no free y offset within maxShift", () => {
-        const offsetYs = placeInChartLabels([label("a", 40), label("b", 40)], {
-            range,
-            maxShift: 5,
-        })
-        expect(offsetYs).toEqual(new Map([["a", 0]]))
+    it("places a label that needs exactly maxShift and leaves out one that needs more", () => {
+        // b, on top of a, clears it 10.5px up
+        const place = (maxShift: number): Map<string, number> =>
+            placeInChartLabels([label("a", 40), label("b", 40)], {
+                range,
+                maxShift,
+            })
+        expect(place(10.5)).toEqual(
+            new Map([
+                ["a", 0],
+                ["b", -10.5],
+            ])
+        )
+        expect(place(10)).toEqual(new Map([["a", 0]]))
     })
 })
