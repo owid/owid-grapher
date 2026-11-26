@@ -48,7 +48,7 @@ const csvOptions: FromCsvOptions = {
     ],
 }
 GrapherLoader.fromCsv(csvOptions)
-GrapherLoader.fromCsv({ config, csv: "entityName,entityCode,entityId,year" })
+GrapherLoader.fromCsv({ config, csv: "entityName,entityId,year" })
 
 // @ts-expect-error csv and csvUrl are mutually exclusive
 GrapherLoader.fromCsv({ config, csv: "entityName", csvUrl: "./data.csv" })

@@ -131,14 +131,7 @@ enum OwidTableNames {
 }
 
 export type EntityName = string
-export type EntityCode = string
 export type EntityId = number
-
-export interface Entity {
-    entityName: EntityName
-    entityId?: EntityId
-    entityCode?: EntityCode
-}
 
 export enum ColumnTypeNames {
     NumberOrString = "NumberOrString",
@@ -283,14 +276,12 @@ export const OwidEntityCodeColumnDef = {
 export const StandardOwidColumnDefs: OwidColumnDef[] = [
     OwidEntityNameColumnDef,
     OwidEntityIdColumnDef,
-    OwidEntityCodeColumnDef,
 ]
 
 // This is a row with the additional columns specific to our OWID data model
 export interface OwidRow extends CoreRow {
     entityName: EntityName
     time: Time
-    entityCode?: EntityCode
     entityId?: EntityId
     year?: Year
     day?: Integer

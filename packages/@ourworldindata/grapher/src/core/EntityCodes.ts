@@ -14,6 +14,12 @@ export const codeToEntityName = (codeOrEntityName: string): EntityName => {
     return getEntityCodesToEntityNames()[codeOrEntityName] ?? codeOrEntityName
 }
 
+export const getEntityCodeByName = (
+    entityName: EntityName
+): string | undefined => {
+    return getEntityNamesToEntityCodes()[entityName]
+}
+
 export const entityNameToCode = (entityName: EntityName): string => {
-    return getEntityNamesToEntityCodes()[entityName] ?? entityName
+    return getEntityCodeByName(entityName) ?? entityName
 }
