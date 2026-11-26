@@ -355,7 +355,7 @@ export async function fetchSearchResultDataForGrapher(
     })
 
     if (searchResult === undefined)
-        return error(500, "Unable to generate search result data")
+        throw new Error("Unable to generate search result data")
 
     const cacheControl = shouldCache ? "max-age=3600" : "no-cache"
     const response = Response.json(searchResult, {

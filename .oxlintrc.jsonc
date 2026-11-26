@@ -65,6 +65,13 @@
         "eslint/no-restricted-imports": [
             "error",
             {
+                "paths": [
+                    {
+                        "name": "itty-router",
+                        "importNames": ["Router", "AutoRouter", "IttyRouter"],
+                        "message": "Use createRouter from functions/_common/router.ts, so that error responses get CORS headers and unexpected errors are reported to Sentry"
+                    }
+                ],
                 "patterns": [
                     {
                         "group": [
