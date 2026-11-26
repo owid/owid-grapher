@@ -391,6 +391,7 @@ export const synonyms = [
         "llm",
         "large language model",
     ],
+    ["compute", "computation", "computing", "computational"],
     ["internet", "broadband", "online"],
     [
         "mobile phone",
