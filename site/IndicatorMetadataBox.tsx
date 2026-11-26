@@ -158,7 +158,7 @@ function IndicatorFaqs({
             {descriptionProcessing && (
                 <ExpandableToggle
                     label="How did Our World in Data process this data?"
-                    contentId={INDICATOR_PROCESSING_SECTION_ID}
+                    id={INDICATOR_PROCESSING_SECTION_ID}
                     content={
                         <div className="indicator-metadata-box__processing-notes">
                             <SimpleMarkdownText
@@ -178,9 +178,9 @@ function IndicatorFaqs({
             )}
             {faqQuestions.map((faq) => (
                 <ExpandableToggle
-                    key={faq.question}
+                    key={faq.id}
+                    id={faq.id}
                     label={faq.question}
-                    titleId={faq.id}
                     content={
                         <ArticleBlocks
                             blocks={faq.answer}
