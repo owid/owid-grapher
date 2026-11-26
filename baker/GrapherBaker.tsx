@@ -230,7 +230,7 @@ export async function renderDataPageV2(
     datapageData.owners = await getOwnersForVariables(knex, ownerVariableIds)
 
     const ownerNames = _.uniq(
-        (datapageData.owners ?? []).flatMap((dataset) => dataset.owners)
+        datapageData.owners.flatMap((dataset) => dataset.owners)
     )
     const archiveContext =
         grapher.id !== undefined

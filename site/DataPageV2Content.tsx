@@ -159,7 +159,7 @@ export const DataPageV2Content = ({
                             archiveContext={archiveContext}
                             id={DATAPAGE_ABOUT_THIS_DATA_SECTION_ID}
                         />
-                        {relatedResearch && relatedResearch.length > 0 && (
+                        {relatedResearch.length > 0 && (
                             <div className="datapage-research-and-writing-v2 col-start-2 span-cols-12">
                                 <DataPageResearchAndWriting
                                     relatedResearch={relatedResearch}

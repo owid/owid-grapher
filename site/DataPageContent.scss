@@ -211,6 +211,17 @@
         color: $blue-90;
     }
 
+    .related-article__excerpt {
+        @include body-3-medium;
+        color: $blue-90;
+        margin: 4px 0 0;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 3;
+        line-clamp: 3;
+        overflow: hidden;
+    }
+
     .related-article__authors {
         color: $blue-50;
     }

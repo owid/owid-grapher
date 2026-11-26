@@ -19,17 +19,6 @@
         grid-column-end: span 12;
         margin-bottom: 24px;
     }
-
-    .related-article__excerpt {
-        @include body-3-medium;
-        color: $blue-90;
-        margin: 4px 0 0;
-        display: -webkit-box;
-        -webkit-box-orient: vertical;
-        -webkit-line-clamp: 3;
-        line-clamp: 3;
-        overflow: hidden;
-    }
 }
 
 .datapage-v2__related-charts-heading {
