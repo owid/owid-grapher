@@ -238,8 +238,8 @@
         "wrangler": "^4.153.0"
     },
     "resolutions": {
-        "preact@npm:^10.13.2": "patch:preact@npm%3A10.17.0#~/.yarn/patches/preact-npm-10.17.0-e831e619a5.patch",
-        "preact@npm:^10.10.0": "patch:preact@npm%3A10.17.0#~/.yarn/patches/preact-npm-10.17.0-e831e619a5.patch"
+        "preact@npm:^10.13.2": "patch:preact@npm%3A10.29.8#~/.yarn/patches/preact-npm-10.29.8-a0c0350ab6.patch",
+        "preact@npm:^10.10.0": "patch:preact@npm%3A10.29.8#~/.yarn/patches/preact-npm-10.29.8-a0c0350ab6.patch"
     },
     "lint-staged": {
         "*": "yarn oxfmt --no-error-on-unmatched-pattern"

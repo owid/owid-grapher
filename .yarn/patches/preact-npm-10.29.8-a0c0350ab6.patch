@@ -1,5 +1,5 @@
 diff --git a/src/jsx.d.ts b/src/jsx.d.ts
-index feeed9486d7b5a36a05e16480f5e6ceaa92f92c7..7618a715d3d637b8e8239e45a70915474fd03e00 100644
+index ce1afdb807563b58f40dfa5959d3077f6737414e..da9938ba3113801c5a50bc7ad1fc63545398fb8e 100644
 --- a/src/jsx.d.ts
 +++ b/src/jsx.d.ts
 @@ -1,5 +1,9 @@

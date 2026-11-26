@@ -11301,17 +11301,27 @@ __metadata:
   languageName: node
   linkType: hard
 
-"preact@npm:10.17.0":
-  version: 10.17.0
-  resolution: "preact@npm:10.17.0"
-  checksum: 10/fe8f32702138f98a18b86fc487269ce09b02dfbd964bd1bc1494697697152fc17c917e40cb1e98d2b41d421c67f25f8f0534cae9fc768b536681c5470ba8cc34
+"preact@npm:10.29.8":
+  version: 10.29.8
+  resolution: "preact@npm:10.29.8"
+  peerDependencies:
+    preact-render-to-string: ">=5"
+  peerDependenciesMeta:
+    preact-render-to-string:
+      optional: true
+  checksum: 10/fa25864388dd940f48d6607c0ff0ad884265d0ed6d4b724c479ebc2e29f770a5e1786845aa30bebb0680c4809e088d455b7351d1e504b28caa62249fd833eabb
   languageName: node
   linkType: hard
 
-"preact@patch:preact@npm%3A10.17.0#~/.yarn/patches/preact-npm-10.17.0-e831e619a5.patch":
-  version: 10.17.0
-  resolution: "preact@patch:preact@npm%3A10.17.0#~/.yarn/patches/preact-npm-10.17.0-e831e619a5.patch::version=10.17.0&hash=88efe2"
-  checksum: 10/415db4d35210968cbb9ab5a6f2a4e787131e913dc270051d725ac5ae04ac3a2d1535f3eda44b80d2fa95c4d9ca84726f4fb9748a1abdf53489dc2e218b655fc3
+"preact@patch:preact@npm%3A10.29.8#~/.yarn/patches/preact-npm-10.29.8-a0c0350ab6.patch":
+  version: 10.29.8
+  resolution: "preact@patch:preact@npm%3A10.29.8#~/.yarn/patches/preact-npm-10.29.8-a0c0350ab6.patch::version=10.29.8&hash=7128dc"
+  peerDependencies:
+    preact-render-to-string: ">=5"
+  peerDependenciesMeta:
+    preact-render-to-string:
+      optional: true
+  checksum: 10/4ccc94e8e0cea922e0a0f82d5200921362a9509e621137a27bf75370f329a8399ef3c444da8e61f4868f593644fd5ab683a72136ec2d56cb60f6fac9d158fbc8
   languageName: node
   linkType: hard
 
