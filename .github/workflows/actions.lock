@@ -20,7 +20,7 @@ workflows:
         - 'actions/checkout@v7.0.1'
         - 'actions/setup-node@v7.1.0'
         - 'actions/setup-python@v7.1.0'
-        - 'astral-sh/setup-uv@v10.3.3'
+        - 'astral-sh/setup-uv@v10.4.0'
         - 'cloudflare/wrangler-action@v4.1.3'
     '.github/workflows/format.yml':
         - 'actions/checkout@v7.0.1'
@@ -36,7 +36,7 @@ workflows:
         - 'owid/actions@main'
     '.github/workflows/sentry.yml':
         - 'actions/checkout@v7.0.1'
-        - 'getsentry/action-release@v3.7.2'
+        - 'getsentry/action-release@v3.8.0'
     '.github/workflows/stale.yml':
         - 'actions/stale@v11.0.0'
     '.github/workflows/sync-grapher-schema-to-r2.yml':
@@ -87,9 +87,9 @@ dependencies:
         commit: 'sha1-e6c4322d0397f3240f0e7e30a33b5c5df2d39e90'
         owner_id: 74699
         repo_id: 206429450
-    'astral-sh/setup-uv@v10.3.3':
-        ref: 'v10.3.3'
-        commit: 'sha1-68559e99cc807c1eb7e9238fd43a15bba460eec2'
+    'astral-sh/setup-uv@v10.4.0':
+        ref: 'v10.4.0'
+        commit: 'sha1-1db35dd8eee11c5894872e0b383ae6c406cf738d'
         owner_id: 115962839
         repo_id: 846733598
     'cloudflare/wrangler-action@v4.1.3':
@@ -97,9 +97,9 @@ dependencies:
         commit: 'sha1-953926a2e2182532811c01a25e53647d93bf07c0'
         owner_id: 314135
         repo_id: 213471363
-    'getsentry/action-release@v3.7.2':
-        ref: 'v3.7.2'
-        commit: 'sha1-e6703d0b00208e0b3687ba660d18ab5af7892821'
+    'getsentry/action-release@v3.8.0':
+        ref: 'v3.8.0'
+        commit: 'sha1-d55c8c3b7375607e972b710f12926b676d89d7d2'
         owner_id: 1396951
         repo_id: 273043452
         uses:
