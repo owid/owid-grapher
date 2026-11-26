@@ -1,22 +1,4 @@
-import { WELFARE_TYPES, type WelfareType } from "./types.js"
-
-/**
- * TODO(feed welfare_type): PLACEHOLDER until the feed carries PIP's
- * `welfare_type` for each country. Picks income or consumption
- * pseudo-randomly from a hash of the country's name, so a country keeps its
- * value across renders and sessions. Replace with the feed's value, at every
- * call site marked with the same token; nothing here reflects the real data.
- */
-export function placeholderWelfareType(countryName: string): WelfareType {
-    // 32-bit FNV-1a
-    let hash = 0x811c9dc5
-    for (let i = 0; i < countryName.length; i++) {
-        hash ^= countryName.charCodeAt(i)
-        hash = Math.imul(hash, 0x01000193)
-    }
-    // The top bit: FNV-1a's lowest bits mix poorly
-    return WELFARE_TYPES[hash >>> 31]
-}
+import type { IncomeDistributionYear, WelfareType } from "./types.js"
 
 /**
  * What a country's household surveys measure, for the reader: the phrase a
@@ -45,4 +27,12 @@ export const WELFARE_TYPE_DETAILS: Record<
             "Income and consumption data are not perfectly comparable; because households often dip into savings or borrow during tough times to keep their daily living standards steady, consumption data tends to be more evenly spread and show less inequality.",
         ],
     },
+}
+
+/** A country's welfare type by name, for the picker's labels and the note's sentence */
+export function welfareTypeLookup(
+    yearData: IncomeDistributionYear
+): (name: string) => WelfareType {
+    // Every name offered comes from the same year's data
+    return (name) => yearData.byName.get(name)!.welfareType
 }

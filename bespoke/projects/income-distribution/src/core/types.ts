@@ -29,6 +29,14 @@ export type TimeInterval = (typeof TIME_INTERVALS)[number]
 export const WELFARE_TYPES = ["income", "consumption"] as const
 export type WelfareType = (typeof WELFARE_TYPES)[number]
 
+/**
+ * How PIP arrived at a country's distribution for the year: from a survey
+ * of that year, by extrapolating or interpolating its surveys, or, without
+ * any survey, by modelling it from the region's
+ */
+export const ESTIMATION_TYPES = ["survey", "extrapolated", "modeled"] as const
+export type EstimationType = (typeof ESTIMATION_TYPES)[number]
+
 /** The World Bank regions the feed assigns every country to */
 export const REGIONS = [
     "East Asia and Pacific",
@@ -55,6 +63,10 @@ export interface RawCountryDistribution {
     country: string
     region: string
     totalPopulation: number
+    /** See WELFARE_TYPES */
+    welfareType: string
+    /** See ESTIMATION_TYPES */
+    estimationType: string
     /**
      * Mean daily income or consumption per capita (international-$ at 2021
      * prices) of each of the 1000 equally-populated bins, poorest bin first.
@@ -67,6 +79,8 @@ export interface CountryDistribution {
     name: string
     region: Region
     population: number
+    welfareType: WelfareType
+    estimationType: EstimationType
     /** See `RawCountryDistribution.avgs`; exactly 1000 ascending values */
     avgs: number[]
 }
@@ -75,8 +89,13 @@ export interface IncomeDistributionYear {
     year: number
     /** Sorted by name */
     countries: CountryDistribution[]
-    /** The countries' names, in the same order */
-    names: string[]
+    /**
+     * The names of the countries a reader can pick to compare: those whose
+     * distribution rests on their own surveys. A modelled one (no survey at
+     * all, shaped after its region) still counts towards the global stack,
+     * but isn't worth looking at on its own.
+     */
+    selectableNames: string[]
     byName: Map<string, CountryDistribution>
 }
 

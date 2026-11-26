@@ -16,7 +16,7 @@ import {
 } from "../core/walkthroughs.js"
 import type { IncomeDistributionYear } from "../core/types.js"
 import type { ChartAnnotation } from "../core/presentation.js"
-import { placeholderWelfareType } from "../core/welfareType.js"
+import { welfareTypeLookup } from "../core/welfareType.js"
 import {
     MeasuredInControl,
     ViewControl,
@@ -103,11 +103,10 @@ export function SlideFrame({
         if (someSlide.control === "editCountries" && isNarrow)
             return (
                 <CountryMultiSelect
-                    availableCountries={yearData.names}
+                    availableCountries={yearData.selectableNames}
                     selectedCountries={chartState.selectedCountries}
                     onChange={setters.setSelectedCountries}
-                    // TODO(feed welfare_type)
-                    welfareTypeOf={placeholderWelfareType}
+                    welfareTypeOf={welfareTypeLookup(yearData)}
                     isNarrow
                 />
             )

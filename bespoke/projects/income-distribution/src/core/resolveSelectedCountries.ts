@@ -6,9 +6,9 @@ import type { IncomeDistributionYear } from "./types.js"
 /**
  * The countries the compare view draws, from the selection as stored (the
  * config's or the URL's): the "userLocation" sentinel becomes the reader's
- * country (or nothing while that's unknown), names the data doesn't have
- * are dropped, duplicates collapse, and the first MAX_SELECTED_COUNTRIES
- * stay. The stored selection keeps the rest, so a shared link survives a
+ * country (or nothing while that's unknown), names the data doesn't have or
+ * only models (see `selectableNames`) are dropped, duplicates collapse, and
+ * the first MAX_SELECTED_COUNTRIES stay. The stored selection keeps the rest, so a shared link survives a
  * data update.
  */
 export function resolveSelectedCountries(
@@ -16,6 +16,7 @@ export function resolveSelectedCountries(
     userCountryName: string | undefined,
     yearData: IncomeDistributionYear
 ): string[] {
+    const selectable = new Set(yearData.selectableNames)
     return R.pipe(
         countries,
         R.flatMap((name) =>
@@ -25,7 +26,7 @@ export function resolveSelectedCountries(
                     : []
                 : [name]
         ),
-        R.filter((name) => yearData.byName.has(name)),
+        R.filter((name) => selectable.has(name)),
         R.unique(),
         R.take(MAX_SELECTED_COUNTRIES)
     )

@@ -21,7 +21,7 @@ import {
     peopleBelowDisplayedLine,
     sharesBelowDisplayedLine,
 } from "../core/density.js"
-import { placeholderWelfareType } from "../core/welfareType.js"
+import { welfareTypeLookup } from "../core/welfareType.js"
 import { welfareTypeSentence } from "../core/welfareSentence.js"
 import type { ChartState } from "../core/useIncomeDistributionState.js"
 import type { IncomeDistributionYear, LegendMeasure } from "../core/types.js"
@@ -217,15 +217,15 @@ export function IncomeDistributionFrame({
         editCountriesBottom: editCountriesBox?.bottom,
     })
 
+    const welfareTypeOf = welfareTypeLookup(yearData)
     const editCountriesControl = (
         appearance: "button" | "link"
     ): React.ReactElement => (
         <CountryMultiSelect
-            availableCountries={yearData.names}
+            availableCountries={yearData.selectableNames}
             selectedCountries={selectedCountries}
             onChange={onSelectedCountriesChange}
-            // TODO(feed welfare_type)
-            welfareTypeOf={placeholderWelfareType}
+            welfareTypeOf={welfareTypeOf}
             isNarrow={isNarrow}
             appearance={appearance}
         />
@@ -237,7 +237,7 @@ export function IncomeDistributionFrame({
         view === "countries"
             ? welfareTypeSentence(
                   model.series.map((series) => series.key),
-                  placeholderWelfareType // TODO(feed welfare_type)
+                  welfareTypeOf
               )
             : undefined
     const noteSegments = chartNoteSegments(

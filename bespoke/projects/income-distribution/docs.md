@@ -52,6 +52,6 @@ walkthrough: how-to-use
 ## Notes
 
 - `povertyLine` is always in international-$ per day, whatever `currency` and `timeInterval` say; the chart converts it.
-- Countries in `countries` that the data doesn't have are left out silently. `userLocation` is left out when the user's country can't be detected.
+- Countries in `countries` that the data doesn't have, or only models from their region (no household survey of their own), are left out silently; the picker doesn't offer the modelled ones either. The global view counts them all. `userLocation` is left out when the user's country can't be detected.
 - A custom `title` or `subtitle` hides the controls, as `hideControls` does.
 - In the tutorial variant, the walkthrough playing and its slide are kept in the page URL (`walkthrough` and `slide`), so a slide can be linked to. The slides set the chart as they need it; when the reader closes the walkthrough, the chart is back as they had it.

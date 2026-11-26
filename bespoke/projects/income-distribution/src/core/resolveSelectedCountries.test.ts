@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest"
 import { MAX_SELECTED_COUNTRIES, USER_LOCATION_SENTINEL } from "./constants.js"
 import { parseIncomeDistributionYear } from "./data.js"
 import { resolveSelectedCountries } from "./resolveSelectedCountries.js"
-import { syntheticAvgs, YEAR } from "./testFixtures.js"
+import { syntheticAvgs, YEAR, YEAR_WITH_MODELLED } from "./testFixtures.js"
 
 describe(resolveSelectedCountries, () => {
     it("keeps known countries in order and drops the rest", () => {
@@ -14,6 +14,16 @@ describe(resolveSelectedCountries, () => {
                 YEAR
             )
         ).toEqual(["Richland", "Poorland"])
+    })
+
+    it("drops a country the data only models, even the reader's own", () => {
+        expect(
+            resolveSelectedCountries(
+                ["Modelland", "Richland", USER_LOCATION_SENTINEL],
+                "Modelland",
+                YEAR_WITH_MODELLED
+            )
+        ).toEqual(["Richland"])
     })
 
     it("puts the reader's country in for the sentinel, or nothing while it's unknown", () => {
@@ -57,6 +67,8 @@ describe(resolveSelectedCountries, () => {
                         country: name,
                         region: "South Asia",
                         totalPopulation: 10,
+                        welfareType: "income",
+                        estimationType: "survey",
                         avgs: syntheticAvgs(5),
                     },
                 ])

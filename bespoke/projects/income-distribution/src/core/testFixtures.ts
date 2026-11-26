@@ -23,26 +23,53 @@ function rawCountry(
     country: string,
     region: Region,
     totalPopulation: number,
-    median: number
+    median: number,
+    extras: Partial<RawCountryDistribution> = {}
 ): RawCountryDistribution {
-    return { country, region, totalPopulation, avgs: syntheticAvgs(median) }
+    return {
+        country,
+        region,
+        totalPopulation,
+        welfareType: "consumption",
+        estimationType: "extrapolated",
+        avgs: syntheticAvgs(median),
+        ...extras,
+    }
 }
 
 /**
  * Three made-up countries in two regions, listed out of alphabetical order:
- * - Sub-Saharan Africa: Poorland (100 people, median $2), Richland (50, $40)
+ * - Sub-Saharan Africa: Poorland (100 people, median $2, consumption),
+ *   Richland (50, $40, income)
  * - South Asia: Middleland (300, $5)
  */
 export const RAW_YEAR: RawIncomeDistributionYear = {
     year: 2025,
     data: {
-        Richland: rawCountry("Richland", "Sub-Saharan Africa", 50, 40),
+        Richland: rawCountry("Richland", "Sub-Saharan Africa", 50, 40, {
+            welfareType: "income",
+        }),
         Poorland: rawCountry("Poorland", "Sub-Saharan Africa", 100, 2),
         Middleland: rawCountry("Middleland", "South Asia", 300, 5),
     },
 }
 
 export const YEAR = parseIncomeDistributionYear(RAW_YEAR)
+
+/** RAW_YEAR plus Modelland (10 people, median $3), which has no survey of its own */
+export const RAW_YEAR_WITH_MODELLED: RawIncomeDistributionYear = {
+    ...RAW_YEAR,
+    data: {
+        ...RAW_YEAR.data,
+        Modelland: rawCountry("Modelland", "Sub-Saharan Africa", 10, 3, {
+            estimationType: "modeled",
+        }),
+    },
+}
+
+export const YEAR_WITH_MODELLED = parseIncomeDistributionYear(
+    RAW_YEAR_WITH_MODELLED
+)
 
 export function conversionRow(
     overrides: Partial<RawCurrencyConversion>

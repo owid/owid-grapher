@@ -6,7 +6,12 @@ import {
     parseIncomeDistributionYear,
 } from "./data.js"
 import type { RawIncomeDistributionYear } from "./types.js"
-import { conversionRow, RAW_YEAR, syntheticAvgs } from "./testFixtures.js"
+import {
+    conversionRow,
+    RAW_YEAR,
+    RAW_YEAR_WITH_MODELLED,
+    syntheticAvgs,
+} from "./testFixtures.js"
 
 /** RAW_YEAR with one country's record replaced */
 function withPoorland(
@@ -33,7 +38,19 @@ describe(parseIncomeDistributionYear, () => {
         expect(year.byName.get("Poorland")).toMatchObject({
             region: "Sub-Saharan Africa",
             population: 100,
+            welfareType: "consumption",
+            estimationType: "extrapolated",
         })
+    })
+
+    it("offers every country for comparison except modelled ones", () => {
+        const year = parseIncomeDistributionYear(RAW_YEAR_WITH_MODELLED)
+        expect(year.countries.map((c) => c.name)).toContain("Modelland")
+        expect(year.selectableNames).toEqual([
+            "Middleland",
+            "Poorland",
+            "Richland",
+        ])
     })
 
     it("accepts zero incomes in the poorest bins", () => {
@@ -44,6 +61,8 @@ describe(parseIncomeDistributionYear, () => {
     })
 
     it.each([
+        ["an unknown welfare type", { welfareType: "wealth" }],
+        ["an unknown estimation type", { estimationType: "guessed" }],
         ["too few bins", { avgs: syntheticAvgs(2).slice(1) }],
         ["a negative bin mean", { avgs: [-1, ...syntheticAvgs(2).slice(1)] }],
         ["descending bin means", { avgs: syntheticAvgs(2).toReversed() }],

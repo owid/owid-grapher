@@ -10,14 +10,18 @@ import {
 } from "../../../../components/MetadataModal/bespokeMetadata.js"
 import { CURRENCY_CONVERSIONS_URL } from "./constants.js"
 import {
+    ESTIMATION_TYPES,
     REGIONS,
+    WELFARE_TYPES,
     type CountryDistribution,
+    type EstimationType,
     type Currency,
     type IncomeDistributionYear,
     type RawCountryDistribution,
     type RawCurrencyConversion,
     type RawIncomeDistributionYear,
     type Region,
+    type WelfareType,
 } from "./types.js"
 
 export const queryClient = new QueryClient()
@@ -126,7 +130,9 @@ export function parseIncomeDistributionYear(
     return {
         year: raw.year,
         countries,
-        names: countries.map((country) => country.name),
+        selectableNames: countries
+            .filter((country) => country.estimationType !== "modeled")
+            .map((country) => country.name),
         byName: new Map(countries.map((country) => [country.name, country])),
     }
 }
@@ -147,6 +153,11 @@ function parseCountry(
     if (!isRegion(entry.region)) fail(`unknown region "${entry.region}"`)
     if (!Number.isFinite(entry.totalPopulation) || entry.totalPopulation <= 0)
         fail("population is not a positive number")
+    const { welfareType, estimationType } = entry
+    if (!isWelfareType(welfareType))
+        return fail(`unknown welfare type "${welfareType}"`)
+    if (!isEstimationType(estimationType))
+        return fail(`unknown estimation type "${estimationType}"`)
 
     const { avgs } = entry
     if (!Array.isArray(avgs) || avgs.length !== NUM_BINS)
@@ -163,12 +174,22 @@ function parseCountry(
         name,
         region: entry.region as Region,
         population: entry.totalPopulation,
+        welfareType,
+        estimationType,
         avgs,
     }
 }
 
 function isRegion(value: unknown): value is Region {
     return (REGIONS as readonly unknown[]).includes(value)
+}
+
+function isWelfareType(value: unknown): value is WelfareType {
+    return (WELFARE_TYPES as readonly unknown[]).includes(value)
+}
+
+function isEstimationType(value: unknown): value is EstimationType {
+    return (ESTIMATION_TYPES as readonly unknown[]).includes(value)
 }
 
 /** Fetches CURRENCY_CONVERSIONS_URL once; query key ["income-distribution", "currencies"] */
