@@ -155,13 +155,12 @@ export function DataPageContent({
 
     const inputTableFetcher = useMemo(
         () =>
-            getCachingInputTableFetcher(
-                DATA_API_URL,
+            getCachingInputTableFetcher({
+                dataApiUrl: DATA_API_URL,
                 archiveContext,
-                isPreviewing,
-                undefined,
-                slug ?? undefined
-            ),
+                noCache: isPreviewing,
+                slug: slug ?? undefined,
+            }),
         [archiveContext, isPreviewing, slug]
     )
 

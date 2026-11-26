@@ -76,14 +76,20 @@ export const fetchInputTableForConfig: FetchInputTableForConfigFn = async (
     return inputTable
 }
 
-export function getCachingInputTableFetcher(
-    dataApiUrl: string,
-    archiveContext: ArchiveContext | undefined,
-    noCache?: boolean,
-    loadMetadataOnly?: boolean,
+export function getCachingInputTableFetcher({
+    dataApiUrl,
+    archiveContext,
+    noCache,
+    loadMetadataOnly,
+    slug,
+}: {
+    dataApiUrl: string
+    archiveContext?: ArchiveContext
+    noCache?: boolean
+    loadMetadataOnly?: boolean
     /** Only used to label the performance measurement */
     slug?: string
-): (
+}): (
     dimensions: OwidChartDimensionInterface[],
     selectedEntityColors: SelectedEntityColors | undefined
 ) => Promise<OwidTable | undefined> {
