@@ -200,8 +200,10 @@ The public subscribe form is single opt-in. Because it requires no inbox-ownersh
 reader's selections may be broadened but not narrowed; narrowing preferences
 requires a short-lived magic link proving current control of the inbox. The
 form gives the same response for new and existing addresses. Each address gets
-a full welcome email once (tracked by `users.welcomeEmailSentAt`, including for
-existing Mailchimp subscribers); later notifications submissions get a short
+a full welcome email once (tracked by `users.welcomeEmailSentAt`). Anyone
+subscribed to the Mailchimp audience, including those moved over by the
+Mailchimp migration, was already welcomed by Mailchimp and doesn't get it. Later
+notifications submissions get a short
 confirmation, which lets the owner notice and undo an unwanted submission (see
 `chooseSubscribeEmail`).
 
