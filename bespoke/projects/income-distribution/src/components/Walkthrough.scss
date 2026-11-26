@@ -192,6 +192,18 @@
     box-shadow: 0 0 0 8px $blue-20;
 }
 
+// On the last slide it closes the walkthrough instead: grey, like the exit
+// button in front of the pills
+.income-distribution-tutorial-round-button--close,
+.income-distribution-tutorial-round-button--close:hover {
+    background: $gray-80;
+    box-shadow: 0 0 0 8px $gray-20;
+}
+
+.income-distribution-tutorial-round-button--close:hover {
+    background: $gray-90;
+}
+
 // After a while without interaction, the halo breathes to draw the eye on;
 // it settles as soon as the button is pointed at
 @keyframes income-distribution-tutorial-nudge {

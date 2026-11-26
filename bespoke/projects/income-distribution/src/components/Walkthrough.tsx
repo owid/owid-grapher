@@ -190,6 +190,7 @@ function NextButton({
                     // Not on the last slide, where it closes rather than moves on
                     "income-distribution-tutorial-round-button--nudge":
                         isNudging && !isLast,
+                    "income-distribution-tutorial-round-button--close": isLast,
                 },
                 className
             )}

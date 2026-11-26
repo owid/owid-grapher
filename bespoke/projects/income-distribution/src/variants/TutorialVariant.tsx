@@ -101,7 +101,7 @@ function CaptionedTutorialVariant(
     const leadingButton = walkthrough ? (
         <button
             type="button"
-            className="income-distribution-configure-button"
+            className="income-distribution-configure-button income-distribution-configure-button--exit"
             onClick={close}
         >
             <FontAwesomeIcon

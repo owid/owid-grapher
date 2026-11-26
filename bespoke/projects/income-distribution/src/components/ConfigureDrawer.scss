@@ -18,6 +18,20 @@ $configure-drawer-duration: 200ms;
     }
 }
 
+// The way out of a walkthrough (TutorialVariant.tsx), a plain button rather
+// than react-aria's, in grey so it reads as leaving rather than doing
+.income-distribution-configure-button--exit {
+    background: $gray-80;
+
+    &:hover {
+        background: $gray-90;
+    }
+
+    &:focus-visible {
+        @include income-distribution-focus-ring;
+    }
+}
+
 .income-distribution-configure-button__icon {
     width: 16px;
     height: 16px;
