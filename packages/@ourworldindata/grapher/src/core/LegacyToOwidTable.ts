@@ -369,6 +369,138 @@ const getIndicatorDisplayOverride = (
     },
 })
 
+/**
+ * Checks that no two rows of the table share the same values in the index
+ * columns, with the same string keys the general join uses.
+ */
+export const hasUniqueIndexValues = (
+    table: OwidTable,
+    indexColumnNames: OwidTableSlugs[]
+): boolean => {
+    const { columnStore, numRows } = table
+
+    // Fast path for the usual entity + time index: the data typically lists
+    // each entity in one contiguous run of rows with strictly increasing
+    // times, which proves uniqueness without building a key for every row.
+    // It only applies to numeric values, whose string keys are distinct
+    // whenever the numbers are
+    if (indexColumnNames.length === 2) {
+        const entitySlugIndex = indexColumnNames.indexOf(
+            OwidTableSlugs.EntityId
+        )
+        if (entitySlugIndex !== -1) {
+            const entities = columnStore[indexColumnNames[entitySlugIndex]]
+            const times = columnStore[indexColumnNames[1 - entitySlugIndex]]
+            if (hasEntityRunsWithIncreasingTimes(entities, times, numRows))
+                return true
+        }
+    }
+
+    const keyFn = makeKeyFn(columnStore, indexColumnNames)
+    const seenKeys = new Set<string>()
+    for (let row = 0; row < numRows; row++) {
+        const key = keyFn(row)
+        if (seenKeys.has(key)) return false
+        seenKeys.add(key)
+    }
+    return true
+}
+
+// Checks whether the table has entity-time pairs in an order where they're grouped by entity,
+// and inside each group the times are strictly increasing.
+// If that's the case, then it means that the index values are necessarily unique. But even when this
+// returns false, they might still be unique, just not in this specific way (that is common and can be checked
+// performantly).
+// A table that adheres to this format is:
+// | Entity | Year |
+// | ------ | ---- |
+// | 2      | 2022 |
+// | 2      | 2024 |
+// | 1      | 2020 |
+// | 1      | 2021 |
+export const hasEntityRunsWithIncreasingTimes = (
+    entities: unknown[],
+    times: unknown[],
+    numRows: number
+): boolean => {
+    const seenEntities = new Set<number>()
+    let previousEntity: unknown = undefined
+    let previousTime = -Infinity
+    for (let row = 0; row < numRows; row++) {
+        const entity = entities[row]
+        const time = times[row]
+        if (typeof entity !== "number" || typeof time !== "number") return false
+        if (row > 0 && entity === previousEntity) {
+            if (!(time > previousTime)) return false
+        } else {
+            // A new run starts; the entity must not have had one before
+            if (seenEntities.has(entity)) return false
+            seenEntities.add(entity)
+        }
+        previousEntity = entity
+        previousTime = time
+    }
+    return true
+}
+
+/**
+ * Fast path for fullJoinTables: when every table has the exact same index
+ * values in the same row order (e.g. several indicators from one dataset with
+ * the same coverage), row i of every table belongs to row i of the joined
+ * table, so the join needs no lookups. Returns undefined when the fast path
+ * doesn't apply.
+ *
+ * The result is identical to the general join: shared columns come from the
+ * first table, followed by each table's own columns, in table order.
+ */
+const attemptToJoinTablesWithIdenticalIndex = (
+    tables: OwidTable[],
+    indexColumnNames: OwidTableSlugs[],
+    sharedColumnNames: string[]
+): OwidTable | undefined => {
+    const [firstTable, ...otherTables] = tables
+    const numRows = firstTable.numRows
+    const firstIndexColumns: unknown[][] = []
+    for (const slug of indexColumnNames) {
+        const column = firstTable.columnStore[slug]
+        if (!column) return undefined
+        firstIndexColumns.push(column)
+    }
+
+    for (const table of otherTables) {
+        if (table.numRows !== numRows) return undefined
+        for (let c = 0; c < indexColumnNames.length; c++) {
+            const column = table.columnStore[indexColumnNames[c]]
+            if (!column) return undefined
+            const firstColumn = firstIndexColumns[c]
+            for (let row = 0; row < numRows; row++)
+                if (column[row] !== firstColumn[row]) return undefined
+        }
+    }
+
+    // The general join keeps only the first row of a repeated index value, so
+    // only take the fast path if every index value is unique
+    if (!hasUniqueIndexValues(firstTable, indexColumnNames)) return undefined
+
+    const copyColumns = (table: OwidTable, slugs: string[]): OwidColumnDef[] =>
+        table.getColumns(slugs).map((col) => ({
+            ...col.def,
+            values: table.columnStore[col.slug],
+        }))
+    return new OwidTable(
+        [],
+        [
+            ...copyColumns(firstTable, sharedColumnNames),
+            ...tables.flatMap((table) =>
+                copyColumns(
+                    table,
+                    _.difference(table.columnSlugs, sharedColumnNames)
+                )
+            ),
+        ]
+    )
+}
+
 const fullJoinTables = (
     tables: OwidTable[],
     indexColumnNames: OwidTableSlugs[],
@@ -397,6 +529,26 @@ const fullJoinTables = (
     if (tables.length === 0) return new OwidTable()
     else if (tables.length === 1) return tables[0]
 
+    // Figure out which column names are shared. Shared columns (the index columns but also in our
+    // data model stuff like entityCode and entityName that we usually have in addition to entityId)
+    // will end up only once in the final table. This is a bit of a footgun for arbitrary data models
+    // as we don't make sure that the values are equal for the same index values (we only assume that
+    // this is true) - but this is how we have handled it in the past and it works with the setup we
+    // have.
+    const sharedColumnNames = intersection(
+        ...tables.map((table) => table.columnSlugs)
+    )
+
+    // Quickly check whether all tables to be merged have the exact same indexes, in the same order.
+    // That's often the case for multiple variables coming from the same dataset, e.g. used for stacked charts.
+    // When it is, then we can just very efficiently concatenate the various columns together and are done already.
+    const tablesWithIdenticalIndex = attemptToJoinTablesWithIdenticalIndex(
+        tables,
+        indexColumnNames,
+        sharedColumnNames
+    )
+    if (tablesWithIdenticalIndex) return tablesWithIdenticalIndex
+
     // Get all the index values per table and then figure out the full set of all stringified index values
     const indexValuesPerTable: Map<string, number[]>[] = tables.map((table) =>
         // When we get a mergeFallbackLookupColumn then it can happen that a table does not have all the
@@ -416,15 +568,6 @@ const fullJoinTables = (
           )
         : undefined
 
-    // Figure out which column names are shared. Shared columns (the index columns but also in our
-    // data model stuff like entityCode and entityName that we usually have in addition to entityId)
-    // will end up only once in the final table. This is a bit of a footgun for arbitrary data models
-    // as we don't make sure that the values are equal for the same index values (we only assume that
-    // this is true) - but this is how we have handled it in the past and it works with the setup we
-    // have.
-    const sharedColumnNames = intersection(
-        ...tables.map((table) => table.columnSlugs)
-    )
     // Insertion order matters: index values of the first table come first
     const allIndexValues = new Set<string>()
     for (const indexValues of indexValuesPerTable)
