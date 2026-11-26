@@ -28,7 +28,6 @@ import {
 } from "./MarimekkoChartHelpers"
 import { MarimekkoInternalLabels } from "./MarimekkoInternalLabels"
 import { NoDataMessage } from "../noDataMessage/NoDataMessage"
-import { InteractionState } from "../interaction/InteractionState"
 
 const LABEL_PADDING = 4
 
@@ -116,17 +115,10 @@ export class MarimekkoChartThumbnail
         })
     }
 
-    /** Only focus mutes the other bars, not selection */
     @computed private get renderSeries(): RenderMarimekkoSeries[] {
-        const { focusArray } = this.chartState
-        const focusedSeries = this.placedSeries.map((series) => ({
-            ...series,
-            focus: new InteractionState(
-                focusArray.has(series.entityName),
-                focusArray.hasFocusedSeries
-            ),
-        }))
-        return toRenderMarimekkoSeries(focusedSeries)
+        return toRenderMarimekkoSeries(this.placedSeries, {
+            focusArray: this.chartState.focusArray,
+        })
     }
 
     @computed private get placedSeriesByEntityName(): Map<
