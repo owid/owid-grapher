@@ -53,7 +53,7 @@ export const IndicatorSources = (props: IndicatorSourcesProps) => {
                 const useExpandableToggle =
                     source.description ||
                     source.citation ||
-                    source.variants?.length
+                    source.indicatorLinks
                 return useExpandableToggle ? (
                     <ExpandableToggle
                         key={source.label}
@@ -103,13 +103,13 @@ const SourceContent = (props: {
 }) => {
     const { source } = props
     const retrievedOn = formatSourceDate(source.retrievedOn, "MMMM D, YYYY")
-    const variants = source.variants?.length ? source.variants : undefined
+    const { indicatorLinks } = source
     const showKeyInfo =
         source.dataPublishedBy ||
         retrievedOn ||
         (source.retrievedFrom && source.retrievedFrom.length > 0) ||
         source.citation ||
-        variants
+        indicatorLinks
     return (
         <div className="source">
             {source.description && (
@@ -143,7 +143,7 @@ const SourceContent = (props: {
                         <div
                             className={cx("source-key-data", {
                                 "source-key-data--span-2":
-                                    !!variants ||
+                                    !!indicatorLinks ||
                                     !source.retrievedFrom ||
                                     source.retrievedFrom.length === 0,
                             })}
@@ -156,35 +156,38 @@ const SourceContent = (props: {
                             </div>
                         </div>
                     )}
-                    {variants &&
-                        variants.map((v, i) => (
-                            <div
-                                key={`${i}-${v.label}`}
-                                className="source-key-data source-key-data--span-2 source-key-data--variant"
-                            >
-                                <div className="source-key-data__title">
-                                    {v.label}
-                                </div>
-                                <div className="source-key-data__content">
-                                    {v.retrievedFrom && (
-                                        <div className="source-key-data__variant-row">
-                                            Retrieved from{" "}
-                                            {makeLinks({
-                                                link: v.retrievedFrom,
-                                            })}
-                                        </div>
-                                    )}
-                                    {v.citation && (
-                                        <CodeSnippet
-                                            code={v.citation.trim()}
-                                            theme="light"
-                                            useMarkdown={true}
-                                        />
-                                    )}
-                                </div>
+                    {indicatorLinks?.map((indicatorLink, i) => (
+                        <div
+                            key={i}
+                            className="source-key-data source-key-data--span-2"
+                        >
+                            <div className="source-key-data__title">
+                                {indicatorLink.label}
                             </div>
-                        ))}
-                    {!variants &&
+                            <div className="source-key-data__content">
+                                {indicatorLink.retrievedFrom && (
+                                    <div className="source-key-data__indicator-link">
+                                        Retrieved from{" "}
+                                        {makeLinks({
+                                            link: indicatorLink.retrievedFrom,
+                                            trackNote:
+                                                props.retrievedFromTrackNote,
+                                            openLinksInNewTab:
+                                                props.openLinksInNewTab,
+                                        })}
+                                    </div>
+                                )}
+                                {indicatorLink.citation && (
+                                    <CodeSnippet
+                                        code={indicatorLink.citation.trim()}
+                                        theme="light"
+                                        useMarkdown={true}
+                                    />
+                                )}
+                            </div>
+                        </div>
+                    ))}
+                    {!indicatorLinks &&
                         source.retrievedFrom &&
                         source.retrievedFrom.length > 0 && (
                             <div
@@ -205,7 +208,7 @@ const SourceContent = (props: {
                                 </div>
                             </div>
                         )}
-                    {!variants && source.citation && (
+                    {!indicatorLinks && source.citation && (
                         <div className="source-key-data source-key-data-citation source-key-data--span-2">
                             <div className="source-key-data__title">
                                 Citation

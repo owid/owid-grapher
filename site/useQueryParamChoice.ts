@@ -6,25 +6,20 @@ import { useSyncExternalStore } from "react"
 const subscribe = (): (() => void) => _.noop
 
 /**
- * One of `choices`, read from the `name` query parameter in the browser
- * (QA overrides like `?switcher=h-tabs`). The server snapshot keeps the
- * server render and hydration on `fallback`; React then re-renders with the
- * URL's choice. `aliases` maps other accepted spellings onto a choice.
+ * The one of `choices` that the `name` query parameter gives, or `fallback`.
+ * The server render and hydration use `fallback`, and React then re-renders
+ * with the URL's choice.
  */
 export const useQueryParamChoice = <T extends string>(
     name: string,
     choices: readonly T[],
-    fallback: T,
-    aliases: Record<string, T> = {}
+    fallback: T
 ): T =>
     useSyncExternalStore(
         subscribe,
         () => {
-            const raw = new URLSearchParams(window.location.search).get(name)
-            const value = (raw && aliases[raw]) || raw
-            return value && choices.includes(value as T)
-                ? (value as T)
-                : fallback
+            const value = new URLSearchParams(window.location.search).get(name)
+            return choices.find((choice) => choice === value) ?? fallback
         },
         () => fallback
     )

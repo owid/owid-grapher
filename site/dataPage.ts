@@ -30,18 +30,20 @@ export function processRelatedResearch(
 export function getDatapageDataV2(
     variableMetadata: OwidVariableWithSource,
     partialGrapherConfig: GrapherInterface,
-    opts?: {
-        // Per-indicator title to prefer over the chart-level title when the
-        // variable has no `presentation.titlePublic`. Used for the additional
-        // indicators of a multi-indicator chart, where the chart title
-        // describes the whole chart rather than any single indicator.
-        indicatorTitleOverride?: string
-        // See DataPageDataV2.chartDimensionName.
-        chartDimensionName?: string
-    }
+    /** Given for each pane of a chart with several indicators */
+    pane?: Pick<DataPageDataV2, "chartDimensionName" | "auxiliaryRole">
 ): DataPageDataV2 {
     const lastUpdated = getLastUpdatedFromVariable(variableMetadata) ?? ""
     const nextUpdate = getNextUpdateFromVariable(variableMetadata)
+    // The chart's title describes all of its indicators, so a pane that is
+    // one of several is titled by its own indicator first
+    const fallbackTitle = pane
+        ? (pane.chartDimensionName ??
+          (variableMetadata.display?.name?.trim() || variableMetadata.name) ??
+          partialGrapherConfig.title)
+        : (partialGrapherConfig.title ??
+          variableMetadata.display?.name ??
+          variableMetadata.name)
     return {
         status: "draft",
         title: variableMetadata.presentation?.titlePublic
@@ -51,15 +53,9 @@ export function getDatapageDataV2(
                       variableMetadata.presentation?.attributionShort,
                   titleVariant: variableMetadata.presentation?.titleVariant,
               })
-            : {
-                  title:
-                      opts?.indicatorTitleOverride ??
-                      partialGrapherConfig.title ??
-                      variableMetadata.display?.name ??
-                      variableMetadata.name ??
-                      "",
-              },
-        chartDimensionName: opts?.chartDimensionName,
+            : { title: fallbackTitle ?? "" },
+        chartDimensionName: pane?.chartDimensionName,
+        auxiliaryRole: pane?.auxiliaryRole,
         description: variableMetadata.description,
         descriptionShort: variableMetadata.descriptionShort,
         descriptionFromProducer: variableMetadata.descriptionFromProducer,

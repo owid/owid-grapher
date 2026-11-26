@@ -1,24 +1,24 @@
 import { expect, it, describe } from "vitest"
 import {
-    AdditionalIndicator,
     DataPageDataV2,
+    IndicatorPaneData,
     OwidOrigin,
 } from "@ourworldindata/types"
-import {
-    applyStitchToDatapageData,
-    computeIndicatorPaneStitch,
-} from "./stitchIndicatorPanes.js"
+import { stitchIndicatorPanes } from "./stitchIndicatorPanes.js"
 
-const origin = (over: Partial<OwidOrigin> = {}): OwidOrigin => ({
+const origin = (overrides: Partial<OwidOrigin> = {}): OwidOrigin => ({
     producer: "UN",
     title: "World Population Prospects",
     citationFull: "UN (2024).",
     dateAccessed: "2024-07-15",
     urlMain: "https://population.un.org",
-    ...over,
+    ...overrides,
 })
 
-const pane = (over: Partial<DataPageDataV2> = {}): AdditionalIndicator => ({
+const pane = (
+    overrides: Partial<DataPageDataV2> = {},
+    faqEntries?: IndicatorPaneData["faqEntries"]
+): IndicatorPaneData => ({
     datapageData: {
         status: "draft",
         title: { title: "Births" },
@@ -34,308 +34,231 @@ const pane = (over: Partial<DataPageDataV2> = {}): AdditionalIndicator => ({
         chartConfig: {},
         descriptionShort: "Shared short.",
         unit: "people",
-        ...over,
+        ...overrides,
     } as DataPageDataV2,
+    faqEntries,
 })
 
-describe(computeIndicatorPaneStitch, () => {
-    it("stitches identical panes, keeping shared short/unit on the pane", () => {
-        const r = computeIndicatorPaneStitch([
-            pane(),
-            pane({ title: { title: "Deaths" } }),
+const deaths = (overrides: Partial<DataPageDataV2> = {}): IndicatorPaneData =>
+    pane({ title: { title: "Deaths" }, ...overrides })
+
+describe(stitchIndicatorPanes, () => {
+    it("keeps what the indicators share on the pane, not on the indicators", () => {
+        const stitched = stitchIndicatorPanes([pane(), deaths()])
+        expect(stitched?.indicators).toEqual([
+            { title: "Births" },
+            { title: "Deaths" },
         ])
-        expect(r).toBeDefined()
-        expect(r!.list.map((e) => e.title)).toEqual(["Births", "Deaths"])
-        expect(r!.list[0].short).toBeUndefined()
-        expect(r!.list[0].unit).toBeUndefined()
-        expect(r!.suppressDescriptionShort).toBe(false)
+        expect(stitched?.datapageData).toMatchObject({
+            descriptionShort: "Shared short.",
+            unit: "people",
+            descriptionKey: "Shared key info.",
+        })
     })
 
-    it("appends titleVariant to list entry titles", () => {
-        const r = computeIndicatorPaneStitch([
-            pane(),
+    it("needs at least two panes", () => {
+        expect(stitchIndicatorPanes([pane()])).toBeUndefined()
+    })
+
+    it.each<[string, IndicatorPaneData]>([
+        [
+            "processing description",
+            deaths({ descriptionProcessing: "Different processing." }),
+        ],
+        ["short attribution", deaths({ attributionShort: "WHO" })],
+        ["attributions", deaths({ attributions: ["WHO (2024)"] })],
+        ["legacy source", deaths({ source: { id: 1, name: "WHO" } })],
+        [
+            "FAQs",
+            pane(
+                { title: { title: "Deaths" } },
+                { faqs: [{ type: "text", value: [], parseErrors: [] }] }
+            ),
+        ],
+        ["sources", deaths({ origins: [origin({ producer: "WHO" })] })],
+        [
+            "set of sources",
+            deaths({ origins: [origin(), origin({ producer: "WHO" })] }),
+        ],
+    ])("does not stitch panes whose %s differ", (_field, other) => {
+        expect(stitchIndicatorPanes([pane(), other])).toBeUndefined()
+    })
+
+    it("moves what differs between the indicators off the pane and onto them", () => {
+        const stitched = stitchIndicatorPanes([
             pane({
-                title: { title: "Births" },
-                titleVariant: "with medium scenario projections",
+                title: { title: "Births", titleVariant: "estimates" },
+                titleVariant: "estimates",
+                descriptionShort: "Births short.",
+                unit: "births",
+                descriptionKey: undefined,
+                descriptionFromProducer: "Births docs.",
             }),
-        ])
-        expect(r!.list[1].title).toBe(
-            "Births – with medium scenario projections"
-        )
-        expect(r!.suppressTitleVariant).toBe(true)
-    })
-
-    it("states a variant shared by all indicators once, not per entry", () => {
-        const r = computeIndicatorPaneStitch([
-            pane({ titleVariant: "period tables" }),
-            pane({ title: { title: "Deaths" }, titleVariant: "period tables" }),
-        ])
-        expect(r!.list.map((e) => e.title)).toEqual(["Births", "Deaths"])
-        expect(r!.suppressTitleVariant).toBe(false)
-    })
-
-    it("does not stitch when a substantive field differs", () => {
-        expect(
-            computeIndicatorPaneStitch([
-                pane(),
-                pane({ descriptionProcessing: "Different processing." }),
-            ])
-        ).toBeUndefined()
-        expect(
-            computeIndicatorPaneStitch([
-                pane(),
-                pane({ origins: [origin({ producer: "WHO" })] }),
-            ])
-        ).toBeUndefined()
-    })
-
-    it("ignores origin order and internal origin fields", () => {
-        const a = origin()
-        const b = origin({ producer: "Energy Institute", title: "Review" })
-        const r = computeIndicatorPaneStitch([
-            pane({ origins: [a, b] }),
-            pane({
-                title: { title: "Deaths" },
-                origins: [
-                    { ...b, id: 999 },
-                    { ...a, titleSnapshot: "Old snapshot", urlDownload: "x" },
-                ],
-            }),
-        ])
-        expect(r).toBeDefined()
-    })
-
-    it("unions differing date ranges, refusing unparseable ones", () => {
-        const r = computeIndicatorPaneStitch([
-            pane(),
-            pane({ title: { title: "Deaths" }, dateRange: "2024-2100" }),
-        ])
-        expect(r!.dateRange).toBe("1950-2100")
-        // each entry keeps its own range for the per-indicator details
-        expect(r!.list.map((e) => e.dateRange)).toEqual([
-            "1950-2023",
-            "2024-2100",
-        ])
-        // a bare year is a single-year timespan
-        expect(
-            computeIndicatorPaneStitch([
-                pane(),
-                pane({ title: { title: "Deaths" }, dateRange: "2030" }),
-            ])!.dateRange
-        ).toBe("1950-2030")
-        expect(
-            computeIndicatorPaneStitch([
-                pane(),
-                pane({ title: { title: "Deaths" }, dateRange: "since 1950" }),
-            ])
-        ).toBeUndefined()
-    })
-
-    it("moves differing shorts/units into the list and suppresses them on the pane", () => {
-        const r = computeIndicatorPaneStitch([
-            pane({ descriptionShort: "Births short.", unit: "births" }),
-            pane({
-                title: { title: "Deaths" },
+            deaths({
+                title: { title: "Deaths", titleVariant: "projections" },
+                titleVariant: "projections",
                 descriptionShort: "Deaths short.",
                 unit: "deaths",
+                descriptionKey: "A short note on deaths.",
+                descriptionFromProducer: "Deaths docs.",
             }),
         ])
-        expect(r!.list.map((e) => e.short)).toEqual([
-            "Births short.",
-            "Deaths short.",
+        expect(stitched?.indicators).toEqual([
+            {
+                title: "Births",
+                titleVariant: "estimates",
+                descriptionShort: "Births short.",
+                unit: "births",
+                descriptionFromProducer: "Births docs.",
+            },
+            {
+                title: "Deaths",
+                titleVariant: "projections",
+                descriptionShort: "Deaths short.",
+                unit: "deaths",
+                descriptionKey: "A short note on deaths.",
+                descriptionFromProducer: "Deaths docs.",
+            },
         ])
-        expect(r!.list.map((e) => e.unit)).toEqual(["births", "deaths"])
-        expect(r!.suppressDescriptionShort).toBe(true)
-        expect(r!.suppressUnit).toBe(true)
+        const { datapageData } = stitched!
+        expect(datapageData.titleVariant).toBeUndefined()
+        expect(datapageData.title.titleVariant).toBeUndefined()
+        expect(datapageData.descriptionShort).toBeUndefined()
+        expect(datapageData.unit).toBeUndefined()
+        expect(datapageData.descriptionKey).toBeUndefined()
+        expect(datapageData.descriptionFromProducer).toBeUndefined()
     })
 
-    it("allows short differing WYSKs as per-entry notes, blocks long ones", () => {
-        const r = computeIndicatorPaneStitch([
-            pane({ descriptionKey: undefined }),
-            pane({
-                title: { title: "Conflict" },
-                descriptionKey: "IHME splits impacts evenly across years.",
-            }),
+    it("keeps a title variant every indicator shares on the pane", () => {
+        const stitched = stitchIndicatorPanes([
+            pane({ titleVariant: "period tables" }),
+            deaths({ titleVariant: "period tables" }),
         ])
-        expect(r).toBeDefined()
-        expect(r!.list[0].note).toBeUndefined()
-        expect(r!.list[1].note).toMatch(/IHME splits/)
-        expect(r!.suppressDescriptionKey).toBe(true)
+        expect(stitched?.indicators).toEqual([
+            { title: "Births" },
+            { title: "Deaths" },
+        ])
+        expect(stitched?.datapageData.titleVariant).toBe("period tables")
+    })
 
+    it("does not stitch when a differing 'What you should know' is long", () => {
         expect(
-            computeIndicatorPaneStitch([
+            stitchIndicatorPanes([
                 pane({ descriptionKey: undefined }),
-                pane({
-                    title: { title: "Conflict" },
-                    descriptionKey: "x".repeat(300),
-                }),
+                deaths({ descriptionKey: "x".repeat(300) }),
             ])
         ).toBeUndefined()
     })
 
-    it("stitches differing producer docs as per-entry docs and suppresses the pane's", () => {
-        const r = computeIndicatorPaneStitch([
-            pane({ descriptionFromProducer: "Doc A" }),
-            pane({
-                title: { title: "Deaths" },
-                descriptionFromProducer: "Doc B",
-            }),
-        ])
-        expect(r).toBeDefined()
-        expect(r!.suppressDescriptionFromProducer).toBe(true)
-        expect(r!.list.map((e) => e.producerDescription)).toEqual([
-            "Doc A",
-            "Doc B",
-        ])
-        const same = computeIndicatorPaneStitch([
-            pane({ descriptionFromProducer: "Doc" }),
-            pane({
-                title: { title: "Deaths" },
-                descriptionFromProducer: "Doc",
-            }),
-        ])
-        expect(same!.suppressDescriptionFromProducer).toBe(false)
-        expect(same!.list[0].producerDescription).toBeUndefined()
-    })
-
-    it("stitches a shared source whose link/citation differ, surfacing them per entry", () => {
-        const r = computeIndicatorPaneStitch([
-            pane({
-                origins: [origin({ urlMain: "https://a", citationFull: "A" })],
-            }),
-            pane({
-                title: { title: "Deaths" },
-                origins: [origin({ urlMain: "https://b", citationFull: "B" })],
-            }),
-        ])
-        expect(r).toBeDefined()
-        expect(r!.list.map((e) => e.sources?.[0]?.urlMain)).toEqual([
-            "https://a",
-            "https://b",
-        ])
-        // identical content → nothing to surface
-        const same = computeIndicatorPaneStitch([
-            pane(),
-            pane({ title: { title: "Deaths" } }),
-        ])
-        expect(same!.list[0].sources).toBeUndefined()
-        // a different source SET still blocks
-        expect(
-            computeIndicatorPaneStitch([
-                pane(),
-                pane({ origins: [origin(), origin({ producer: "WHO" })] }),
-            ])
-        ).toBeUndefined()
-    })
-
-    it("compares sources as a set, ignoring duplicates and license URLs", () => {
-        // Global Carbon Budget split across two ETL snapshots whose origins
-        // differ only in license URL: still one source.
-        const gcb = origin({ producer: "Global Carbon Project" })
-        const gcbOtherLicense = {
-            ...gcb,
+    it("ignores the order of the sources and the fields readers don't see", () => {
+        const un = origin()
+        const energyInstitute = origin({
+            producer: "Energy Institute",
+            title: "Review",
+        })
+        const withOtherLicense = {
+            ...un,
             license: { name: "CC BY 4.0", url: "https://example.org/other" },
         }
         expect(
-            computeIndicatorPaneStitch([
-                pane({ origins: [gcb, gcbOtherLicense] }),
-                pane({
-                    title: { title: "Land-use change" },
-                    origins: [gcbOtherLicense, gcbOtherLicense],
+            stitchIndicatorPanes([
+                pane({ origins: [un, energyInstitute] }),
+                deaths({
+                    origins: [
+                        { ...energyInstitute, id: 999 },
+                        { ...un, titleSnapshot: "Old", urlDownload: "x" },
+                        // The same source again, from another ETL snapshot
+                        withOtherLicense,
+                    ],
                 }),
             ])
         ).toBeDefined()
     })
 
-    it("stitches across processing levels and shows the highest", () => {
-        const r = computeIndicatorPaneStitch([
-            pane({ owidProcessingLevel: "minor" }),
-            pane({ title: { title: "Deaths" }, owidProcessingLevel: "major" }),
+    it("combines differing date ranges, and gives each indicator its own", () => {
+        const stitched = stitchIndicatorPanes([
+            pane(),
+            deaths({ dateRange: "2024-2100" }),
         ])
-        expect(r?.owidProcessingLevel).toBe("major")
-        // differing processing TEXT still blocks
+        expect(stitched?.datapageData.dateRange).toBe("1950-2100")
         expect(
-            computeIndicatorPaneStitch([
-                pane({ descriptionProcessing: "A" }),
-                pane({
-                    title: { title: "Deaths" },
-                    descriptionProcessing: "B",
-                }),
-            ])
+            stitched?.indicators.map((indicator) => indicator.dateRange)
+        ).toEqual(["1950-2023", "2024-2100"])
+    })
+
+    it("reads a date range of a single year", () => {
+        const stitched = stitchIndicatorPanes([
+            pane(),
+            deaths({ dateRange: "2030" }),
+        ])
+        expect(stitched?.datapageData.dateRange).toBe("1950-2030")
+    })
+
+    it("does not stitch when a differing date range can't be read", () => {
+        expect(
+            stitchIndicatorPanes([pane(), deaths({ dateRange: "since 1950" })])
         ).toBeUndefined()
     })
 
-    it("needs at least two panes", () => {
-        expect(computeIndicatorPaneStitch([pane()])).toBeUndefined()
-    })
-
-    it("takes the soonest nextUpdate", () => {
-        const r = computeIndicatorPaneStitch([
-            pane({ nextUpdate: "2027-07-12" }),
-            pane({ title: { title: "Deaths" }, nextUpdate: "2026-01-01" }),
-            pane({ title: { title: "Births" } }),
-        ])
-        expect(r?.nextUpdate).toBe("2026-01-01")
-    })
-
-    it("does not repeat a differing title variant already in the title", () => {
-        const r = computeIndicatorPaneStitch([
+    it("lists each indicator's link and citation for a source they share", () => {
+        const stitched = stitchIndicatorPanes([
             pane({
-                title: { title: "Population – historical" },
-                titleVariant: "historical",
+                origins: [origin({ urlMain: "https://a", citationFull: "A" })],
             }),
-            pane({
-                title: { title: "Population" },
-                titleVariant: "projections",
+            deaths({
+                origins: [origin({ urlMain: "https://b", citationFull: "B" })],
             }),
         ])
-        expect(r?.list.map((e) => e.title)).toEqual([
-            "Population – historical",
-            "Population – projections",
+        expect(stitched?.sourceLinksByIndicator).toEqual([
+            {
+                originIndex: 0,
+                links: [
+                    {
+                        label: "Births",
+                        retrievedFrom: "https://a",
+                        citation: "A",
+                    },
+                    {
+                        label: "Deaths",
+                        retrievedFrom: "https://b",
+                        citation: "B",
+                    },
+                ],
+            },
         ])
     })
 
-    it("unions owners and takes the latest lastUpdated", () => {
-        const r = computeIndicatorPaneStitch([
+    it("lists no links for a source every indicator links the same way", () => {
+        const stitched = stitchIndicatorPanes([pane(), deaths()])
+        expect(stitched?.sourceLinksByIndicator).toEqual([])
+    })
+
+    it("shows the highest processing level when the levels differ", () => {
+        const stitched = stitchIndicatorPanes([
+            pane({ owidProcessingLevel: "minor" }),
+            deaths({ owidProcessingLevel: "major" }),
+        ])
+        expect(stitched?.datapageData.owidProcessingLevel).toBe("major")
+    })
+
+    it("shows every dataset's owners, the latest update and the soonest next one", () => {
+        const stitched = stitchIndicatorPanes([
             pane({
                 owners: [{ datasetId: 1, datasetName: "A", owners: ["Alice"] }],
                 lastUpdated: "2024-07-12",
+                nextUpdate: "2027-07-12",
             }),
-            pane({
-                title: { title: "Deaths" },
+            deaths({
                 owners: [{ datasetId: 2, datasetName: "B", owners: ["Bob"] }],
                 lastUpdated: "2025-01-01",
+                nextUpdate: "2026-01-01",
             }),
+            pane({ title: { title: "Migration" } }),
         ])
-        expect(r!.owners![0].owners).toEqual(["Alice", "Bob"])
-        expect(r!.lastUpdated).toBe("2025-01-01")
-    })
-})
-
-describe(applyStitchToDatapageData, () => {
-    it("writes the unions onto the pane and drops what moved into the list", () => {
-        const primary = pane({
-            descriptionShort: "Births short",
-            unit: "births",
-            titleVariant: "estimates",
-            title: { title: "Births", titleVariant: "estimates" },
+        expect(stitched?.datapageData).toMatchObject({
+            owners: [{ owners: ["Alice", "Bob"] }],
+            lastUpdated: "2025-01-01",
+            nextUpdate: "2026-01-01",
         })
-        const stitch = computeIndicatorPaneStitch([
-            primary,
-            pane({
-                title: { title: "Deaths", titleVariant: "projections" },
-                titleVariant: "projections",
-                descriptionShort: "Deaths short",
-                unit: "deaths",
-                dateRange: "1950-2100",
-            }),
-        ])!
-        const dd = primary.datapageData
-        applyStitchToDatapageData(dd, stitch)
-        expect(dd.dateRange).toBe("1950-2100")
-        expect(dd.descriptionShort).toBeUndefined()
-        expect(dd.unit).toBeUndefined()
-        expect(dd.titleVariant).toBeUndefined()
-        expect(dd.title.titleVariant).toBeUndefined()
     })
 })

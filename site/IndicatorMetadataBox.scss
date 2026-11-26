@@ -3,6 +3,15 @@
     padding: var(--indicator-metadata-box-padding);
     background-color: $gray-5;
     grid-template-columns: repeat(12, 1fr);
+    @include sm-only {
+        --indicator-metadata-box-padding: 16px;
+    }
+}
+
+// The box's place on the page, which its wrapper takes on a page with an
+// indicator switcher
+.indicator-metadata-box,
+.indicator-metadata-box-wrap {
     grid-column-start: 2;
     grid-column-end: span 12;
     margin-top: 16px;
@@ -12,16 +21,43 @@
         margin-right: -8px;
         margin-left: -8px;
         margin-bottom: 16px;
-        --indicator-metadata-box-padding: 16px;
     }
 }
 
 @include md-up {
     .indicator-metadata-box {
         grid-template-columns: repeat(9, 1fr);
+    }
+
+    .indicator-metadata-box,
+    .indicator-metadata-box-wrap {
         grid-column-start: 2;
         grid-column-end: span 9;
     }
+}
+
+.indicator-metadata-box-wrap > .indicator-metadata-box {
+    grid-column: auto;
+    margin: 0;
+}
+
+// The indicator dropdown above the box
+.indicator-metadata-box-wrap__header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+    margin-bottom: 8px;
+}
+
+// A box with an indicator switcher has a pane for each indicator and shows
+// the active one
+.indicator-metadata-box__pane {
+    display: none;
+}
+
+.indicator-metadata-box__pane--active {
+    display: contents;
 }
 
 .indicator-metadata-box .indicator-metadata-box__expander--has-preview {
@@ -109,26 +145,14 @@
     gap: 16px;
 }
 
-// The title and anything beside it (the "dropdown-inside" switcher). A
-// control stays on the title's line while both fit and otherwise moves
-// under the title whole; the title itself is never cut.
+// The title and what follows it. A control moves under the title whole when
+// both don't fit on a line, so the title is never cut short.
 .indicator-metadata-box__heading {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: 8px;
     min-width: 0;
-}
-
-// "dropdown" switcher: the indicator's name is in the menu above the box, so
-// the short description opens the box, on the toggle's line.
-.indicator-metadata-box__header-description {
-    @include body-3-regular;
-    color: $blue-90;
-
-    p {
-        margin: 0;
-    }
 }
 
 .indicator-metadata-box__title {
@@ -155,6 +179,20 @@
     }
 }
 
+.indicator-metadata-box__title--hidden {
+    display: none;
+}
+
+// Takes the place of a hidden title
+.indicator-metadata-box__header-description {
+    @include body-3-regular;
+    color: $blue-90;
+
+    p {
+        margin: 0;
+    }
+}
+
 // The toggle button's hit area covers the whole title row
 .indicator-metadata-box__header {
     position: relative;
@@ -167,9 +205,8 @@
         calc(-1 * var(--indicator-metadata-box-padding)) 0;
 }
 
-// Except for what the switcher puts in the row: its button and the short
-// description, whose links and text stay usable above the hit area
-.indicator-metadata-box__header .indicator-switcher__switch-trigger,
+// What else in the row can be clicked sits above the hit area
+.indicator-metadata-box__header-control,
 .indicator-metadata-box__header-description {
     position: relative;
     z-index: 1;
@@ -431,289 +468,64 @@
     }
 }
 
-// --- Multi-indicator wrapper -----------------------------------------------
-// When a chart has multiple Y-indicators the metadata box is wrapped so an
-// indicator switcher (header row or v-tabs aside; see IndicatorSwitcher.scss)
-// can sit outside the box itself. The wrapper takes over the box's grid
-// placement + margins; the box inside is reset to a plain block.
-
-.indicator-metadata-box-wrap {
-    position: relative;
-    grid-column-start: 2;
-    grid-column-end: span 12;
-    margin-top: 16px;
-    margin-right: -6px;
-    margin-bottom: 48px;
-    @include sm-only {
-        margin-right: -8px;
-        margin-left: -8px;
-        margin-bottom: 32px;
-    }
-}
-
-@include md-up {
-    .indicator-metadata-box-wrap {
-        grid-column-start: 2;
-        grid-column-end: span 9;
-    }
-}
-
-.indicator-metadata-box-wrap .indicator-metadata-box {
-    margin: 0;
-    grid-column: auto;
-}
-
-.indicator-metadata-box-wrap__header {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px 12px;
-    margin-bottom: 8px;
-}
-
-// h-pills responsive swap: pills from the small breakpoint up, the dropdown
-// select on its own full-width row below it. Both are SSR'd; CSS picks one
-// per viewport (display: none), so there's no post-hydration flash.
-.indicator-metadata-box-wrap--h-pills:not(
-    .indicator-metadata-box-wrap--stitched
-) {
-    .indicator-switcher__h-pills {
-        @include sm-only {
-            display: none;
-        }
-    }
-
-    .indicator-metadata-box-wrap__mobile-dropdown {
-        display: none;
-
-        @include sm-only {
-            display: block;
-            // The header is flex-wrap; a 100% basis pushes the dropdown onto
-            // its own row beneath "About this data (N indicators)".
-            flex-basis: 100%;
-        }
-
-        .indicator-switcher__dropdown-trigger {
-            @include sm-only {
-                width: 100%;
-                justify-content: space-between;
-            }
-        }
-    }
-
-    // While the dropdown is the control, its trigger already shows the active
-    // indicator's title — hide the in-box title line like the dropdown
-    // variant does (it stays in the DOM for raw-HTML consumers).
-    @include sm-only {
-        .indicator-metadata-box__title {
-            display: none;
-        }
-    }
-}
-
-// Stitched multi-indicator mode: one pane (headed "About this data") whose
-// expander preview opens with the indicator list, above the shared WYSK.
-// The preview is a prose block, so type and paragraph spacing come from
-// there; the list only adds entry structure.
-.indicator-metadata-box__stitched-list {
-    // The prose rules zero the margin of a last-child <p>/<ol>, which would
-    // butt the list straight onto the WYSK's first bullet; match the gap
-    // between WYSK bullets instead.
-    margin-bottom: 8px;
-
-    li {
-        margin-bottom: 10px;
-
-        &::marker {
-            color: $blue-50;
-        }
-    }
-}
-
-// "+N more indicators" under a folded numbered list, aligned with the
-// entries' text (the list's own left padding).
-.indicator-metadata-box__stitched-list-more {
-    margin-top: -4px;
-    padding-left: 1.5em;
-    color: $blue-50;
-}
-
-// Once the box is open the note becomes a button that reveals the rest:
-// same muted text with a light underline, no button chrome.
-.indicator-metadata-box__stitched-list-more-button {
-    appearance: none;
-    background: none;
-    border: 0;
-    padding: 0;
-    font: inherit;
-    color: inherit;
-    cursor: pointer;
-    text-decoration: underline;
-    text-decoration-color: $blue-30;
-    text-underline-offset: 3px;
-
-    &:hover {
-        color: $blue-90;
-        text-decoration-color: currentColor;
-    }
-}
-
-// Stitched multi-indicator mode, default placement: the indicator list in
-// Data details, under the shared unit and dates, in the key data's type.
-.indicator-metadata-box__details-list {
+// What differs between the indicators of a stitched pane
+.indicator-metadata-box__indicator-list {
     margin-top: 16px;
 
     ul {
-        list-style: none;
         margin: 0;
         padding: 0;
+        list-style: none;
     }
 
     li {
         @include body-3-regular;
-        color: $blue-90;
         margin-bottom: 12px;
-    }
-
-    p {
-        margin: 0;
+        color: $blue-90;
     }
 
     a {
         @include owid-link-90;
     }
-
-    // Bold, in the text colour, underlined.
-    .indicator-metadata-box__stitched-list-more-button {
-        @include body-3-bold;
-        color: $blue-90;
-        line-height: normal;
-        text-decoration-color: currentColor;
-    }
 }
 
-// 16px regular in Blue 60, 12px above the
-// first entry; entries 12px apart; title then description 4px below it.
-.indicator-metadata-box__details-list-heading {
+.indicator-metadata-box__indicator-list-heading {
     @include body-2-regular;
-    line-height: 21px;
-    color: $blue-60;
     margin: 0 0 12px;
+    color: $blue-60;
+    line-height: 21px;
 }
 
-.indicator-metadata-box__details-list-variant {
-    font-weight: normal;
-}
-
-.indicator-metadata-box__details-list-title {
+.indicator-metadata-box__indicator-list-title {
     @include body-3-bold;
-    line-height: normal;
     display: block;
+    line-height: normal;
 }
 
-.indicator-metadata-box__details-list-description,
-.indicator-metadata-box__details-list-facts,
-.indicator-metadata-box__details-list-note {
+.indicator-metadata-box__indicator-list-text {
     display: block;
     margin-top: 4px;
 }
 
-.indicator-metadata-box__details-list-facts {
+.indicator-metadata-box__indicator-list-key-data {
     display: flex;
     flex-wrap: wrap;
     gap: 0 16px;
+    margin-top: 4px;
 }
 
-.indicator-metadata-box__details-list-key {
+.indicator-metadata-box__indicator-list-key {
     color: $blue-50;
 }
 
-// A per-indicator note (its own short WYSK) reads exactly like the
-// description above it, with no extra type style.
-
-.indicator-metadata-box__stitched-list-title {
-    font-weight: 700;
-    display: block;
-}
-
-.indicator-metadata-box__stitched-list-row {
-    display: block;
-    margin-top: 1px;
-}
-
-.indicator-metadata-box__stitched-list-key {
-    @include note-13-medium;
-    color: $blue-50;
-}
-
-.indicator-metadata-box__stitched-list-note {
-    @include note-13-medium;
-    color: $blue-60;
-    font-style: italic;
-    margin-top: 2px;
-}
-
-// h-tabs: the tab row sits flush with the box top so the active tab can
-// visually fuse into the box below.
-.indicator-metadata-box-wrap--h-tabs .indicator-metadata-box-wrap__header {
-    margin-bottom: 0;
-    align-items: flex-end;
-}
-
-// Single column by default; flex row for the v-tabs variant (the aside
-// stacks above the box on small screens).
-.indicator-metadata-box-wrap--v-tabs .indicator-metadata-box-wrap__main {
-    display: flex;
-    align-items: stretch;
-
-    @include sm-only {
-        flex-direction: column;
-    }
-}
-
-// --- Per-indicator panes ----------------------------------------------------
-// All indicators' metadata sit in the rendered HTML at the same time — only
-// the active one is visible to the user, while the others are available to
-// AI agents / unmodified-HTML consumers on a plain GET.
-
-.indicator-metadata-box__pane {
-    display: none;
-}
-
-.indicator-metadata-box__pane--active {
-    display: contents;
-}
-
-// Dropdown variant: the active indicator's title already renders inside the
-// dropdown trigger, so hide the in-box title line (it stays in the DOM for
-// raw-HTML consumers).
-.indicator-metadata-box-wrap--dropdown .indicator-metadata-box__title {
-    display: none;
-}
-
-// Per-indicator link/citation rows of a shared data source.
-.source-key-data--variant {
-    .source-key-data__variant-row {
-        margin-bottom: 8px;
-    }
-    .source-key-data__variant-row:last-child {
-        margin-bottom: 0;
-    }
-}
-
-// Scatter plots (?auxiliary=mixed|line): the bubble-size / colour line on
-// switcher pages, between the "About this data" header and the box.
-.indicator-metadata-box__auxiliary {
-    margin-top: 0;
-    margin-bottom: 8px;
-}
-
-// Stitched / single-pane scatter pages: the size/colour line as the last
-// paragraph of the WYSK. The surrounding prose block sets the typography.
-.indicator-metadata-box__auxiliary-prose {
-    margin-top: 8px;
-    margin-bottom: 0;
-    a {
-        @include owid-link-90;
-    }
+.indicator-metadata-box__indicator-list-toggle {
+    @include body-3-bold;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: $blue-90;
+    line-height: normal;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
 }

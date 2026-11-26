@@ -22,11 +22,10 @@ import {
     getRelatedResearchAndWritingForVariables,
 } from "../db/model/Post.js"
 import {
-    AdditionalIndicator,
-    AuxiliaryIndicatorMode,
-    AUXILIARY_INDICATOR_MODES,
-    DEFAULT_AUXILIARY_INDICATOR_MODE,
-    StitchedIndicatorListEntry,
+    DataPageDataV2,
+    FaqDictionary,
+    IndicatorPaneData,
+    MultiIndicatorMetadata,
     GrapherInterface,
     DimensionProperty,
     OwidVariableWithSource,
@@ -48,7 +47,6 @@ import {
     getDatapageIndicatorId,
     getOwnersForVariables,
     getVariableSliceDimensions,
-    getAuxiliaryIndicatorLinks,
 } from "../db/model/Variable.js"
 import {
     fetchAndParseFaqs,
@@ -69,18 +67,61 @@ import { getAllMultiDimDataPageSlugs } from "../db/model/MultiDimDataPage.js"
 import pMap from "p-map"
 import { stringify } from "safe-stable-stringify"
 import { GrapherArchivalManifest } from "../serverUtils/archivalUtils.js"
+import { stitchIndicatorPanes } from "./stitchIndicatorPanes.js"
 import {
-    applyStitchToDatapageData,
-    computeIndicatorPaneStitch,
-} from "./stitchIndicatorPanes.js"
-import {
-    IndicatorPanePlan,
-    getAuxiliaryDimensions,
+    PlannedIndicatorPane,
     hasMultipleIndicators,
     planIndicatorPanes,
 } from "./indicatorPanePlan.js"
-import { shouldHideStitchedIndicatorList } from "./indicatorSliceDimension.js"
+import { shouldShowIndicatorList } from "./stitchedIndicatorList.js"
 import { getLatestArchivedChartPageVersionsIfEnabled } from "../db/model/ArchivedChartVersion.js"
+
+/** Set from the query string of the admin's preview routes */
+export interface DatapageRenderOptions {
+    /** Render a data page even if the chart isn't one by the usual rules */
+    forceDatapage?: boolean
+    /** Give each indicator its own pane even where they could be stitched */
+    forceSwitcher?: boolean
+}
+
+export const parseDatapageQaParams = (
+    query: Record<string, unknown>
+): DatapageRenderOptions => ({
+    forceDatapage: query.forceDatapage === "true",
+    forceSwitcher: query.forceSwitcher === "true",
+})
+
+/**
+ * The data page's primary indicator, or undefined if the chart is to render
+ * as a grapher page.
+ *
+ * A grapher page needs no variable metadata. So a chart that is a data page
+ * only for having several indicators falls back to one when that metadata
+ * fails to load (the data API is down, the variable was deleted), where
+ * throwing would fail the whole bake. A chart with a `datapages` row throws.
+ */
+async function getDatapageVariable(
+    knex: db.KnexReadonlyTransaction,
+    grapher: GrapherInterface,
+    forceDatapage: boolean
+): ReturnType<typeof getVariableOfDatapageIfApplicable> {
+    try {
+        return await getVariableOfDatapageIfApplicable(knex, grapher, {
+            forceDatapage,
+        })
+    } catch (error) {
+        if (!forceDatapage) throw error
+        const hasDatapagesRow =
+            (await getDatapageIndicatorId(knex, grapher)) !== undefined
+        if (hasDatapagesRow) throw error
+        await logErrorAndMaybeCaptureInSentry(
+            new Error(
+                `Data page error loading primary indicator for ${grapher.slug}, baking as grapher page: ${error}`
+            )
+        )
+        return undefined
+    }
+}
 
 const renderDatapageIfApplicable = async (
     grapher: GrapherInterface,
@@ -90,42 +131,19 @@ const renderDatapageIfApplicable = async (
         imageMetadataDictionary,
         archiveContextDictionary,
         teamPagePhotos,
-        forceDatapage,
+        forceDatapage = false,
         forceSwitcher,
-        auxiliaryMode,
     }: {
         imageMetadataDictionary?: Record<string, DbEnrichedImage>
         archiveContextDictionary?: Record<number, ArchiveContext | undefined>
         teamPagePhotos?: TeamPagePhoto[]
     } & DatapageRenderOptions = {}
 ) => {
-    let variable
-    try {
-        variable = await getVariableOfDatapageIfApplicable(knex, grapher, {
-            forceDatapage,
-        })
-    } catch (error) {
-        // Charts that are only datapages because shouldBakeAsDatapage forces
-        // them had no data-API dependency at bake time before. If
-        // the primary indicator's metadata fetch fails (Data API/S3 outage,
-        // deleted variable), fall back to baking the plain grapher page for
-        // this cycle rather than failing the whole charts bake / archival run
-        // — the fetch is awaited uncaught by SiteBaker's pMap and by the
-        // archival loop. Charts with a real `datapages` row keep failing
-        // loudly, exactly as on master. (Checked only on this failure path,
-        // so a normal bake doesn't pay for a second `datapages` lookup; a DB
-        // error here propagates, which is the loud failure we want.)
-        if (!forceDatapage) throw error
-        const hasDatapagesRow =
-            (await getDatapageIndicatorId(knex, grapher)) !== undefined
-        if (hasDatapagesRow) throw error
-        await logErrorAndMaybeCaptureInSentry(
-            new Error(
-                `Data page error loading primary indicator for forced datapage ${grapher.slug}, baking as grapher page: ${error}`
-            )
-        )
-        return undefined
-    }
+    const variable = await getDatapageVariable(
+        knex,
+        grapher,
+        forceDatapage || hasMultipleIndicators(grapher)
+    )
 
     if (!variable) return undefined
 
@@ -147,9 +165,7 @@ const renderDatapageIfApplicable = async (
             pageGrapher: grapher,
             imageMetadataDictionary,
             archiveContextDictionary,
-            forceDatapage,
             forceSwitcher,
-            auxiliaryMode,
             teamPagePhotos,
         },
         knex
@@ -157,26 +173,7 @@ const renderDatapageIfApplicable = async (
 }
 
 /**
- * Whether this chart should be forced to bake as a data page even though the
- * `datapages` rules don't make it one: charts with two or more indicators
- * (multi-indicator charts, and scatter plots with an X / size / colour
- * indicator), which get one metadata pane per indicator. Charts the rules
- * already cover bake as data pages regardless.
- *
- * Single-indicator charts whose indicator has no descriptive metadata stay
- * grapher pages for now; returning true for every chart with a slug here is
- * the step that retires grapher pages entirely.
- */
-export const shouldBakeAsDatapage = (grapher: GrapherInterface): boolean =>
-    !!grapher.slug && hasMultipleIndicators(grapher)
-
-/**
  * Render a datapage if available, otherwise render a grapher page.
- *
- * Charts for which `shouldBakeAsDatapage` is true are forced to bake as
- * data pages — otherwise a grapher that wouldn't normally qualify (e.g. a
- * multi-indicator chart without a primary datapage indicator) would fall
- * through to `renderGrapherPage` and never see the metadata-box treatment.
  */
 export const renderDataPageOrGrapherPage = async (
     grapher: GrapherInterface,
@@ -191,12 +188,9 @@ export const renderDataPageOrGrapherPage = async (
         teamPagePhotos?: TeamPagePhoto[]
     } = {}
 ): Promise<string> => {
-    const forceDatapage = shouldBakeAsDatapage(grapher)
-
     const datapage = await renderDatapageIfApplicable(grapher, false, knex, {
         imageMetadataDictionary,
         archiveContextDictionary,
-        forceDatapage,
         teamPagePhotos,
     })
     if (datapage) return datapage
@@ -208,119 +202,142 @@ export const renderDataPageOrGrapherPage = async (
     })
 }
 
-type FaqResolver = (
-    metadata: OwidVariableWithSource,
-    variableId: number
-) => Promise<FaqEntryData>
+type LoadedIndicatorPane = IndicatorPaneData & { variableId: number }
 
-/**
- * Resolves a variable's FAQ blocks, caching parsed FAQ gdocs across calls:
- * the panes of a multi-indicator chart usually come from one dataset and
- * share their FAQ documents, so without the cache each pane re-fetches and
- * re-parses the same gdoc.
- */
-function makeFaqResolver(
-    knex: db.KnexReadonlyTransaction,
-    isPreviewing: boolean
-): FaqResolver {
-    type FaqGdocMap = Awaited<ReturnType<typeof fetchAndParseFaqs>>
-    const cache = new Map<string, FaqGdocMap[string] | undefined>()
-    const fetchCached = async (ids: string[]): Promise<FaqGdocMap> => {
-        const missing = ids.filter((id) => !cache.has(id))
-        if (missing.length > 0) {
-            const fetched = await fetchAndParseFaqs(knex, missing, {
-                isPreviewing,
-            })
-            // Also cache ids that came back empty so they aren't re-fetched.
-            for (const id of missing) cache.set(id, fetched[id])
-        }
-        const result: FaqGdocMap = {}
-        for (const id of ids) {
-            const gdoc = cache.get(id)
-            if (gdoc !== undefined) result[id] = gdoc
-        }
-        return result
-    }
-    return async (metadata, variableId) => {
-        const faqDocIds = _.compact(
-            _.uniq(metadata.presentation?.faqs?.map((faq) => faq.gdocId))
-        )
-        const { resolvedFaqs, errors } = resolveFaqsForVariable(
-            await fetchCached(faqDocIds),
-            metadata
-        )
-        for (const error of errors)
-            await logErrorAndMaybeCaptureInSentry(
-                new Error(
-                    `Data page error in finding FAQs for variable ${variableId}: ${error.error}`
-                )
+const getFaqGdocIds = (variables: OwidVariableWithSource[]): string[] =>
+    _.compact(
+        _.uniq(
+            variables.flatMap((variable) =>
+                variable.presentation?.faqs?.map((faq) => faq.gdocId)
             )
-        return {
-            faqs: resolvedFaqs?.flatMap((faq) => faq.enrichedFaq.content) ?? [],
-        }
+        )
+    )
+
+async function getFaqEntries(
+    faqGdocs: Record<string, FaqDictionary>,
+    variableMetadata: OwidVariableWithSource
+): Promise<FaqEntryData> {
+    const { resolvedFaqs, errors } = resolveFaqsForVariable(
+        faqGdocs,
+        variableMetadata
+    )
+    for (const error of errors) {
+        await logErrorAndMaybeCaptureInSentry(
+            new Error(
+                `Data page error in finding FAQs for variable ${variableMetadata.id}: ${error.error}`
+            )
+        )
+    }
+    return {
+        faqs: resolvedFaqs?.flatMap((faq) => faq.enrichedFaq.content) ?? [],
     }
 }
 
 /**
- * Loads one non-primary pane. Returns undefined (and logs) on failure, so one
- * broken indicator (a deleted variable, a transient S3 failure) can't take
- * down the whole page bake — the chart baked fine without it before.
+ * The metadata of an indicator that gets a pane beside the primary one's.
+ * Returns undefined when it fails to load, which leaves that pane out where
+ * throwing would lose the page.
  */
-async function loadAdditionalIndicator(
-    knex: db.KnexReadonlyTransaction,
-    {
-        variableId,
-        grapher,
-        panePlan,
-        resolveFaqs,
-    }: {
-        variableId: number
-        grapher: GrapherInterface
-        panePlan: IndicatorPanePlan
-        resolveFaqs: FaqResolver
-    }
-): Promise<AdditionalIndicator | undefined> {
+async function getPaneVariableMetadata(
+    variableId: number,
+    grapher: GrapherInterface
+): Promise<OwidVariableWithSource | undefined> {
     try {
-        // noCache to match how the primary indicator's metadata is fetched
-        // (getVariableOfDatapageIfApplicable), so a bake always reflects the
-        // latest variable metadata.
-        const metadata = await getVariableMetadata(variableId, {
-            noCache: true,
-        })
-        const datapageData = getDatapageDataV2(metadata, grapher, {
-            indicatorTitleOverride: panePlan.indicatorTitleOverrideFor(
-                variableId,
-                metadata
-            ),
-            chartDimensionName: panePlan.chartDimensionNameFor(variableId),
-        })
-        // "Managed by" is dataset-level: each pane shows the owners of its
-        // own indicator's dataset.
-        datapageData.owners = await getOwnersForVariables(knex, [variableId])
-        // Without its own primary topic, the "part of the following
-        // publication" segment of the pane's page citation would disappear.
-        datapageData.primaryTopic = await getPrimaryTopic(
-            knex,
-            datapageData.topicTagsLinks
-        )
-        // Only the PRIMARY indicator's chartConfig is read client-side, and at
-        // ~5KB per indicator these dominated the hydration props blob on
-        // many-indicator charts (~150KB of 204KB on the 31-indicator deaths
-        // page). Strip it before serialization.
-        datapageData.chartConfig = {}
-        datapageData.auxiliaryRole = panePlan.auxiliaryRoleFor(variableId)
-        return {
-            datapageData,
-            faqEntries: await resolveFaqs(metadata, variableId),
-            variableId,
-        }
+        // Not cached, like the primary indicator's
+        return await getVariableMetadata(variableId, { noCache: true })
     } catch (error) {
         await logErrorAndMaybeCaptureInSentry(
             new Error(
-                `Data page error loading additional indicator ${variableId} for chart ${grapher.slug}: ${error}`
+                `Data page error loading indicator ${variableId} for chart ${grapher.slug}: ${error}`
             )
         )
         return undefined
+    }
+}
+
+async function loadAdditionalPane(
+    knex: db.KnexReadonlyTransaction,
+    {
+        pane,
+        variableMetadata,
+        grapher,
+        faqGdocs,
+    }: {
+        pane: PlannedIndicatorPane
+        variableMetadata: OwidVariableWithSource
+        grapher: GrapherInterface
+        faqGdocs: Record<string, FaqDictionary>
+    }
+): Promise<LoadedIndicatorPane> {
+    const datapageData = getDatapageDataV2(variableMetadata, grapher, pane)
+    return {
+        variableId: pane.variableId,
+        datapageData: {
+            ...datapageData,
+            // The browser only reads the primary pane's
+            chartConfig: {},
+            owners: await getOwnersForVariables(knex, [pane.variableId]),
+            primaryTopic: await getPrimaryTopic(
+                knex,
+                datapageData.topicTagsLinks
+            ),
+        },
+        faqEntries: await getFaqEntries(faqGdocs, variableMetadata),
+    }
+}
+
+/**
+ * Stitches the panes into one where they agree, and otherwise keeps one for
+ * each indicator.
+ */
+async function arrangeIndicatorPanes(
+    knex: db.KnexReadonlyTransaction,
+    panes: LoadedIndicatorPane[],
+    { forceSwitcher }: Pick<DatapageRenderOptions, "forceSwitcher">
+): Promise<{
+    datapageData: DataPageDataV2
+    multiIndicator?: MultiIndicatorMetadata
+}> {
+    const [primaryPane, ...additionalPanes] = panes
+    if (additionalPanes.length === 0)
+        return { datapageData: primaryPane.datapageData }
+
+    const stitchedPanes = forceSwitcher
+        ? undefined
+        : stitchIndicatorPanes(panes)
+    if (!stitchedPanes)
+        return {
+            datapageData: primaryPane.datapageData,
+            multiIndicator: {
+                type: "switcher",
+                additionalPanes: additionalPanes.map(
+                    ({ datapageData, faqEntries }) => ({
+                        datapageData,
+                        faqEntries,
+                    })
+                ),
+            },
+        }
+
+    const { datapageData, indicators, sourceLinksByIndicator } = stitchedPanes
+    const sliceDimensions = await getVariableSliceDimensions(
+        knex,
+        panes.map((pane) => pane.variableId)
+    )
+    return {
+        datapageData,
+        multiIndicator: {
+            type: "stitched",
+            indicators,
+            showIndicatorList: shouldShowIndicatorList(
+                indicators,
+                panes.map((pane) => sliceDimensions.get(pane.variableId))
+            ),
+            sourceLinksByIndicator:
+                sourceLinksByIndicator.length > 0
+                    ? sourceLinksByIndicator
+                    : undefined,
+        },
     }
 }
 
@@ -334,7 +351,6 @@ export async function renderDataPageV2(
         imageMetadataDictionary = {},
         archiveContextDictionary,
         forceSwitcher,
-        auxiliaryMode = DEFAULT_AUXILIARY_INDICATOR_MODE,
         teamPagePhotos,
     }: {
         variableId: number
@@ -345,7 +361,7 @@ export async function renderDataPageV2(
         imageMetadataDictionary?: Record<string, ImageMetadata>
         archiveContextDictionary?: Record<number, ArchiveContext | undefined>
         teamPagePhotos?: TeamPagePhoto[]
-    } & DatapageRenderOptions,
+    } & Pick<DatapageRenderOptions, "forceSwitcher">,
     knex: db.KnexReadonlyTransaction
 ) {
     // Only merge the grapher config on the indicator if the caller tells us to do so -
@@ -358,9 +374,6 @@ export async function renderDataPageV2(
               pageGrapher ?? {}
           )
         : (pageGrapher ?? {})
-
-    const resolveFaqs = makeFaqResolver(knex, isPreviewing)
-    const faqEntries = await resolveFaqs(variableMetadata, variableId)
 
     // If we are rendering this in the context of an indicator page preview or similar,
     // then the chart config might be entirely empty. Make sure that dimensions is
@@ -376,78 +389,75 @@ export async function renderDataPageV2(
     )
     const distribution = await getVariableDistribution(knex, variableIds)
 
-    const panePlan = planIndicatorPanes(grapher, {
-        primaryVariableId: variableId,
-        auxiliaryMode,
-        auxiliaryLinks: await getAuxiliaryIndicatorLinks(
-            knex,
-            getAuxiliaryDimensions(grapher).map((d) => d.variableId)
-        ),
-    })
-    // Only a MULTI-indicator chart's panes need per-indicator titles; on a
-    // single-indicator chart the per-indicator override would replace the
-    // curated chart title in the box heading, the citations, and (when the
-    // config has no explicit title) <title>/og:title with the variable's
-    // display/database name, so those keep the usual title resolution (which
-    // falls back to `grapherConfig.title`).
-    const isMultiIndicator = panePlan.additionalPaneVariableIds.length > 0
+    const plannedPanes = planIndicatorPanes(grapher)
+    const additionalPlannedPanes = plannedPanes.filter(
+        (pane) => pane.variableId !== variableId
+    )
+    const additionalVariableMetadata = await pMap(
+        additionalPlannedPanes,
+        (pane) => getPaneVariableMetadata(pane.variableId, grapher),
+        { concurrency: 5 }
+    )
 
-    const datapageData = getDatapageDataV2(
+    // Indicators of one dataset tend to share their FAQ documents, so these
+    // are fetched once for all the panes
+    const faqGdocs = await fetchAndParseFaqs(
+        knex,
+        getFaqGdocIds([
+            variableMetadata,
+            ..._.compact(additionalVariableMetadata),
+        ]),
+        { isPreviewing }
+    )
+    const faqEntries = await getFaqEntries(faqGdocs, variableMetadata)
+
+    const isMultiIndicator = additionalPlannedPanes.length > 0
+    const primaryPaneData = getDatapageDataV2(
         variableMetadata,
         grapher,
         isMultiIndicator
-            ? {
-                  indicatorTitleOverride: panePlan.indicatorTitleOverrideFor(
-                      variableId,
-                      variableMetadata
-                  ),
-                  chartDimensionName:
-                      panePlan.chartDimensionNameFor(variableId),
-              }
+            ? (plannedPanes.find((pane) => pane.variableId === variableId) ??
+                  {})
             : undefined
     )
-
-    // The other panes' metadata (empty for a single-indicator chart).
-    let additionalIndicators: AdditionalIndicator[] | undefined = _.compact(
-        await pMap(
-            panePlan.additionalPaneVariableIds,
-            (id) =>
-                loadAdditionalIndicator(knex, {
-                    variableId: id,
-                    grapher,
-                    panePlan,
-                    resolveFaqs,
-                }),
-            { concurrency: 5 }
-        )
-    )
-    if (!additionalIndicators.length) additionalIndicators = undefined
-
-    datapageData.primaryTopic = await getPrimaryTopic(
+    primaryPaneData.primaryTopic = await getPrimaryTopic(
         knex,
-        datapageData.topicTagsLinks
+        primaryPaneData.topicTagsLinks
+    )
+    // Each pane shows who manages its own indicator's dataset
+    primaryPaneData.owners = await getOwnersForVariables(knex, [variableId])
+
+    const additionalPanes = await pMap(
+        additionalPlannedPanes.flatMap((pane, i) => {
+            const variableMetadata = additionalVariableMetadata[i]
+            return variableMetadata ? [{ pane, variableMetadata }] : []
+        }),
+        ({ pane, variableMetadata }) =>
+            loadAdditionalPane(knex, {
+                pane,
+                variableMetadata,
+                grapher,
+                faqGdocs,
+            }),
+        { concurrency: 5 }
+    )
+
+    const { datapageData, multiIndicator } = await arrangeIndicatorPanes(
+        knex,
+        [
+            { variableId, datapageData: primaryPaneData, faqEntries },
+            ...additionalPanes,
+        ],
+        { forceSwitcher }
     )
 
     let imageMetadata: Record<string, ImageMetadata> = {}
 
-    // "Managed by" is a dataset-level field (datasets.owners). Each pane
-    // shows the owners of its own indicator's dataset: the primary
-    // indicator's owners here, the additional indicators' owners in
-    // loadAdditionalIndicator. (One pane per indicator replaces the old
-    // "all Y-indicators, first dataset's owners" lookup, which could show the
-    // owners of the wrong dataset.)
-    datapageData.owners = await getOwnersForVariables(knex, [variableId])
-
-    // Author links for the Byline are resolved once, across every pane's
-    // owners, and attached to the primary datapageData (that's what the
-    // page's AttachmentsContext reads).
+    // The managers of every pane's dataset, whose author pages the box links
     const ownerNames = _.uniq(
-        [
-            ...(datapageData.owners ?? []),
-            ...(additionalIndicators ?? []).flatMap(
-                (ind) => ind.datapageData.owners ?? []
-            ),
-        ].flatMap((dataset) => dataset.owners)
+        [datapageData, ...additionalPanes.map((pane) => pane.datapageData)]
+            .flatMap((paneData) => paneData.owners ?? [])
+            .flatMap((dataset) => dataset.owners)
     )
     const archiveContext =
         grapher.id !== undefined
@@ -463,35 +473,6 @@ export async function renderDataPageV2(
             skipTeamPagePhotos: archiveContext?.type === "archive-page",
         }
     )
-
-    // When every pane of a multi-indicator chart shares the same substantive
-    // metadata, stitch the panes into a single pane + a templated
-    // indicator list — see computeIndicatorPaneStitch for the rules.
-    let stitchedIndicatorList: StitchedIndicatorListEntry[] | undefined
-    let hideStitchedIndicatorList: boolean | undefined
-    if (additionalIndicators?.length && !forceSwitcher) {
-        const panes: AdditionalIndicator[] = [
-            { datapageData, faqEntries, variableId },
-            ...additionalIndicators,
-        ]
-        const stitch = computeIndicatorPaneStitch(panes)
-        if (stitch) {
-            stitchedIndicatorList = stitch.list
-            additionalIndicators = undefined
-            applyStitchToDatapageData(datapageData, stitch)
-            // One measure sliced by age/sex/year: the list is noise, drop it.
-            const sliceDims = await getVariableSliceDimensions(
-                knex,
-                _.compact(panes.map((p) => p.variableId))
-            )
-            hideStitchedIndicatorList = shouldHideStitchedIndicatorList(
-                stitch,
-                panes.map((p) =>
-                    p.variableId ? sliceDims.get(p.variableId) : undefined
-                )
-            ).hide
-        }
-    }
 
     // If we're baking to an archival page, then we want to skip a bunch of sections
     // where the links would break
@@ -542,10 +523,7 @@ export async function renderDataPageV2(
         <DataPageV2
             grapher={grapher}
             datapageData={datapageData}
-            additionalIndicators={additionalIndicators}
-            stitchedIndicatorList={stitchedIndicatorList}
-            hideStitchedIndicatorList={hideStitchedIndicatorList}
-            auxiliaryIndicators={panePlan.auxiliaryIndicators}
+            multiIndicator={multiIndicator}
             canonicalUrl={canonicalUrl}
             baseUrl={BAKED_BASE_URL}
             isPreviewing={isPreviewing}
@@ -567,18 +545,11 @@ export const renderPreviewDataPageOrGrapherPage = async (
     knex: db.KnexReadonlyTransaction,
     options?: DatapageRenderOptions
 ) => {
-    // Match renderDataPageOrGrapherPage: charts for which
-    // shouldBakeAsDatapage is true preview as data pages too.
-    const forceDatapage =
-        options?.forceDatapage || shouldBakeAsDatapage(grapher)
-
     const archiveContextDictionary =
         await getLatestArchivedChartPageVersionsIfEnabled(knex)
     const datapage = await renderDatapageIfApplicable(grapher, true, knex, {
         archiveContextDictionary,
-        forceDatapage,
-        forceSwitcher: options?.forceSwitcher,
-        auxiliaryMode: options?.auxiliaryMode,
+        ...options,
     })
     if (datapage) return datapage
 
@@ -804,29 +775,3 @@ export const bakeAllChangedGrapherPagesAndDeleteRemovedGraphers = async (
         progressBar.tick({ name: `✅ Deleted old graphers` })
     })
 }
-
-/**
- * Options for rendering a chart's data page. The last three are QA knobs on
- * the preview routes (`?forceDatapage=true`, `?forceSwitcher=true`,
- * `?auxiliary=mixed|line|panes`) — see parseDatapageQaParams.
- */
-export interface DatapageRenderOptions {
-    /**
-     * Render as a data page with the redesigned metadata box even if the
-     * chart doesn't qualify by the usual rules.
-     */
-    forceDatapage?: boolean
-    /** Skip pane stitching, so a stitched page's switcher can be inspected. */
-    forceSwitcher?: boolean
-    /** How a scatter's size and colour indicators are documented. */
-    auxiliaryMode?: AuxiliaryIndicatorMode
-}
-
-/** Reads the data-page QA params from a preview route's query string. */
-export const parseDatapageQaParams = (
-    query: Record<string, unknown>
-): DatapageRenderOptions => ({
-    forceDatapage: query.forceDatapage === "true",
-    forceSwitcher: query.forceSwitcher === "true",
-    auxiliaryMode: AUXILIARY_INDICATOR_MODES.find((m) => m === query.auxiliary),
-})

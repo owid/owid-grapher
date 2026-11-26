@@ -33,9 +33,7 @@ import { IFrameDetector } from "./IframeDetector.js"
 import { DebugProvider } from "./gdocs/DebugProvider.js"
 import { Html } from "./Html.js"
 import {
-    AdditionalIndicator,
-    StitchedIndicatorListEntry,
-    AuxiliaryIndicator,
+    MultiIndicatorMetadata,
     ArchiveContext,
     Distribution,
 } from "@ourworldindata/types"
@@ -46,10 +44,7 @@ import { JsonLdDataPage } from "./jsonLd.js"
 export const DataPageV2 = (props: {
     grapher: GrapherInterface | undefined
     datapageData: DataPageDataV2
-    additionalIndicators?: AdditionalIndicator[]
-    stitchedIndicatorList?: StitchedIndicatorListEntry[]
-    hideStitchedIndicatorList?: boolean
-    auxiliaryIndicators?: AuxiliaryIndicator[]
+    multiIndicator?: MultiIndicatorMetadata
     baseUrl: string
     canonicalUrl: string
     isPreviewing: boolean
@@ -62,10 +57,7 @@ export const DataPageV2 = (props: {
     const {
         grapher,
         datapageData,
-        additionalIndicators,
-        stitchedIndicatorList,
-        hideStitchedIndicatorList,
-        auxiliaryIndicators,
+        multiIndicator,
         baseUrl,
         canonicalUrl,
         isPreviewing,
@@ -181,10 +173,7 @@ export const DataPageV2 = (props: {
                             __html: `window._OWID_DATAPAGEV2_PROPS = ${serializeJSONForInlineScript(
                                 {
                                     datapageData,
-                                    additionalIndicators,
-                                    stitchedIndicatorList,
-                                    hideStitchedIndicatorList,
-                                    auxiliaryIndicators,
+                                    multiIndicator,
                                     faqEntries,
                                     canonicalUrl,
                                     imageMetadata,
@@ -197,12 +186,7 @@ export const DataPageV2 = (props: {
                         <DebugProvider debug={isPreviewing}>
                             <DataPageV2Content
                                 datapageData={datapageData}
-                                additionalIndicators={additionalIndicators}
-                                stitchedIndicatorList={stitchedIndicatorList}
-                                hideStitchedIndicatorList={
-                                    hideStitchedIndicatorList
-                                }
-                                auxiliaryIndicators={auxiliaryIndicators}
+                                multiIndicator={multiIndicator}
                                 grapherConfig={grapherConfig}
                                 imageMetadata={imageMetadata}
                                 isPreviewing={isPreviewing}

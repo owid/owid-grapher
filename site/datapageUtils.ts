@@ -160,14 +160,11 @@ export function getProducerDocsLabel(
     return producer
 }
 
-/**
- * "Title – variant", unless the variant is empty or already part of the
- * title. Shared by the switcher's pill labels and the stitched list.
- */
+/** "Title – variant", unless the title already says the variant. */
 export function appendTitleVariant(
     title: string,
-    variant: string | undefined
+    titleVariant: string | undefined
 ): string {
-    const v = variant?.trim()
-    return v && !title.includes(v) ? `${title} – ${v}` : title
+    const variant = titleVariant?.trim()
+    return variant && !title.includes(variant) ? `${title} – ${variant}` : title
 }

@@ -1,29 +1,15 @@
 import { useQueryParamChoice } from "./useQueryParamChoice.js"
 
-// Feature flag for which indicator-switcher UI to render on multi-indicator
-// data pages. Override per-request via the URL query string,
-// e.g. `?switcher=h-tabs` or `?switcher=v-tabs`. The two dropdowns follow
-// the November design mocks: "dropdown" puts the indicator menu above the
-// box, "dropdown-inside" puts a "Switch indicator" button beside the pane
-// title inside it.
-export type SwitcherVariant =
-    | "dropdown"
-    | "dropdown-inside"
-    | "h-tabs"
-    | "v-tabs"
-    | "h-pills"
+const SWITCHER_VARIANTS = ["dropdown-inside", "dropdown"] as const
 
-const ALL_SWITCHER_VARIANTS: readonly SwitcherVariant[] = [
-    "dropdown",
-    "dropdown-inside",
-    "h-tabs",
-    "v-tabs",
-    "h-pills",
-]
+/**
+ * Where a data page with a pane per indicator puts its indicator switcher:
+ * - "dropdown-inside": a "Switch indicator" button beside the pane's title
+ * - "dropdown": a menu above the box, which names the indicator in place of
+ *   the pane's title
+ */
+export type SwitcherVariant = (typeof SWITCHER_VARIANTS)[number]
 
-// "v-pills" is what you'd guess from "h-pills", so accept it as an alias for
-// the vertical variant (which is styled as tabs, not pills).
+/** `?switcher=dropdown` shows the other design while the two are compared. */
 export const useSwitcherVariant = (): SwitcherVariant =>
-    useQueryParamChoice("switcher", ALL_SWITCHER_VARIANTS, "h-pills", {
-        "v-pills": "v-tabs",
-    })
+    useQueryParamChoice("switcher", SWITCHER_VARIANTS, "dropdown-inside")

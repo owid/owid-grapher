@@ -32,19 +32,18 @@ describe(IndicatorSources, () => {
         }
     })
 
-    // hideTeasers as in the metadata box (a teaser repeats the toggle's content).
-    it("shows a shared source's per-indicator links and citations instead of its own", () => {
+    it("shows each indicator's link and citation in place of the source's own", () => {
         const { container } = render(
             <IndicatorSources
+                // As in the metadata box: a teaser would repeat the content
                 hideTeasers
+                openLinksInNewTab
                 sources={[
                     {
                         label: "World Bank – World Development Indicators",
-                        description: "The WDI database.",
-                        retrievedOn: "2026-02-27",
                         retrievedFrom: "https://data.worldbank.org",
                         citation: "World Bank (2026).",
-                        variants: [
+                        indicatorLinks: [
                             {
                                 label: "Urban population",
                                 retrievedFrom:
@@ -62,38 +61,15 @@ describe(IndicatorSources, () => {
                 ]}
             />
         )
-        const rows = [
-            ...container.querySelectorAll(".source-key-data--variant"),
-        ]
-        expect(
-            rows.map(
-                (r) => r.querySelector(".source-key-data__title")?.textContent
-            )
-        ).toEqual(["Urban population", "Rural population"])
-        const hrefs = [
-            ...container.querySelectorAll(".source-key-data--variant a"),
-        ].map((a) => a.getAttribute("href"))
-        expect(hrefs).toContain(
-            "https://data.worldbank.org/indicator/SP.URB.TOTL"
-        )
-        // the single "Retrieved from" / "Citation" rows give way to the variants
+        const links = [...container.querySelectorAll("a[href^='https://']")]
+        expect(links.map((link) => link.getAttribute("href"))).toEqual([
+            "https://data.worldbank.org/indicator/SP.URB.TOTL",
+            "https://data.worldbank.org/indicator/SP.RUR.TOTL",
+        ])
+        for (const link of links)
+            expect(link.getAttribute("target")).toBe("_blank")
+        expect(container.textContent).toContain("Urban population")
+        expect(container.textContent).toContain("Indicator SP.RUR.TOTL.")
         expect(container.textContent).not.toContain("World Bank (2026).")
-    })
-
-    it("renders the single link and citation when there are no variants", () => {
-        const { container } = render(
-            <IndicatorSources
-                hideTeasers
-                sources={[
-                    {
-                        label: "UN – World Population Prospects",
-                        retrievedFrom: "https://population.un.org",
-                        citation: "UN (2024).",
-                    },
-                ]}
-            />
-        )
-        expect(container.querySelector(".source-key-data--variant")).toBeNull()
-        expect(container.textContent).toContain("UN (2024).")
     })
 })
