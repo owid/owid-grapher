@@ -1,328 +1,225 @@
-// todo: Remove this file when we've migrated OWID data and OWID charts to next version
+// Turns the variable data + metadata we fetch from our data API into the
+// single OwidTable that a chart renders from.
+//
+// Performance notes: this runs on every chart load and its input can be
+// hundreds of thousands of rows (daily indicators), so the per-variable tables
+// and the joins between them are built on plain column arrays. Only the final
+// result becomes an OwidTable, constructed from typed values so it never needs
+// to parse anything.
 
 import * as _ from "lodash-es"
 import {
+    AnnotationTimeScope,
     ColumnTypeNames,
-    CoreColumnDef,
-    StandardOwidColumnDefs,
-    OwidTableSlugs,
-    OwidColumnDef,
-    OwidVariableDimensions,
+    CoreValueType,
+    EntityName,
     ErrorValue,
+    IndicatorAnnotation,
     IndicatorDimensionInterface,
     OwidChartDimensionInterface,
-    isIndicatorDimension,
-    EntityName,
-    TimeInterval,
-    SelectedEntityColors,
-    AnnotationTimeScope,
-    IndicatorAnnotation,
+    OwidColumnDef,
+    OwidTableSlugs,
     OwidVariableAnnotation,
+    OwidVariableDimensions,
+    OwidVariableDisplayConfigInterface,
+    SelectedEntityColors,
+    StandardOwidColumnDefs,
     Time,
+    TimeInterval,
+    isIndicatorDimension,
 } from "@ourworldindata/types"
 import {
-    OwidTable,
     ErrorValueTypes,
-    makeKeyFn,
+    OwidTable,
+    makeOriginalTimeSlugFromColumnSlug,
 } from "@ourworldindata/core-table"
 import {
-    diffDatesInDays,
-    epochDate,
-    getYearFromISOStringAndDayOffset,
-    intersection,
-    trimObject,
-    OwidEntityKey,
-    MultipleOwidVariableDataDimensionsMap,
-    OwidVariableWithSource,
-    OwidVariableMixedData,
-    OwidVariableWithSourceAndDimension,
     ColumnSlug,
     EPOCH_DATE,
+    MultipleOwidVariableDataDimensionsMap,
+    OwidVariableDataMetadataDimensions,
     OwidVariableType,
-    getTimeInterval,
-    isSubYearly,
-    findFinestCommonTimeInterval,
-    snapToIntervalStart,
-    dayjs,
+    OwidVariableWithSource,
+    OwidVariableWithSourceAndDimension,
     convertDateToDaysSinceEpoch,
+    dayjs,
+    diffDatesInDays,
+    epochDate,
+    findClosestTimeIndex,
+    findFinestCommonTimeInterval,
+    getTimeInterval,
+    getYearFromISOStringAndDayOffset,
+    isSubYearly,
+    snapToIntervalStart,
+    trimObject,
 } from "@ourworldindata/utils"
 import { isContinentsVariableId } from "./GrapherConstants"
-import * as R from "remeda"
 import { getIndicatorColumnSlug } from "../chart/ChartDimension.js"
-import {
-    applyDisplayAndConversionFactor,
-    type ColumnDisplayOverride,
-} from "./applyDisplayAndConversionFactor.js"
+import { mergeDisplayIntoDef } from "./applyDisplayAndConversionFactor.js"
+
+// ---------------------------------------------------------------------------
+// Frames: a lightweight column store used while assembling the table
+// ---------------------------------------------------------------------------
+
+interface FrameColumn {
+    def: OwidColumnDef
+    values: CoreValueType[]
+}
+
+interface Frame {
+    /** In output order */
+    columns: FrameColumn[]
+    numRows: number
+    /** Set when every row is known to have a distinct value for these key columns */
+    uniqueKey?: string
+}
+
+const EMPTY_FRAME: Frame = { columns: [], numRows: 0 }
+
+const findColumn = (frame: Frame, slug: ColumnSlug): FrameColumn | undefined =>
+    frame.columns.find((column) => column.def.slug === slug)
+
+const frameToTable = (frame: Frame): OwidTable =>
+    new OwidTable(
+        [],
+        frame.columns.map(({ def, values }) => ({ ...def, values }))
+    )
+
+interface VariableFrame {
+    frame: Frame
+    interval: TimeInterval
+}
+
+// ---------------------------------------------------------------------------
+// Entry point
+// ---------------------------------------------------------------------------
 
 export const legacyToOwidTableAndDimensions = (
     json: MultipleOwidVariableDataDimensionsMap,
     dimensions: OwidChartDimensionInterface[],
     selectedEntityColors: SelectedEntityColors | undefined
 ): OwidTable => {
-    // Entity meta map
+    const entityLookup = makeEntityLookup(json)
 
-    const entityMeta = [...json.values()].flatMap(
-        (value) => value.metadata.dimensions.entities.values
-    )
-    const entityMetaById: OwidEntityKey = Object.fromEntries(
-        entityMeta.map((entity) => [entity.id.toString(), entity])
-    )
-
-    // Base column defs, shared by all variable tables
-
-    const baseColumnDefs: Map<ColumnSlug, CoreColumnDef> = new Map()
-    StandardOwidColumnDefs.forEach((def) => {
-        baseColumnDefs.set(def.slug, def)
-    })
-
-    // We need to create a column for each unique [variable, targetTime] pair. So there can be
-    // multiple columns for a single variable.
-    const indicatorDimensions = dimensions.filter(isIndicatorDimension)
-    const dimensionColumns = _.uniqBy(
-        indicatorDimensions,
+    // One column per unique [variable, targetTime] pair, so a variable can
+    // contribute several columns
+    const indicatorDimensions = _.uniqBy(
+        dimensions.filter(isIndicatorDimension),
         getIndicatorColumnSlug
     )
 
-    const variableTablesToJoinByYear: OwidTable[] = []
-    const variableTablesToJoinByDay: OwidTable[] = []
-    const variableTablesWithYearToJoinByEntityOnly: OwidTable[] = []
-    for (const dimension of dimensionColumns) {
-        const variable = json.get(dimension.variableId)
+    const yearFrames: VariableFrame[] = []
+    const dayFrames: VariableFrame[] = []
+    // Variables pinned to a target time; joined on entity only
+    const targetTimeFrames: Frame[] = []
 
-        // TODO: this shouldn't happen but it does sometimes
-        // when adding dimensions in the chart editor
+    for (const dimension of indicatorDimensions) {
+        const variable = json.get(dimension.variableId)
+        // Shouldn't happen, but does when adding dimensions in the chart editor
         if (!variable) continue
 
-        // Copy the base columnDef
-        const columnDefs = new Map(baseColumnDefs)
-
-        // Time column
-        const timeColumnDef = timeColumnDefFromOwidVariable(variable.metadata)
-        columnDefs.set(timeColumnDef.slug, timeColumnDef)
-
-        // Value column
-        const valueColumnDef = columnDefFromOwidVariable(variable.metadata)
-        valueColumnDef.slug = getIndicatorColumnSlug(dimension)
-        // Because database columns can contain mixed types, we want to avoid
-        // parsing for Grapher data until we fix that.
-        valueColumnDef.skipParsing = true
-        valueColumnDef.display = trimObject(valueColumnDef.display)
-        if (dimension.targetYear !== undefined)
-            valueColumnDef.targetTime = dimension.targetYear
-        columnDefs.set(valueColumnDef.slug, valueColumnDef)
-
-        // Column values
-
-        const times = timeColumnValuesFromOwidVariable(
-            variable.metadata,
-            variable.data
+        const variableFrame = buildVariableFrame(
+            variable,
+            dimension,
+            entityLookup
         )
-        const entityIds = variable.data.entities ?? []
-        const entityNames = entityIds.map(
-            // if entityMetaById[id] does not exist, then we don't have entity
-            // from variable metadata in MySQL. This can happen because we take
-            // data from S3 and metadata from MySQL. After we unify it, it should
-            // no longer be a problem
-            (id) => entityMetaById[id]?.name ?? id.toString()
-        )
-
-        const columnStore: { [key: string]: any[] } = {
-            [OwidTableSlugs.EntityId]: entityIds,
-            [OwidTableSlugs.EntityName]: entityNames,
-            [timeColumnDef.slug]: times,
-            [valueColumnDef.slug]: variable.data.values || [],
-        }
-
-        // Build the tables
-
-        let variableTable = new OwidTable(
-            columnStore,
-            Array.from(columnDefs.values())
-        )
-
-        // Scale before joining so values repeated across joined rows are only converted once.
-        variableTable = applyDisplayAndConversionFactor(variableTable, [
-            getIndicatorDisplayOverride(dimension, json),
-        ])
-
-        // If there is a targetTime set on the dimension, we need to perform the join on the
-        // entities columns only, excluding any time columns.
-        // We do this by dropping the column. We interpolate before which adds an originalTime
-        // column which can be used to recover the time.
-        const targetTime = dimension.targetYear
-        if (_.isNumber(targetTime)) {
-            variableTable = variableTable
-                // interpolateColumnWithTolerance() won't handle injecting times beyond the current
-                // allTimes. So if targetYear is 2018, and we have data up to 2017, the
-                // interpolation won't add the 2018 rows (unless we apply the interpolation after
-                // the big join).
-                // This is why we use filterByTargetTimes() which handles that case.
-                .filterByTargetTimes(
-                    [targetTime],
-                    variableTable.get(valueColumnDef.slug).tolerance
-                )
-                // Interpolate with 0 to add originalTimes column
-                .interpolateColumnWithTolerance(valueColumnDef.slug, {
-                    toleranceOverride: 0,
-                })
-                .dropColumns([timeColumnDef.slug])
-            // We keep variables that have a targetTime set in a special bucket and will join them
-            // on entity only (disregarding the year since we already filtered all other years out for
-            // those variables)
-            variableTablesWithYearToJoinByEntityOnly.push(variableTable)
-        } else if (isSubYearly(getTimeInterval(variable.metadata.display)))
-            variableTablesToJoinByDay.push(variableTable)
-        else variableTablesToJoinByYear.push(variableTable)
+        const { targetYear } = dimension
+        if (typeof targetYear === "number")
+            targetTimeFrames.push(
+                pinToTargetTime(variableFrame.frame, targetYear)
+            )
+        else if (isSubYearly(variableFrame.interval))
+            dayFrames.push(variableFrame)
+        else yearFrames.push(variableFrame)
     }
 
-    // If we only had years then all we would need to do is a single fullJoinTables call and
-    // we'd be done with it. But since we also have days this is a bit trickier. The
-    // basic approach is to say that if we have day variables then we should join those internally
-    // on day+entity first and day+entity becomes the primary index for our final table.
-    // We then join this merged days table with all the year based variables.
-    // The multi table join iterates over all the unique index values (day+entity).
-    // To join this with years we derive the year from the day. The fullJoinTables then uses a number
-    // of fallbacks when trying to find matching rows in the various tables: we first try to join by day+entity,
-    // then by year+entity and finally entity only.
-    // This last join by entity only is important so that variables that don't have values for years
-    // that come up in the day+entity index we still retain the values. E.g. our continents table
-    // has values for all countries but only for the year 2015. If we join that with covid era days
-    // we still want to retain the continents so we have the fallback to entity only (this was also
-    // the only behaviour prior to July 2022). Remember that tolerance will only be applied much later -
-    // here we are only concerned with merging multiple variables into an inputTable that retains information.
-    // Another approach would be to convert years into days when we have days - then we could simplify the fallback
-    // join key logic described above.
-    // Another caveat is that by switching to day+entity as the primary index that we use to join we can drop some entities.
-    // This happens e.g. with Antarctica if the continents table is used. Continents contains an entry for the entity Antarctica for 2015
-    // that maps it (and 3 other territories) to the Antarctica continent. If the days variables don't have values for any of the
-    // Antarctica entities then they will not be enumerated for the final join table and thus they will be dropped from the final table.
-    // This is maybe counter to what you would expect from a full join but is simply an artifact of making days+entities the primary
-    // index and not backporting years to days. We might want to revisit this in the future and/or also apply tolerance already
-    // at this level here.
+    // Day-based variables are joined among themselves on day+entity first,
+    // and day+entity then becomes the primary index of the final table. Year
+    // based variables are then joined in, looking up each row by
+    // day+entity, then year+entity (the year being derived from the day),
+    // then entity alone. The entity-only fallback keeps variables like
+    // continents, which only have values for 2015, attached to every day.
+    //
+    // A caveat of making day+entity the primary index is that entities that
+    // only occur in year-based variables are dropped (e.g. Antarctica from the
+    // continents variable, if no daily variable has data for it).
+    const joinedByDay = fullJoin(
+        dayFrames.map((v) => v.frame),
+        [OwidTableSlugs.Day, OwidTableSlugs.EntityId]
+    )
 
-    // Merge all day based variables together (returns an empty table if there are none)
-    const variablesJoinedByDay = fullJoinTables(variableTablesToJoinByDay, [
-        OwidTableSlugs.Day,
-        OwidTableSlugs.EntityId,
-    ])
-
-    let joinedVariablesTable: OwidTable
-    // If we have both day and year based variables we need to do some special logic as described above
-    if (
-        variableTablesToJoinByYear.length > 0 &&
-        variableTablesToJoinByDay.length > 0
-    ) {
-        // Derive the year from the day column and add it to the joined days table
-        const daysColumn = variablesJoinedByDay.getColumns([
-            OwidTableSlugs.Day,
-        ])[0]
-        const getYearFromISOStringMemoized = _.memoize((dayValue: number) =>
-            getYearFromISOStringAndDayOffset(EPOCH_DATE, dayValue)
-        )
-        const yearsForDaysValues = daysColumn.values.map((dayValue) =>
-            getYearFromISOStringMemoized(dayValue as number)
-        )
-
-        const newYearColumn = {
-            ...daysColumn,
-            slug: OwidTableSlugs.Year,
-            name: OwidTableSlugs.Year,
-            values: yearsForDaysValues,
-        } as OwidColumnDef
-        const variablesJoinedByDayWithYearFilled =
-            variablesJoinedByDay.appendColumns([newYearColumn])
-
-        // Now join the already merged days table with all the years. It is important
-        // to not join the years together into one table already before so that each
-        // table lookup for fallback values is looked at individually.
-        // See the longer comment above for the idea behind the fallback cascade here of
-        // trying to merge first by day+entity, then year+entity and finally entity only
-        joinedVariablesTable = fullJoinTables(
-            [variablesJoinedByDayWithYearFilled, ...variableTablesToJoinByYear],
+    let joined: Frame
+    let primaryTimeSlug: OwidTableSlugs.Day | OwidTableSlugs.Year
+    if (yearFrames.length > 0 && dayFrames.length > 0) {
+        // Join each year table separately, so that each gets its own
+        // fallback lookups
+        joined = fullJoin(
+            [
+                withYearDerivedFromDay(joinedByDay),
+                ...yearFrames.map((v) => v.frame),
+            ],
             [OwidTableSlugs.Day, OwidTableSlugs.EntityId],
             [
                 [OwidTableSlugs.Year, OwidTableSlugs.EntityId],
                 [OwidTableSlugs.EntityId],
             ]
         )
-        // If we have scatter/marimekko variables that had a targetTime set
-        // then these are now joined in by matching entity only
-        if (variableTablesWithYearToJoinByEntityOnly.length > 0)
-            joinedVariablesTable = fullJoinTables(
-                [
-                    joinedVariablesTable,
-                    ...variableTablesWithYearToJoinByEntityOnly,
-                ],
-                [OwidTableSlugs.Day, OwidTableSlugs.EntityId],
-                [[OwidTableSlugs.EntityId]]
-            )
-    } else if (variableTablesToJoinByYear.length > 0) {
-        // If we only have year based variables then life is easy and we just join
-        // those together without any special cases
-        joinedVariablesTable = fullJoinTables(variableTablesToJoinByYear, [
-            OwidTableSlugs.Year,
-            OwidTableSlugs.EntityId,
-        ])
-
-        // If we have scatter/marimekko variables that had a targetTime set
-        // then these are now joined in by matching entity only
-        if (variableTablesWithYearToJoinByEntityOnly.length > 0)
-            joinedVariablesTable = fullJoinTables(
-                [
-                    joinedVariablesTable,
-                    ...variableTablesWithYearToJoinByEntityOnly,
-                ],
-                [OwidTableSlugs.Year, OwidTableSlugs.EntityId],
-                [[OwidTableSlugs.EntityId]]
-            )
+        primaryTimeSlug = OwidTableSlugs.Day
+    } else if (yearFrames.length > 0) {
+        joined = fullJoin(
+            yearFrames.map((v) => v.frame),
+            [OwidTableSlugs.Year, OwidTableSlugs.EntityId]
+        )
+        primaryTimeSlug = OwidTableSlugs.Year
     } else {
-        // If we only have day variables life is also easy but this case is rare
-        joinedVariablesTable = variablesJoinedByDay
-
-        // If we have scatter/marimekko variables that had a targetTime set
-        // then these are now joined in by matching entity only
-        if (variableTablesWithYearToJoinByEntityOnly.length > 0)
-            joinedVariablesTable = fullJoinTables(
-                [
-                    joinedVariablesTable,
-                    ...variableTablesWithYearToJoinByEntityOnly,
-                ],
-                [OwidTableSlugs.Day, OwidTableSlugs.EntityId],
-                [[OwidTableSlugs.EntityId]]
-            )
+        joined = joinedByDay
+        primaryTimeSlug = OwidTableSlugs.Day
     }
 
-    // A bucket can hold several intervals (e.g. a daily and a monthly indicator
-    // both live in the day bucket), but the joined table has a single time
-    // column, which should be tagged with the finest of them
-    joinedVariablesTable = withFinestTimeColumnInterval(
-        joinedVariablesTable,
-        variableTablesToJoinByDay,
-        OwidTableSlugs.Day
-    )
-    joinedVariablesTable = withFinestTimeColumnInterval(
-        joinedVariablesTable,
-        variableTablesToJoinByYear,
+    if (targetTimeFrames.length > 0)
+        joined = fullJoin(
+            [joined, ...targetTimeFrames],
+            [primaryTimeSlug, OwidTableSlugs.EntityId],
+            [[OwidTableSlugs.EntityId]]
+        )
+
+    // A bucket can hold several intervals (e.g. a daily and a monthly
+    // indicator both live in the day bucket), but the joined table has a
+    // single time column, which should be tagged with the finest of them
+    joined = withFinestTimeColumnInterval(joined, dayFrames, OwidTableSlugs.Day)
+    joined = withFinestTimeColumnInterval(
+        joined,
+        yearFrames,
         OwidTableSlugs.Year
     )
 
-    // Inject a common "time" column that is used as the main time column for the table
-    // e.g. for the timeline.
-    for (const dayOrYearSlug of [OwidTableSlugs.Day, OwidTableSlugs.Year]) {
-        if (joinedVariablesTable.columnSlugs.includes(dayOrYearSlug)) {
-            joinedVariablesTable = joinedVariablesTable.duplicateColumn(
-                dayOrYearSlug,
-                { slug: OwidTableSlugs.Time, name: OwidTableSlugs.Time }
-            )
-            // Do not inject multiple columns, terminate after one is successful
-            break
-        }
-    }
+    // Inject the canonical "time" column, e.g. used for the timeline
+    const timeSource =
+        findColumn(joined, OwidTableSlugs.Day) ??
+        findColumn(joined, OwidTableSlugs.Year)
+    const extraColumns: FrameColumn[] = []
+    if (timeSource)
+        extraColumns.push({
+            def: {
+                ...timeSource.def,
+                slug: OwidTableSlugs.Time,
+                name: OwidTableSlugs.Time,
+            },
+            values: timeSource.values,
+        })
 
-    return appendSelectedEntityColors(
-        joinedVariablesTable,
-        selectedEntityColors
-    )
+    if (!_.isEmpty(selectedEntityColors))
+        extraColumns.push(
+            makeEntityColorColumn(
+                findColumn(joined, OwidTableSlugs.EntityName)?.values ?? [],
+                selectedEntityColors
+            )
+        )
+
+    return frameToTable({
+        columns: [...joined.columns, ...extraColumns],
+        numRows: joined.numRows,
+    })
 }
 
 /** Adds the entity color column that applies a config's `selectedEntityColors` */
@@ -331,537 +228,633 @@ export const appendSelectedEntityColors = (
     selectedEntityColors: SelectedEntityColors | undefined
 ): OwidTable => {
     if (_.isEmpty(selectedEntityColors)) return table
-
-    const valueFn = (
-        entityName: EntityName | undefined
-    ): string | ErrorValue => {
-        if (!entityName) return ErrorValueTypes.UndefinedButShouldBeString
-        return (
-            selectedEntityColors?.[entityName] ??
-            ErrorValueTypes.UndefinedButShouldBeString
-        )
-    }
-
-    return table.appendColumns([
-        {
-            slug: OwidTableSlugs.EntityColor,
-            name: OwidTableSlugs.EntityColor,
-            type: ColumnTypeNames.Color,
-            values: table.entityNameColumn.valuesIncludingErrorValues.map(
-                (entityName) => valueFn(entityName as EntityName)
-            ),
-        },
-    ])
+    const { def, values } = makeEntityColorColumn(
+        table.entityNameColumn.valuesIncludingErrorValues,
+        selectedEntityColors
+    )
+    return table.appendColumns([{ ...def, values }])
 }
 
-const getIndicatorDisplayOverride = (
-    dimension: IndicatorDimensionInterface,
-    json: MultipleOwidVariableDataDimensionsMap
-): ColumnDisplayOverride => ({
-    columnSlug: getIndicatorColumnSlug(dimension),
-    display: {
-        conversionFactor: json.get(dimension.variableId)?.metadata.display
-            ?.conversionFactor,
-        ...trimObject(dimension.display ?? {}),
+const makeEntityColorColumn = (
+    entityNames: readonly CoreValueType[],
+    selectedEntityColors: SelectedEntityColors | undefined
+): FrameColumn => ({
+    def: {
+        slug: OwidTableSlugs.EntityColor,
+        name: OwidTableSlugs.EntityColor,
+        type: ColumnTypeNames.Color,
     },
+    values: entityNames.map(
+        (entityName): string | ErrorValue =>
+            (entityName
+                ? selectedEntityColors?.[entityName as EntityName]
+                : undefined) ?? ErrorValueTypes.UndefinedButShouldBeString
+    ),
 })
 
-/**
- * Checks that no two rows of the table share the same values in the index
- * columns, with the same string keys the general join uses.
- */
-export const hasUniqueIndexValues = (
-    table: OwidTable,
-    indexColumnNames: OwidTableSlugs[]
-): boolean => {
-    const { columnStore, numRows } = table
+// ---------------------------------------------------------------------------
+// Per-variable frames
+// ---------------------------------------------------------------------------
 
-    // Fast path for the usual entity + time index: the data typically lists
-    // each entity in one contiguous run of rows with strictly increasing
-    // times, which proves uniqueness without building a key for every row.
-    // It only applies to numeric values, whose string keys are distinct
-    // whenever the numbers are
-    if (indexColumnNames.length === 2) {
-        const entitySlugIndex = indexColumnNames.indexOf(
-            OwidTableSlugs.EntityId
-        )
-        if (entitySlugIndex !== -1) {
-            const entities = columnStore[indexColumnNames[entitySlugIndex]]
-            const times = columnStore[indexColumnNames[1 - entitySlugIndex]]
-            if (hasEntityRunsWithIncreasingTimes(entities, times, numRows))
-                return true
+interface EntityInfo {
+    name: CoreValueType
+    code: CoreValueType
+}
+
+/**
+ * Resolves entity ids to their (already parsed) name and code, caching per id.
+ *
+ * Data comes from S3 and metadata from MySQL, so an id can be missing from the
+ * metadata; such entities are named after their id.
+ */
+const makeEntityLookup = (
+    json: MultipleOwidVariableDataDimensionsMap
+): ((id: number) => EntityInfo) => {
+    // Later variables win, matching the previous object-based lookup
+    const metaById = new Map<string, { name?: string; code?: string }>()
+    for (const variable of json.values())
+        for (const entity of variable.metadata.dimensions.entities.values)
+            metaById.set(entity.id.toString(), entity)
+
+    const cache = new Map<number, EntityInfo>()
+    return (id: number): EntityInfo => {
+        let info = cache.get(id)
+        if (info === undefined) {
+            const meta = metaById.get(String(id))
+            info = {
+                name: parseString(meta?.name ?? id.toString()),
+                code: parseString(meta?.code),
+            }
+            cache.set(id, info)
         }
+        return info
+    }
+}
+
+const buildVariableFrame = (
+    variable: OwidVariableDataMetadataDimensions,
+    dimension: IndicatorDimensionInterface,
+    lookupEntity: (id: number) => EntityInfo
+): VariableFrame => {
+    const { metadata, data } = variable
+    const interval = getTimeInterval(metadata.display)
+    const timeDef = TIME_COLUMN_DEF_BY_INTERVAL[interval]
+
+    const valueSlug = getIndicatorColumnSlug(dimension)
+    let valueDef: OwidColumnDef = {
+        ...columnDefFromOwidVariable(metadata),
+        slug: valueSlug,
+        // Database columns can contain mixed types, so we don't parse values
+        skipParsing: true,
+    }
+    valueDef.display = trimObject(valueDef.display)
+    if (dimension.targetYear !== undefined)
+        valueDef.targetTime = dimension.targetYear
+
+    const display = trimObject({
+        conversionFactor: metadata.display?.conversionFactor,
+        ...trimObject(dimension.display ?? {}),
+    }) as OwidVariableDisplayConfigInterface
+    let values: CoreValueType[] = data.values ?? []
+    if (!_.isEmpty(display)) {
+        valueDef = mergeDisplayIntoDef(valueDef, display)
+        // Scale before joining, so values repeated across joined rows are
+        // only converted once
+        const { conversionFactor } = display
+        if (conversionFactor !== undefined && conversionFactor !== 1)
+            values = values.map((value) =>
+                typeof value === "number" ? value * conversionFactor : value
+            )
     }
 
-    const keyFn = makeKeyFn(columnStore, indexColumnNames)
-    const seenKeys = new Set<string>()
-    for (let row = 0; row < numRows; row++) {
-        const key = keyFn(row)
-        if (seenKeys.has(key)) return false
-        seenKeys.add(key)
+    const entityIds = data.entities ?? []
+    const numRows = entityIds.length
+    const parsedIds: CoreValueType[] = []
+    const names: CoreValueType[] = []
+    const codes: CoreValueType[] = []
+    for (let i = 0; i < numRows; i++) {
+        const id = entityIds[i]
+        const entity = lookupEntity(id)
+        parsedIds.push(parseNumber(id))
+        names.push(entity.name)
+        codes.push(entity.code)
+    }
+
+    return {
+        interval,
+        frame: {
+            columns: [
+                { def: StandardOwidColumnDefs[0], values: names },
+                { def: StandardOwidColumnDefs[1], values: parsedIds },
+                { def: StandardOwidColumnDefs[2], values: codes },
+                {
+                    def: timeDef,
+                    values: timeValuesFromOwidVariable(
+                        metadata,
+                        data.years ?? []
+                    ),
+                },
+                { def: valueDef, values },
+            ],
+            numRows,
+        },
+    }
+}
+
+/**
+ * Keeps only the rows at (or, given the value column's tolerance, closest to)
+ * the target time, and swaps the time column for an "originalTime" column, so
+ * that the frame can be joined on entity alone.
+ */
+const pinToTargetTime = (frame: Frame, targetTime: Time): Frame => {
+    const [nameColumn, , , timeColumn, valueColumn] = frame.columns
+    const times = timeColumn.values as number[]
+    const tolerance =
+        valueColumn.def.display?.tolerance ?? valueColumn.def.tolerance ?? 0
+
+    let keepRow: (row: number) => boolean
+    if (tolerance === 0) {
+        keepRow = (row): boolean => times[row] === targetTime
+    } else {
+        // For each entity, find the row closest to the target time
+        const rowsByEntity = new Map<CoreValueType, number[]>()
+        for (let row = 0; row < frame.numRows; row++) {
+            const name = nameColumn.values[row]
+            const rows = rowsByEntity.get(name)
+            if (rows) rows.push(row)
+            else rowsByEntity.set(name, [row])
+        }
+        const keptRows = new Set<number>()
+        for (const rows of rowsByEntity.values()) {
+            const sortedRows = rows.sort((a, b) => times[a] - times[b])
+            const index = findClosestTimeIndex(
+                sortedRows.map((row) => times[row]),
+                targetTime,
+                tolerance
+            )
+            if (index !== undefined) keptRows.add(sortedRows[index])
+        }
+        keepRow = (row): boolean => keptRows.has(row)
+    }
+
+    const rows: number[] = []
+    for (let row = 0; row < frame.numRows; row++)
+        if (keepRow(row)) rows.push(row)
+    const take = (values: CoreValueType[]): CoreValueType[] =>
+        rows.map((row) => values[row])
+
+    const pick = (column: FrameColumn): FrameColumn => ({
+        def: column.def,
+        values: take(column.values),
+    })
+    return {
+        columns: [
+            ...frame.columns
+                .filter((column) => column !== timeColumn)
+                .map(pick),
+            {
+                def: {
+                    ...timeColumn.def,
+                    slug: makeOriginalTimeSlugFromColumnSlug(
+                        valueColumn.def.slug
+                    ),
+                    display: { includeInTable: false },
+                    derivedFrom: {
+                        columnSlug: valueColumn.def.slug,
+                        relationship: "originalTime",
+                    },
+                },
+                values: take(timeColumn.values),
+            },
+        ],
+        numRows: rows.length,
+    }
+}
+
+/** Appends a year column, derived from the frame's day column */
+const withYearDerivedFromDay = (frame: Frame): Frame => {
+    const dayColumn = findColumn(frame, OwidTableSlugs.Day)
+    if (!dayColumn) return frame
+
+    const yearByDay = new Map<number, number>()
+    const years = dayColumn.values.map((day) => {
+        let year = yearByDay.get(day as number)
+        if (year === undefined) {
+            year = getYearFromISOStringAndDayOffset(EPOCH_DATE, day as number)
+            yearByDay.set(day as number, year)
+        }
+        return year
+    })
+
+    return {
+        columns: [
+            ...frame.columns,
+            // Deliberately untyped, matching what this column always was
+            {
+                def: { slug: OwidTableSlugs.Year, name: OwidTableSlugs.Year },
+                values: years,
+            },
+        ],
+        numRows: frame.numRows,
+        uniqueKey: frame.uniqueKey,
+    }
+}
+
+/**
+ * Relabels the joined time column with the finest interval that can represent
+ * every joined variable's times
+ */
+const withFinestTimeColumnInterval = (
+    frame: Frame,
+    variableFrames: VariableFrame[],
+    slug: OwidTableSlugs.Day | OwidTableSlugs.Year
+): Frame => {
+    const intervals = variableFrames.map((v) => v.interval)
+    if (new Set(intervals).size < 2) return frame
+    const timeDef =
+        TIME_COLUMN_DEF_BY_INTERVAL[findFinestCommonTimeInterval(intervals)]
+    return {
+        ...frame,
+        columns: frame.columns.map((column) =>
+            column.def.slug === slug
+                ? { ...column, def: { ...column.def, ...timeDef } }
+                : column
+        ),
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Joining
+// ---------------------------------------------------------------------------
+
+type JoinKey = [ColumnSlug] | [ColumnSlug, ColumnSlug]
+
+/**
+ * A map keyed by the values of one or two columns. Nesting maps avoids
+ * building a string key for every row.
+ */
+class KeyMap<T> {
+    private readonly map = new Map<unknown, any>()
+    constructor(private readonly arity: 1 | 2) {}
+
+    get(a: unknown, b: unknown): T | undefined {
+        if (this.arity === 1) return this.map.get(a)
+        return this.map.get(a)?.get(b)
+    }
+
+    set(a: unknown, b: unknown, value: T): void {
+        if (this.arity === 1) {
+            this.map.set(a, value)
+            return
+        }
+        let inner = this.map.get(a)
+        if (inner === undefined) {
+            inner = new Map<unknown, T>()
+            this.map.set(a, inner)
+        }
+        inner.set(b, value)
+    }
+}
+
+const keyColumns = (
+    frame: Frame,
+    key: JoinKey
+): [CoreValueType[], CoreValueType[]] | undefined => {
+    const columns = key.map((slug) => findColumn(frame, slug)?.values)
+    if (columns.some((values) => values === undefined)) return undefined
+    // For one-column keys, the second key part is always undefined
+    return [columns[0]!, columns[1] ?? []]
+}
+
+/**
+ * Full outer join of the given frames on the `key` columns.
+ *
+ * Columns that all frames have (the key columns, but also entityName and
+ * entityCode) end up once in the result, taken from the first frame that has
+ * a row for the key; we assume they agree across frames. All other columns are
+ * copied over from their frame.
+ *
+ * Rows are only enumerated from frames that have all key columns. When a frame
+ * has no row for a key, the `fallbackKeys` are tried in turn, using the values
+ * of the first frame's row. This is how year-based variables are joined onto
+ * a day-based index (by year+entity, then entity only). When several rows
+ * match a fallback key, the last one is used, which is usually the most recent
+ * time; a proper fix would be a time- and tolerance-aware join.
+ */
+const fullJoin = (
+    frames: Frame[],
+    key: JoinKey,
+    fallbackKeys?: JoinKey[]
+): Frame => {
+    if (frames.length === 0) return EMPTY_FRAME
+    // Not marked as unique: a single frame can have duplicate keys
+    if (frames.length === 1) return frames[0]
+
+    const uniqueKey = key.join(",")
+    const [firstFrame] = frames
+
+    // 1. Enumerate the unique keys in order of first appearance, and for each
+    //    frame, find its first row for each of them.
+    //    rowsByFrame[f][outRow]: the first row of frame f with the key, or -1
+    let rowsByFrame: Int32Array[]
+    // The frame (and its row) that a result row's shared columns are taken
+    // from. Unset when the first frame owns every row, one row per key
+    let owners: { frame: number[]; row: number[] } | undefined
+    let numOutRows: number
+    // Set when row i of every frame is row i of the result
+    let allFramesAligned = false
+    if (haveIdenticalKeys(frames, key) && isUniqueOnKey(firstFrame, key)) {
+        // All frames list the same keys in the same order (e.g. indicators
+        // from one dataset with the same coverage), so no lookups are needed
+        numOutRows = firstFrame.numRows
+        rowsByFrame = []
+        allFramesAligned = true
+    } else if (
+        firstFrame.uniqueKey === uniqueKey &&
+        frames.every((frame, f) => f === 0 || !keyColumns(frame, key))
+    ) {
+        // The first frame is the result of a previous join on this key, and no
+        // other frame contributes keys, so the first frame's rows are the result
+        numOutRows = firstFrame.numRows
+        rowsByFrame = frames.map((_frame, f) =>
+            f === 0
+                ? Int32Array.from({ length: numOutRows }, (_, row) => row)
+                : new Int32Array(numOutRows).fill(-1)
+        )
+    } else {
+        const enumerated = enumerateKeys(frames, key, !!fallbackKeys)
+        rowsByFrame = enumerated.rowsByFrame
+        numOutRows = enumerated.ownerFrame.length
+        // Owners are assigned in frame order, so if the last result row is
+        // owned by the first frame, it owns all of them; and if it also has as
+        // many rows as there are results, each of its rows has a distinct key
+        const { ownerFrame, ownerRow } = enumerated
+        const firstFrameOwnsAllRows =
+            numOutRows === firstFrame.numRows &&
+            (numOutRows === 0 || ownerFrame[numOutRows - 1] === 0)
+        if (!firstFrameOwnsAllRows)
+            owners = { frame: ownerFrame, row: ownerRow }
+    }
+
+    // 2. Columns shared by all frames are taken from the owner frame. Their
+    //    order follows the last frame, as it always has
+    const sharedSlugs = frames[frames.length - 1].columns
+        .map((column) => column.def.slug)
+        .filter((slug) => frames.every((frame) => findColumn(frame, slug)))
+    const sharedSlugSet = new Set(sharedSlugs)
+
+    const outColumns: FrameColumn[] = sharedSlugs.map((slug) => {
+        const def = { ...findColumn(firstFrame, slug)!.def }
+        if (!owners)
+            return { def, values: findColumn(firstFrame, slug)!.values }
+        const sources = frames.map((frame) => findColumn(frame, slug)!.values)
+        const values: CoreValueType[] = []
+        for (let outRow = 0; outRow < numOutRows; outRow++)
+            values.push(sources[owners.frame[outRow]][owners.row[outRow]])
+        return { def, values }
+    })
+
+    // 3. All other columns are looked up per frame, falling back to the
+    //    fallback keys for result rows owned by the first frame
+    const fallbackKeyValues = fallbackKeys?.map((fallbackKey) =>
+        keyColumns(firstFrame, fallbackKey)
+    )
+    frames.forEach((frame, f) => {
+        const valueColumns = frame.columns.filter(
+            (column) => !sharedSlugSet.has(column.def.slug)
+        )
+        if (valueColumns.length === 0) return
+
+        // The frame's rows are the result rows, so its columns carry over
+        if (allFramesAligned || (f === 0 && !owners)) {
+            for (const { def, values } of valueColumns)
+                outColumns.push({ def: { ...def }, values })
+            return
+        }
+
+        const rows = rowsByFrame[f]
+        if (fallbackKeys && fallbackKeyValues)
+            resolveFallbackRows(
+                frame,
+                rows,
+                fallbackKeys,
+                fallbackKeyValues,
+                rowsByFrame[0],
+                owners?.frame
+            )
+
+        for (const column of valueColumns) {
+            const source = column.values
+            const values: CoreValueType[] = []
+            for (let outRow = 0; outRow < numOutRows; outRow++) {
+                const row = rows[outRow]
+                values.push(
+                    row === -1
+                        ? ErrorValueTypes.NoMatchingValueAfterJoin
+                        : source[row]
+                )
+            }
+            outColumns.push({ def: { ...column.def }, values })
+        }
+    })
+
+    return { columns: outColumns, numRows: numOutRows, uniqueKey }
+}
+
+/** Whether every frame has the key columns, with the same values in the same order */
+const haveIdenticalKeys = (frames: Frame[], key: JoinKey): boolean => {
+    const firstColumns = keyColumns(frames[0], key)
+    if (!firstColumns) return false
+    const { numRows } = frames[0]
+    for (let f = 1; f < frames.length; f++) {
+        if (frames[f].numRows !== numRows) return false
+        const columns = keyColumns(frames[f], key)
+        if (!columns) return false
+        for (let c = 0; c < key.length; c++) {
+            const first = firstColumns[c]
+            const other = columns[c]
+            if (first === other) continue
+            for (let row = 0; row < numRows; row++)
+                if (other[row] !== first[row]) return false
+        }
     }
     return true
 }
 
-// Checks whether the table has entity-time pairs in an order where they're grouped by entity,
-// and inside each group the times are strictly increasing.
-// If that's the case, then it means that the index values are necessarily unique. But even when this
-// returns false, they might still be unique, just not in this specific way (that is common and can be checked
-// performantly).
-// A table that adheres to this format is:
-// | Entity | Year |
-// | ------ | ---- |
-// | 2      | 2022 |
-// | 2      | 2024 |
-// | 1      | 2020 |
-// | 1      | 2021 |
-export const hasEntityRunsWithIncreasingTimes = (
-    entities: unknown[],
-    times: unknown[],
-    numRows: number
-): boolean => {
-    const seenEntities = new Set<number>()
-    let previousEntity: unknown = undefined
-    let previousTime = -Infinity
-    for (let row = 0; row < numRows; row++) {
-        const entity = entities[row]
+/**
+ * Whether no two rows of the frame share a key. Only proven cheaply: either
+ * the frame came out of a join on this key, or (for a time + entity key) each
+ * entity's rows form one run with strictly increasing times, which is how our
+ * data is usually laid out. Returns false when it can't tell.
+ */
+const isUniqueOnKey = (frame: Frame, key: JoinKey): boolean => {
+    if (frame.uniqueKey === key.join(",")) return true
+    if (key.length !== 2 || key[1] !== OwidTableSlugs.EntityId) return false
+    const columns = keyColumns(frame, key)
+    if (!columns) return false
+    const [times, entities] = columns
+    const seenEntities = new Set<unknown>()
+    for (let row = 0; row < frame.numRows; row++) {
         const time = times[row]
-        if (typeof entity !== "number" || typeof time !== "number") return false
-        if (row > 0 && entity === previousEntity) {
-            if (!(time > previousTime)) return false
+        const entity = entities[row]
+        if (typeof time !== "number" || typeof entity !== "number") return false
+        if (row > 0 && entity === entities[row - 1]) {
+            if (!(time > (times[row - 1] as number))) return false
         } else {
             // A new run starts; the entity must not have had one before
             if (seenEntities.has(entity)) return false
             seenEntities.add(entity)
         }
-        previousEntity = entity
-        previousTime = time
     }
     return true
 }
 
-/**
- * Fast path for fullJoinTables: when every table has the exact same index
- * values in the same row order (e.g. several indicators from one dataset with
- * the same coverage), row i of every table belongs to row i of the joined
- * table, so the join needs no lookups. Returns undefined when the fast path
- * doesn't apply.
- *
- * The result is identical to the general join: shared columns come from the
- * first table, followed by each table's own columns, in table order.
- */
-const attemptToJoinTablesWithIdenticalIndex = (
-    tables: OwidTable[],
-    indexColumnNames: OwidTableSlugs[],
-    sharedColumnNames: string[]
-): OwidTable | undefined => {
-    const [firstTable, ...otherTables] = tables
-    const numRows = firstTable.numRows
-    const firstIndexColumns: unknown[][] = []
-    for (const slug of indexColumnNames) {
-        const column = firstTable.columnStore[slug]
-        if (!column) return undefined
-        firstIndexColumns.push(column)
-    }
-
-    for (const table of otherTables) {
-        if (table.numRows !== numRows) return undefined
-        for (let c = 0; c < indexColumnNames.length; c++) {
-            const column = table.columnStore[indexColumnNames[c]]
-            if (!column) return undefined
-            const firstColumn = firstIndexColumns[c]
-            for (let row = 0; row < numRows; row++)
-                if (column[row] !== firstColumn[row]) return undefined
+const enumerateKeys = (
+    frames: Frame[],
+    key: JoinKey,
+    hasFallbackKeys: boolean
+): { rowsByFrame: Int32Array[]; ownerFrame: number[]; ownerRow: number[] } => {
+    const outIndex = new KeyMap<number>(key.length)
+    const ownerFrame: number[] = []
+    const ownerRow: number[] = []
+    // outRowsByFrame[f][row]: the result row that a row of frame f maps to
+    const outRowsByFrame = frames.map((frame, f) => {
+        const columns = keyColumns(frame, key)
+        // Without fallbacks every frame is expected to have the key
+        if (!columns && !hasFallbackKeys)
+            throw new Error(`Frame ${f} is missing join key columns`)
+        if (!columns) return undefined
+        const [a, b] = columns
+        const outRows = new Int32Array(frame.numRows)
+        for (let row = 0; row < frame.numRows; row++) {
+            let outRow = outIndex.get(a[row], b[row])
+            if (outRow === undefined) {
+                outRow = ownerFrame.length
+                outIndex.set(a[row], b[row], outRow)
+                ownerFrame.push(f)
+                ownerRow.push(row)
+            }
+            outRows[row] = outRow
         }
-    }
+        return outRows
+    })
+    const numOutRows = ownerFrame.length
 
-    // The general join keeps only the first row of a repeated index value, so
-    // only take the fast path if every index value is unique
-    if (!hasUniqueIndexValues(firstTable, indexColumnNames)) return undefined
-
-    const copyColumns = (table: OwidTable, slugs: string[]): OwidColumnDef[] =>
-        table.getColumns(slugs).map((col) => ({
-            ...col.def,
-            values: table.columnStore[col.slug],
-        }))
-    return new OwidTable(
-        [],
-        [
-            ...copyColumns(firstTable, sharedColumnNames),
-            ...tables.flatMap((table) =>
-                copyColumns(
-                    table,
-                    _.difference(table.columnSlugs, sharedColumnNames)
-                )
-            ),
-        ]
-    )
-}
-
-const fullJoinTables = (
-    tables: OwidTable[],
-    indexColumnNames: OwidTableSlugs[],
-    mergeFallbackLookupColumns?: OwidTableSlugs[][]
-): OwidTable => {
-    // This function merges a number of OwidTables together using a given list of columns
-    // to be used as the merge key. The merge key columns are used to construct a full set
-    // of index values from the various tables - all tables are enumerated, we create
-    // a merged string value from the index column values for each row and then we create
-    // a set from all these string values.
-    // Note that not every table has to have values for all columns - not even all the index
-    // columns have to exist on all tables (the index columns have to exist on the first table though)!
-    // The reason for this and how this can possibly work
-    // is that we also have a list of fallback merge columns. This is required so we can handle
-    // not just the easy case where we have year+entity for every table to be merged (which in our
-    // data model is by far the most common default), but also handle cases where we merge year and
-    // day based variables together. For this latter case we need to still construct the set of index
-    // values for the final table, but then when we try to look up values in the various tables to
-    // merge together we will not find values by day+entity for the year based tables. So for this
-    // case we get a series of fallback column tuples that we try in turn if the main index lookup
-    // fails. These fallback tuples are year+entity first and then entity only. The reasoning here is
-    // that e.g. when merging population to a day variable we want to merge the values from the year
-    // matching the day from the population variable (year+entity lookup) but for variables that don't
-    // have overlapping years (e.g. continents that only has 2015 as the single year) we want to fall back
-    // to merging by entity alone as a last resort
-    if (tables.length === 0) return new OwidTable()
-    else if (tables.length === 1) return tables[0]
-
-    // Figure out which column names are shared. Shared columns (the index columns but also in our
-    // data model stuff like entityName that we usually have in addition to entityId)
-    // will end up only once in the final table. This is a bit of a footgun for arbitrary data models
-    // as we don't make sure that the values are equal for the same index values (we only assume that
-    // this is true) - but this is how we have handled it in the past and it works with the setup we
-    // have.
-    const sharedColumnNames = intersection(
-        ...tables.map((table) => table.columnSlugs)
-    )
-
-    // Quickly check whether all tables to be merged have the exact same indexes, in the same order.
-    // That's often the case for multiple variables coming from the same dataset, e.g. used for stacked charts.
-    // When it is, then we can just very efficiently concatenate the various columns together and are done already.
-    const tablesWithIdenticalIndex = attemptToJoinTablesWithIdenticalIndex(
-        tables,
-        indexColumnNames,
-        sharedColumnNames
-    )
-    if (tablesWithIdenticalIndex) return tablesWithIdenticalIndex
-
-    // Get all the index values per table and then figure out the full set of all stringified index values
-    const indexValuesPerTable: Map<string, number[]>[] = tables.map((table) =>
-        // When we get a mergeFallbackLookupColumn then it can happen that a table does not have all the
-        // columns of the main index. In this case, just return an empty map because that will lead all
-        // lookups by main index to fail and we'll try the fallback index
-        mergeFallbackLookupColumns &&
-        _.difference(indexColumnNames, table.columnSlugs).length > 0
-            ? new Map()
-            : table.rowIndex(indexColumnNames)
-    )
-
-    // Construct all the fallback index lookup values for all tables. mergeFallbackLookupColumns is an
-    // array of array that is supposed to be treated as a sequence of tuples of column names
-    const mergeFallbackLookupValuesPerTable = mergeFallbackLookupColumns
-        ? mergeFallbackLookupColumns.map((fallbackColumns) =>
-              tables.map((table) => table.rowIndex(fallbackColumns))
-          )
-        : undefined
-
-    // Insertion order matters: index values of the first table come first
-    const allIndexValues = new Set<string>()
-    for (const indexValues of indexValuesPerTable)
-        for (const key of indexValues.keys()) allIndexValues.add(key)
-
-    // Now identify for each table which columns should be copied (i.e. all non-index columns).
-    const columnsToAddPerTable = tables.map((table) =>
-        _.difference(table.columnSlugs, sharedColumnNames)
-    )
-    // Prepare a special entry for the Table + column names tuple that we will zip and
-    // map in the next step. This special entry is the first table and contains only the
-    // unique columns (index + other tables that are shared among all tables).
-    // We will preferentially get the unique values from the first table but because
-    // the first table is not guaranteed to contain all index values we'll later on
-    // try other tables for these shared columns if the given row index does
-    // not exist in the first table
-    const firstTableDuplicateForIndices: [
-        OwidTable | undefined,
-        string[] | undefined,
-    ] = [tables[0], sharedColumnNames]
-    const defsToAddPerTable = [firstTableDuplicateForIndices]
-        .concat(R.zip(tables, columnsToAddPerTable))
-        .map(
-            (tableAndColumns) =>
-                tableAndColumns[0]!
-                    .getColumns(tableAndColumns[1]!)
-                    .map((col) => {
-                        const def = { ...col.def }
-                        def.values = []
-                        return def
-                    }) as OwidColumnDef[]
+    let numDuplicateHits = 0
+    const rowsByFrame = outRowsByFrame.map((outRows) => {
+        const rows = new Int32Array(numOutRows).fill(-1)
+        if (!outRows) return rows
+        // Mark the first row per key; count keys hit more than once
+        const hitCount = new Uint8Array(numOutRows)
+        for (let row = 0; row < outRows.length; row++) {
+            const outRow = outRows[row]
+            if (rows[outRow] === -1) rows[outRow] = row
+            if (hitCount[outRow] === 1) numDuplicateHits++
+            if (hitCount[outRow] < 2) hitCount[outRow]++
+        }
+        return rows
+    })
+    // This should be rare. We then use the first matching row, which can be
+    // the wrong one, so leave a hint for debugging
+    for (let i = 0; i < numDuplicateHits; i++)
+        console.error(
+            "Found more than one matching row for a join key in a frame"
         )
-    // The loop below touches every cell, so resolve the source and target
-    // arrays of every column up front. Going through the memoized
-    // `table.columnStore` getter for each cell is slow.
-    const sharedDefTargets = defsToAddPerTable[0].map((def) => def.values!)
-    // sharedDefSourcesPerTable[tableIndex][defIndex]
-    const sharedDefSourcesPerTable = tables.map((table) =>
-        defsToAddPerTable[0].map((def) => table.columnStore[def.slug])
-    )
-    const valueDefTargetsPerTable = tables.map((_table, i) =>
-        defsToAddPerTable[i + 1].map((def) => def.values!)
-    )
-    const valueDefSourcesPerTable = tables.map((table, i) =>
-        defsToAddPerTable[i + 1].map((def) => table.columnStore[def.slug])
-    )
-    const fallbackKeyFns = mergeFallbackLookupColumns?.map((columnSet) =>
-        makeKeyFn(tables[0].columnStore, columnSet)
-    )
 
-    // Now loop over all unique index values and for each assemble as full a row as we can manage by looking
-    // up the values in the different source tables
-    for (const index of allIndexValues) {
-        // First we handle the unique/index columns (defsToAddPerTable[0]).
-        // The index columns are special - the first table might not have a value for each of the index columns
-        // at the current index (e.g. a year that does not exist in the first table). We therefore have to keep
-        // looking in the other tables until we find a table that has the values. Because the index values were
-        // generated from the combined set of all index values we are guaranteed to find a value eventually before
-        // we exceed the length of the tables array
-        let sharedTableIndex = 0
-        let sharedIndexHits = indexValuesPerTable[0].get(index)
-        while (sharedIndexHits === undefined) {
-            sharedTableIndex++
-            sharedIndexHits = indexValuesPerTable[sharedTableIndex].get(index)
+    return { rowsByFrame, ownerFrame, ownerRow }
+}
+
+/** Fills in (in place) the rows of a frame that are found via fallback keys */
+const resolveFallbackRows = (
+    frame: Frame,
+    rows: Int32Array,
+    fallbackKeys: JoinKey[],
+    fallbackKeyValues: ([CoreValueType[], CoreValueType[]] | undefined)[],
+    firstFrameRows: Int32Array,
+    /** Undefined when the first frame owns every result row */
+    ownerFrame: number[] | undefined
+): void => {
+    // Built lazily, since most frames match on the primary key
+    const indexes: (KeyMap<number> | null | undefined)[] = []
+    const getIndex = (k: number): KeyMap<number> | null => {
+        let index = indexes[k]
+        if (index === undefined) {
+            const columns = keyColumns(frame, fallbackKeys[k])
+            if (!columns) index = null
+            else {
+                index = new KeyMap<number>(fallbackKeys[k].length)
+                const [a, b] = columns
+                // Later rows overwrite earlier ones: the last match wins
+                for (let row = 0; row < frame.numRows; row++)
+                    index.set(a[row], b[row], row)
+            }
+            indexes[k] = index
         }
-        const sharedRow = sharedIndexHits[0]
-        const sharedDefSources = sharedDefSourcesPerTable[sharedTableIndex]
-        for (let d = 0; d < sharedDefTargets.length; d++)
-            sharedDefTargets[d].push(sharedDefSources[d][sharedRow])
+        return index
+    }
 
-        // Now figure out the fallback merge lookup index value from the first table.
-        // This is the fallback index we use when looking up values and we don't find a value in the normal index.
-        // This is the case when we join year and day variables and then use day+entityid as the key but the year
-        // variables don't have those - so for the year variables we then check if there is a match using year+entityId
-        // where the year to use comes from the first table that by convention HAS TO contain a year column with the
-        // value to merge years on.
-        const firstTableIndexHits =
-            sharedTableIndex === 0 ? sharedIndexHits : undefined
-        const fallbackMergeIndices =
-            fallbackKeyFns && firstTableIndexHits
-                ? fallbackKeyFns.map((keyFn) => keyFn(firstTableIndexHits[0]))
-                : undefined
+    // Consecutive rows usually share their fallback key (e.g. the days of a
+    // year for one entity), so remember the last lookup per fallback key
+    const lastA: unknown[] = []
+    const lastB: unknown[] = []
+    const lastRow: (number | undefined)[] = []
 
-        // now add all the nonindex value columns. We now loop over all tables and for each non-shared column
-        // we look up the value for the current row. We find the value for the current row by first trying to
-        // look up a match based on the shared index values, indexValuesPerTable[i]. If we don't have a hit
-        // for this row in this table then we try the fallbackMergeIndices in turn to see if we can merge
-        // based on these fallback indexes. If no option leads to a match we store ErrorValueTypes.NoMatchingValueAfterJoin
-        // in the cell.
-        for (let i = 0; i < tables.length; i++) {
-            const targets = valueDefTargetsPerTable[i]
-            const sources = valueDefSourcesPerTable[i]
-            let indexHits = indexValuesPerTable[i].get(index)
-
-            if (indexHits !== undefined) {
-                if (indexHits.length > 1)
-                    // This case should be rare but it can come up. The old algorithm ran into this often because it
-                    // joined a lot more stuff on entity only and then when you look up by entity into a table that has
-                    // several years you end up with multiple matches. The old algorithm used to just pick one value.
-                    // We still do this ultimately but because we try to match even day and year variables by year+entity
-                    // first we should usually be able to find a unique match. The error output is here so that when
-                    // something is weird in an edge case then this shows up as a debugging hint in the console.
-                    console.error(
-                        `Found more than one matching row in table ${tables[i].tableSlug}`
-                    )
-                // If the main index led to a hit then we just copy the values into the new row from the source table
-                const row = indexHits[0]
-                for (let d = 0; d < targets.length; d++)
-                    targets[d].push(sources[d][row])
-                continue
+    for (let outRow = 0; outRow < rows.length; outRow++) {
+        if (rows[outRow] !== -1) continue
+        if (ownerFrame && ownerFrame[outRow] !== 0) continue
+        const firstFrameRow = firstFrameRows[outRow]
+        for (let k = 0; k < fallbackKeys.length; k++) {
+            const keyValues = fallbackKeyValues[k]
+            if (!keyValues) continue
+            const a = keyValues[0][firstFrameRow]
+            const b = keyValues[1][firstFrameRow]
+            let row: number | undefined
+            if (k in lastRow && lastA[k] === a && lastB[k] === b)
+                row = lastRow[k]
+            else {
+                const index = getIndex(k)
+                if (!index) continue
+                row = index.get(a, b)
+                lastA[k] = a
+                lastB[k] = b
+                lastRow[k] = row
             }
-            if (targets.length === 0) continue
-
-            // If the main index did not lead to a hit then we try the fallback indices in turn
-            for (
-                let fallbackIndex = 0;
-                fallbackMergeIndices &&
-                mergeFallbackLookupValuesPerTable &&
-                indexHits === undefined &&
-                fallbackIndex < fallbackMergeIndices.length;
-                fallbackIndex++
-            ) {
-                indexHits = mergeFallbackLookupValuesPerTable[fallbackIndex][
-                    i
-                ].get(fallbackMergeIndices[fallbackIndex])
+            if (row !== undefined) {
+                rows[outRow] = row
+                break
             }
-
-            // If none of the fallback values worked either we write ErrorValueTypes.NoMatchingValueAfterJoin into the cells
-            if (indexHits === undefined) {
-                for (const target of targets)
-                    target.push(ErrorValueTypes.NoMatchingValueAfterJoin)
-                continue
-            }
-
-            // If any of the fallbacks led to a hit then we use this hit.
-            // Note that we choose the last of the indexHits entries to look up the row in the columnstore here.
-            // In the usual case the fallback index should still have enough information to match just one row (e.g.
-            // year+entity). But for cases when we join day and year variables we have as the ultimate fallback a match
-            // by entity only and this can then of course result in many indexHits when looking up an entity like Germany
-            // in e.g. the population variable. If this join here were properly time and tolerance aware then we could
-            // avoid matching on entity alone as the ultimate fallback but for  now this function is not that clever.
-            // For the cases when we do get multiple hits for an index we could thus choose any data point. Pre July 2022
-            // the old code always chose the first datapoint, which is often the first year that the variable has data for
-            // for the given entity. This is not great, e.g. when using a covid date based variable and joining it to
-            // population or similar. What we do here now is to use indexHits.length - 1 as the index, i.e. the last
-            // row that this variable has data for for this entity. This could in theory be pretty wrong as well but in
-            // practice it often means a very close match.
-            // The proper solution as mentioned above would be to never fall back to entity matches only and move
-            // the tolerance matching into this function as well instead.
-            //
-            // All of the table's columns read that same row, so e.g. a value
-            // and its originalTime always come from one source row.
-            const row = indexHits[indexHits.length - 1]
-            for (let d = 0; d < targets.length; d++)
-                targets[d].push(sources[d][row])
         }
     }
-    return new OwidTable(
-        [],
-        defsToAddPerTable.flatMap((defs) => defs)
-    )
 }
 
-/**
- * Relabels the joined time column with the finest interval that can represent
- * every joined variable table's times (each of their time columns knows its own)
- */
-const withFinestTimeColumnInterval = (
-    joinedTable: OwidTable,
-    variableTables: OwidTable[],
-    slug: OwidTableSlugs.Day | OwidTableSlugs.Year
-): OwidTable => {
-    const intervals = variableTables.map(
-        (table) => table.get(slug).timeInterval
-    )
-    if (new Set(intervals).size < 2) return joinedTable
-    const timeColumnDef =
-        TIME_COLUMN_DEF_BY_INTERVAL[findFinestCommonTimeInterval(intervals)]
-    return joinedTable.updateDefs((def) =>
-        def.slug === slug ? { ...def, ...timeColumnDef } : def
-    )
+// ---------------------------------------------------------------------------
+// Parsing, matching what OwidTable does for untyped input
+// ---------------------------------------------------------------------------
+
+const parseString = (value: unknown): CoreValueType => {
+    if (value === null) return ErrorValueTypes.NullButShouldBeString
+    if (value === undefined) return ErrorValueTypes.UndefinedButShouldBeString
+    return String(value)
 }
 
-const variableTypeToColumnType = (type: OwidVariableType): ColumnTypeNames => {
-    switch (type) {
-        case "ordinal":
-            return ColumnTypeNames.Ordinal
-        case "string":
-            return ColumnTypeNames.String
-        case "int":
-            return ColumnTypeNames.Integer
-        case "float":
-            return ColumnTypeNames.Numeric
-        case "mixed":
-        default:
-            return ColumnTypeNames.NumberOrString
-    }
+const parseNumber = (value: unknown): CoreValueType => {
+    if (typeof value === "number" && !Number.isNaN(value)) return value
+    if (value === null) return ErrorValueTypes.NullButShouldBeNumber
+    if (value === undefined) return ErrorValueTypes.UndefinedButShouldBeNumber
+    if (value === "") return ErrorValueTypes.BlankButShouldBeNumber
+    if (Number.isNaN(Number(value))) return ErrorValueTypes.NaNButShouldBeNumber
+    const parsed = parseFloat(String(value))
+    return Number.isNaN(parsed)
+        ? ErrorValueTypes.NotAParseableNumberButShouldBeNumber
+        : parsed
 }
 
-const getSortFromDimensions = (
-    dimensions: OwidVariableDimensions
-): string[] | undefined => {
-    const values = dimensions.values?.values
-    if (!values) return
+const parseTime = (value: number): number =>
+    Number.isInteger(value) ? value : parseInt(String(value))
 
-    const sort = values
-        .map((value) => value.name)
-        .filter((name) => name !== undefined)
-
-    if (sort.length === 0) return
-
-    return sort
-}
-
-const columnDefFromOwidVariable = (
-    variable: OwidVariableWithSourceAndDimension
-): OwidColumnDef => {
-    const slug = variable.id.toString() // For now, the variableId will be the column slug
-    const {
-        unit,
-        shortUnit,
-        description,
-        coverage,
-        datasetId,
-        datasetName,
-        descriptionShort,
-        descriptionProcessing,
-        descriptionKey,
-        descriptionFromProducer,
-        source,
-        origins,
-        display,
-        timespan,
-        nonRedistributable,
-        presentation,
-        catalogPath,
-        updatePeriodDays,
-        shortName,
-    } = variable
-
-    const isContinent = isContinentsVariableId(variable.id)
-    const name = variable.name
-
-    // The column's type
-    const parsedType = variable.type
-        ? variableTypeToColumnType(variable.type)
-        : ColumnTypeNames.NumberOrString
-
-    // Override the column type for the special Continents variable
-    const type = isContinent ? ColumnTypeNames.Continent : parsedType
-
-    // Extract the sort order for ordinal variables from their dimension metadata.
-    // This preserves the author-specified ordering of categorical values
-    // (e.g., "Low", "Medium", "High").
-    const sort =
-        parsedType === ColumnTypeNames.Ordinal
-            ? getSortFromDimensions(variable.dimensions)
-            : undefined
-
-    const annotations = parseIndicatorAnnotations(variable)
-
-    return {
-        name,
-        slug,
-        unit,
-        shortUnit,
-        description,
-        descriptionShort,
-        descriptionProcessing,
-        descriptionKey,
-        descriptionFromProducer,
-        coverage,
-        datasetId,
-        datasetName,
-        display,
-        color: display?.color,
-        nonRedistributable,
-        sourceLink: source?.link,
-        sourceName: source?.name,
-        dataPublishedBy: source?.dataPublishedBy,
-        dataPublisherSource: source?.dataPublisherSource,
-        retrievedDate: source?.retrievedDate,
-        additionalInfo: source?.additionalInfo,
-        timespan,
-        origins,
-        annotations,
-        presentation,
-        catalogPath,
-        updatePeriodDays,
-        owidVariableId: variable.id,
-        owidProcessingLevel: variable.processingLevel,
-        owidSchemaVersion: variable.schemaVersion,
-        type,
-        sort,
-        shortName,
-    }
-}
+// ---------------------------------------------------------------------------
+// Time columns
+// ---------------------------------------------------------------------------
 
 // Maps each time interval to the time column it produces. Sub-yearly intervals
 // all share the `day` slug (days-since-epoch) so they join in the same bucket
@@ -898,63 +891,116 @@ const TIME_COLUMN_DEF_BY_INTERVAL: Record<TimeInterval, OwidColumnDef> = {
     },
 }
 
-const timeColumnDefFromOwidVariable = (
-    variableMetadata: OwidVariableWithSource
-): OwidColumnDef => {
-    return TIME_COLUMN_DEF_BY_INTERVAL[
-        getTimeInterval(variableMetadata.display)
-    ]
-}
-
-const timeColumnValuesFromOwidVariable = (
-    variableMetadata: OwidVariableWithSource,
-    variableData: OwidVariableMixedData
+const timeValuesFromOwidVariable = (
+    metadata: OwidVariableWithSource,
+    years: number[]
 ): number[] => {
-    const { display } = variableMetadata
-    const { years } = variableData
-
+    const { display } = metadata
     const interval = getTimeInterval(display)
+    if (!isSubYearly(interval)) return years.map(parseTime)
 
-    // Shift day-encoded values expressed relative to a custom zeroDay onto the
-    // shared EPOCH_DATE, so variables with different zeroDays are comparable
-    const yearsNeedTransform =
-        display &&
-        isSubYearly(interval) &&
-        display.zeroDay !== undefined &&
-        display.zeroDay !== EPOCH_DATE
-    let times = yearsNeedTransform
-        ? convertLegacyYears(years || [], display.zeroDay!)
-        : years || []
+    // Day-encoded values are relative to the variable's zeroDay; shift them
+    // onto the shared EPOCH_DATE so that variables are comparable
+    const zeroDay = display?.zeroDay
+    const offset =
+        zeroDay !== undefined && zeroDay !== EPOCH_DATE
+            ? diffDatesInDays(dayjs.utc(zeroDay), epochDate())
+            : 0
 
-    // Snap sub-yearly values (except plain days) to the start of their period,
-    // so variables that pick different representative days for the same period
-    // still align
-    if (isSubYearly(interval) && interval !== TimeInterval.Day)
-        times = times.map((time) => snapToIntervalStart(time, interval))
-
-    return times
+    // Snap sub-yearly values (except plain days) to the start of their
+    // period, so that variables that pick different representative days for
+    // the same period still align
+    if (interval === TimeInterval.Day)
+        return years.map((year) => parseTime(year + offset))
+    return years.map((year) =>
+        parseTime(snapToIntervalStart(year + offset, interval))
+    )
 }
 
-const convertLegacyYears = (years: number[], zeroDay: string): number[] => {
-    // Only shift years if the variable zeroDay is different from EPOCH_DATE
-    // When the dataset uses days, the days are expressed as integer
-    // days since the specified `zeroDay`, which can be different for different variables.
-    // In order to correctly join variables with different `zeroDay`s in a single chart, we
-    // normalize all days to be in reference to a single epoch date.
-    const diff = diffDatesInDays(dayjs.utc(zeroDay), epochDate())
-    return years.map((y) => y + diff)
+// ---------------------------------------------------------------------------
+// Column defs
+// ---------------------------------------------------------------------------
+
+const variableTypeToColumnType = (type: OwidVariableType): ColumnTypeNames => {
+    switch (type) {
+        case "ordinal":
+            return ColumnTypeNames.Ordinal
+        case "string":
+            return ColumnTypeNames.String
+        case "int":
+            return ColumnTypeNames.Integer
+        case "float":
+            return ColumnTypeNames.Numeric
+        case "mixed":
+        default:
+            return ColumnTypeNames.NumberOrString
+    }
 }
 
-const annotationsToMap = (annotations: string): Map<string, string> => {
-    // Todo: let's delete this and switch to traditional columns
-    const entityAnnotationsMap = new Map<string, string>()
-    const delimiter = ":"
-    annotations.split("\n").forEach((line) => {
-        const [key, ...words] = line.split(delimiter)
-        entityAnnotationsMap.set(key.trim(), words.join(delimiter).trim())
-    })
-    return entityAnnotationsMap
+/** The sort order of an ordinal variable's categories, e.g. Low, Medium, High */
+const getSortFromDimensions = (
+    dimensions: OwidVariableDimensions
+): string[] | undefined => {
+    const sort = dimensions.values?.values
+        ?.map((value) => value.name)
+        .filter((name) => name !== undefined)
+    return sort?.length ? sort : undefined
 }
+
+const columnDefFromOwidVariable = (
+    variable: OwidVariableWithSourceAndDimension
+): OwidColumnDef => {
+    const { source, display } = variable
+    const parsedType = variable.type
+        ? variableTypeToColumnType(variable.type)
+        : ColumnTypeNames.NumberOrString
+
+    return {
+        name: variable.name,
+        slug: variable.id.toString(),
+        unit: variable.unit,
+        shortUnit: variable.shortUnit,
+        description: variable.description,
+        descriptionShort: variable.descriptionShort,
+        descriptionProcessing: variable.descriptionProcessing,
+        descriptionKey: variable.descriptionKey,
+        descriptionFromProducer: variable.descriptionFromProducer,
+        coverage: variable.coverage,
+        datasetId: variable.datasetId,
+        datasetName: variable.datasetName,
+        display,
+        color: display?.color,
+        nonRedistributable: variable.nonRedistributable,
+        sourceLink: source?.link,
+        sourceName: source?.name,
+        dataPublishedBy: source?.dataPublishedBy,
+        dataPublisherSource: source?.dataPublisherSource,
+        retrievedDate: source?.retrievedDate,
+        additionalInfo: source?.additionalInfo,
+        timespan: variable.timespan,
+        origins: variable.origins,
+        annotations: parseIndicatorAnnotations(variable),
+        presentation: variable.presentation,
+        catalogPath: variable.catalogPath,
+        updatePeriodDays: variable.updatePeriodDays,
+        owidVariableId: variable.id,
+        owidProcessingLevel: variable.processingLevel,
+        owidSchemaVersion: variable.schemaVersion,
+        // The Continents variable gets its own column type
+        type: isContinentsVariableId(variable.id)
+            ? ColumnTypeNames.Continent
+            : parsedType,
+        sort:
+            parsedType === ColumnTypeNames.Ordinal
+                ? getSortFromDimensions(variable.dimensions)
+                : undefined,
+        shortName: variable.shortName,
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Annotations
+// ---------------------------------------------------------------------------
 
 const parseIndicatorAnnotations = (
     variable: OwidVariableWithSourceAndDimension
@@ -972,15 +1018,24 @@ const parseIndicatorAnnotations = (
     return [...annotations, ...legacyAnnotations]
 }
 
+/**
+ * Parses the legacy `entityAnnotationsMap`: one "Entity: text" line per
+ * entity. A repeated entity keeps its last line.
+ */
 const parseLegacyEntityAnnotations = (
     entityAnnotationsMap: string | undefined
-): IndicatorAnnotation[] =>
-    [...annotationsToMap(entityAnnotationsMap ?? "")].flatMap(
-        ([entityName, text]) =>
-            entityName && text
-                ? [{ text, entityNames: [entityName], timeScope: "all" }]
-                : []
+): IndicatorAnnotation[] => {
+    const textByEntity = new Map<string, string>()
+    for (const line of (entityAnnotationsMap ?? "").split("\n")) {
+        const [entityName, ...words] = line.split(":")
+        textByEntity.set(entityName.trim(), words.join(":").trim())
+    }
+    return [...textByEntity].flatMap(([entityName, text]) =>
+        entityName && text
+            ? [{ text, entityNames: [entityName], timeScope: "all" }]
+            : []
     )
+}
 
 const parseIndicatorAnnotation = (
     annotation: OwidVariableAnnotation,
@@ -1004,46 +1059,33 @@ const parseTimeScope = (
     annotation: OwidVariableAnnotation,
     variable: OwidVariableWithSourceAndDimension
 ): AnnotationTimeScope | undefined => {
-    if (annotation.time === undefined) {
-        if (annotation.timeEnd === undefined) return { timeScope: "all" }
+    const drop = (reason: string): undefined => {
         console.warn(
-            `Dropping annotation of variable ${variable.id} with a timeEnd but no time: ${annotation.timeEnd}`
+            `Dropping annotation of variable ${variable.id} with ${reason}`
         )
         return undefined
+    }
+
+    if (annotation.time === undefined) {
+        if (annotation.timeEnd === undefined) return { timeScope: "all" }
+        return drop(`a timeEnd but no time: ${annotation.timeEnd}`)
     }
 
     const interval = getTimeInterval(variable.display)
-    const parsedTime = parseAnnotationTime(annotation.time, interval)
-    const parsedTimeEnd =
-        annotation.timeEnd === undefined
-            ? undefined
-            : parseAnnotationTime(annotation.timeEnd, interval)
+    const time = parseAnnotationTime(annotation.time, interval)
+    if (time === undefined) return drop(`an invalid time: ${annotation.time}`)
 
-    if (parsedTime === undefined) {
-        console.warn(
-            `Dropping annotation of variable ${variable.id} with an invalid time: ${annotation.time}`
+    if (annotation.timeEnd === undefined) return { timeScope: "point", time }
+    const timeEnd = parseAnnotationTime(annotation.timeEnd, interval)
+    if (timeEnd === undefined)
+        return drop(`an invalid timeEnd: ${annotation.timeEnd}`)
+
+    if (timeEnd === time) return { timeScope: "point", time }
+    if (timeEnd < time)
+        return drop(
+            `end time ${annotation.timeEnd} before start time ${annotation.time}`
         )
-        return undefined
-    }
-
-    if (annotation.timeEnd !== undefined && parsedTimeEnd === undefined) {
-        console.warn(
-            `Dropping annotation of variable ${variable.id} with an invalid timeEnd: ${annotation.timeEnd}`
-        )
-        return undefined
-    }
-
-    if (parsedTimeEnd === undefined || parsedTimeEnd === parsedTime)
-        return { timeScope: "point", time: parsedTime }
-
-    if (parsedTimeEnd < parsedTime) {
-        console.warn(
-            `Dropping annotation of variable ${variable.id} with end time ${annotation.timeEnd} before start time ${annotation.time}`
-        )
-        return undefined
-    }
-
-    return { timeScope: "range", startTime: parsedTime, endTime: parsedTimeEnd }
+    return { timeScope: "range", startTime: time, endTime: timeEnd }
 }
 
 const parseAnnotationTime = (

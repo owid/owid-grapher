@@ -60,23 +60,29 @@ const mergeDisplayIntoDefs = (
 ): OwidTable => {
     return table.updateDefs((def): OwidColumnDef => {
         const display = displayBySlug.get(def.slug)
-        if (!display) return def
-
-        const mergedDef: OwidColumnDef = {
-            ...def,
-            display: { ...def.display, ...display },
-        }
-        if (display.color) mergedDef.color = display.color
-
-        if (
-            def.type === ColumnTypeNames.Integer &&
-            display.conversionFactor !== undefined &&
-            !_.isInteger(display.conversionFactor)
-        )
-            mergedDef.type = ColumnTypeNames.Numeric
-
-        return mergedDef
+        return display ? mergeDisplayIntoDef(def, display) : def
     })
+}
+
+/** Merges a (trimmed) display override into a column def */
+export const mergeDisplayIntoDef = (
+    def: OwidColumnDef,
+    display: OwidVariableDisplayConfigInterface
+): OwidColumnDef => {
+    const mergedDef: OwidColumnDef = {
+        ...def,
+        display: { ...def.display, ...display },
+    }
+    if (display.color) mergedDef.color = display.color
+
+    if (
+        def.type === ColumnTypeNames.Integer &&
+        display.conversionFactor !== undefined &&
+        !_.isInteger(display.conversionFactor)
+    )
+        mergedDef.type = ColumnTypeNames.Numeric
+
+    return mergedDef
 }
 
 const scaleByConversionFactor = (
