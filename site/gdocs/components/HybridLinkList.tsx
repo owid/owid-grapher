@@ -8,12 +8,12 @@ import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons"
 type HybridLinkProps = EnrichedHybridLink & { shouldRenderLinks: boolean }
 
 /** Chart and explorer thumbnails are rendered on demand. Ask for the
- * "thumbnail" render (the stripped-down chart small search results use)
+ * "simplified" render (the stripped-down chart small search results use)
  * at 1.91:1, the shape of article featured images, so all thumbnails in
  * a list line up. */
 function makeChartThumbnailUrl(thumbnail?: string): string | undefined {
     if (!thumbnail) return undefined
-    const params = "imType=thumbnail&imWidth=1200&imHeight=628"
+    const params = "imVariant=simplified&imWidth=1200&imHeight=628"
     const separator = thumbnail.includes("?") ? "&" : "?"
     return `${thumbnail}${separator}${params}`
 }
