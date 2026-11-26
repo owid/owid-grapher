@@ -7,6 +7,7 @@ import {
     CodeSnippet,
     makeSource,
     INDICATOR_PROCESSING_SECTION_ID,
+    REUSE_THIS_WORK_SECTION_ID,
     MetadataBoxExpander,
     MetadataBoxToggleButton,
     MetadataBoxSection,
@@ -310,7 +311,11 @@ function IndicatorCitations({
 
     if (!citationShort && !citationLong) return null
     return (
-        <MetadataBoxSection title="How to cite">
+        <MetadataBoxSection
+            title="How to cite"
+            // The old layout's id, which existing links still use
+            id={REUSE_THIS_WORK_SECTION_ID}
+        >
             {citationDatapage && (
                 <ExpandableToggle
                     label="How to cite this page"

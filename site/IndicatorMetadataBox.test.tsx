@@ -102,6 +102,17 @@ describe("FAQ fragment compatibility", () => {
         ).toBe(false)
     })
 
+    it("opens the box at the citations for the old layout's #reuse-this-work", () => {
+        window.history.replaceState(null, "", "#reuse-this-work")
+        const view = render(box)
+        const heading = view.getByRole("heading", { name: "How to cite" })
+        expect(document.getElementById("reuse-this-work")).toBe(heading)
+        expect(heading.closest("details")!.open).toBe(true)
+        expect(
+            vi.mocked(HTMLElement.prototype.scrollIntoView).mock.contexts
+        ).toContain(heading)
+    })
+
     it.each(["#%E0%A4%A", "#outside"])(
         "ignores malformed fragments and targets outside the box: %s",
         (hash) => {
