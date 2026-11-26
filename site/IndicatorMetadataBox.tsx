@@ -27,6 +27,7 @@ import {
     LicenseOption,
     OwidEnrichedGdocBlock,
 } from "@ourworldindata/types"
+import cx from "clsx"
 import { useEffect, useRef } from "react"
 import {
     formatAttributions,
@@ -508,6 +509,10 @@ export default function IndicatorMetadataBox({
                 )}
             </MetadataBoxKeyData>
             <MetadataBoxExpander
+                className={cx({
+                    "indicator-metadata-box__expander--has-preview":
+                        descriptionKeyPreview,
+                })}
                 detailsRef={detailsRef}
                 detailsId={detailsId}
                 showMoreIcon={faCaretDown}
