@@ -509,11 +509,13 @@ function IndicatorCitations({
     canonicalUrl,
     archiveContext,
     pageCitation,
+    idSuffix,
 }: {
     datapageData: DataPageDataV2
     canonicalUrl: string
     archiveContext: ArchiveContext | undefined
     pageCitation?: PageCitationOptions
+    idSuffix: string
 }): React.ReactElement | null {
     const {
         short: citationShort,
@@ -540,7 +542,7 @@ function IndicatorCitations({
         <MetadataBoxSection
             title="How to cite"
             // The old layout's id, which existing links still use
-            id={REUSE_THIS_WORK_SECTION_ID}
+            id={`${REUSE_THIS_WORK_SECTION_ID}${idSuffix}`}
         >
             {citationDatapage && (
                 <ExpandableToggle
@@ -878,6 +880,7 @@ function IndicatorPane({
                     canonicalUrl={canonicalUrl}
                     archiveContext={archiveContext}
                     pageCitation={pageCitation}
+                    idSuffix={idSuffix}
                 />
                 <IndicatorFinePrint license={datapageData.license} />
             </MetadataBoxExpander>
