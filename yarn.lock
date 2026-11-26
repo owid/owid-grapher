@@ -8541,7 +8541,7 @@ __metadata:
     mobx-react: "npm:^7.6.0"
     multer: "npm:^2.5.0"
     mysql2: "npm:^3.24.6"
-    nodejs-polars: "npm:^0.7.2"
+    nodejs-polars: "npm:^0.26.2"
     normalize.css: "npm:^8.0.1"
     oxfmt: "npm:^0.79.0"
     oxlint: "npm:^1.94.0"
@@ -10488,72 +10488,92 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nodejs-polars-darwin-arm64@npm:0.7.2":
-  version: 0.7.2
-  resolution: "nodejs-polars-darwin-arm64@npm:0.7.2"
+"nodejs-polars-android-arm64@npm:0.26.2":
+  version: 0.26.2
+  resolution: "nodejs-polars-android-arm64@npm:0.26.2"
+  conditions: os=android & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"nodejs-polars-darwin-arm64@npm:0.26.2":
+  version: 0.26.2
+  resolution: "nodejs-polars-darwin-arm64@npm:0.26.2"
   conditions: os=darwin & cpu=arm64
   languageName: node
   linkType: hard
 
-"nodejs-polars-darwin-x64@npm:0.7.2":
-  version: 0.7.2
-  resolution: "nodejs-polars-darwin-x64@npm:0.7.2"
+"nodejs-polars-darwin-x64@npm:0.26.2":
+  version: 0.26.2
+  resolution: "nodejs-polars-darwin-x64@npm:0.26.2"
   conditions: os=darwin & cpu=x64
   languageName: node
   linkType: hard
 
-"nodejs-polars-linux-arm64-gnu@npm:0.7.2":
-  version: 0.7.2
-  resolution: "nodejs-polars-linux-arm64-gnu@npm:0.7.2"
+"nodejs-polars-linux-arm64-gnu@npm:0.26.2":
+  version: 0.26.2
+  resolution: "nodejs-polars-linux-arm64-gnu@npm:0.26.2"
   conditions: os=linux & cpu=arm64 & libc=glibc
   languageName: node
   linkType: hard
 
-"nodejs-polars-linux-x64-gnu@npm:0.7.2":
-  version: 0.7.2
-  resolution: "nodejs-polars-linux-x64-gnu@npm:0.7.2"
+"nodejs-polars-linux-arm64-musl@npm:0.26.2":
+  version: 0.26.2
+  resolution: "nodejs-polars-linux-arm64-musl@npm:0.26.2"
+  conditions: os=linux & cpu=arm64 & libc=musl
+  languageName: node
+  linkType: hard
+
+"nodejs-polars-linux-x64-gnu@npm:0.26.2":
+  version: 0.26.2
+  resolution: "nodejs-polars-linux-x64-gnu@npm:0.26.2"
   conditions: os=linux & cpu=x64 & libc=glibc
   languageName: node
   linkType: hard
 
-"nodejs-polars-win32-ia32-msvc@npm:0.7.2":
-  version: 0.7.2
-  resolution: "nodejs-polars-win32-ia32-msvc@npm:0.7.2"
-  conditions: os=win32 & cpu=ia32
+"nodejs-polars-linux-x64-musl@npm:0.26.2":
+  version: 0.26.2
+  resolution: "nodejs-polars-linux-x64-musl@npm:0.26.2"
+  conditions: os=linux & cpu=x64 & libc=musl
   languageName: node
   linkType: hard
 
-"nodejs-polars-win32-x64-msvc@npm:0.7.2":
-  version: 0.7.2
-  resolution: "nodejs-polars-win32-x64-msvc@npm:0.7.2"
+"nodejs-polars-win32-x64-msvc@npm:0.26.2":
+  version: 0.26.2
+  resolution: "nodejs-polars-win32-x64-msvc@npm:0.26.2"
   conditions: os=win32 & cpu=x64
   languageName: node
   linkType: hard
 
-"nodejs-polars@npm:^0.7.2":
-  version: 0.7.2
-  resolution: "nodejs-polars@npm:0.7.2"
+"nodejs-polars@npm:^0.26.2":
+  version: 0.26.2
+  resolution: "nodejs-polars@npm:0.26.2"
   dependencies:
-    nodejs-polars-darwin-arm64: "npm:0.7.2"
-    nodejs-polars-darwin-x64: "npm:0.7.2"
-    nodejs-polars-linux-arm64-gnu: "npm:0.7.2"
-    nodejs-polars-linux-x64-gnu: "npm:0.7.2"
-    nodejs-polars-win32-ia32-msvc: "npm:0.7.2"
-    nodejs-polars-win32-x64-msvc: "npm:0.7.2"
+    nodejs-polars-android-arm64: "npm:0.26.2"
+    nodejs-polars-darwin-arm64: "npm:0.26.2"
+    nodejs-polars-darwin-x64: "npm:0.26.2"
+    nodejs-polars-linux-arm64-gnu: "npm:0.26.2"
+    nodejs-polars-linux-arm64-musl: "npm:0.26.2"
+    nodejs-polars-linux-x64-gnu: "npm:0.26.2"
+    nodejs-polars-linux-x64-musl: "npm:0.26.2"
+    nodejs-polars-win32-x64-msvc: "npm:0.26.2"
   dependenciesMeta:
+    nodejs-polars-android-arm64:
+      optional: true
     nodejs-polars-darwin-arm64:
       optional: true
     nodejs-polars-darwin-x64:
       optional: true
     nodejs-polars-linux-arm64-gnu:
       optional: true
+    nodejs-polars-linux-arm64-musl:
+      optional: true
     nodejs-polars-linux-x64-gnu:
       optional: true
-    nodejs-polars-win32-ia32-msvc:
+    nodejs-polars-linux-x64-musl:
       optional: true
     nodejs-polars-win32-x64-msvc:
       optional: true
-  checksum: 10/e2ecaed8f35a7c875e21bf8ad5f934e222929c0190dfd491cb5b4c78a9231ae5dbbb0f7ebdb15e591094452e6b06b63a81ad29ea60bec50530f082096e49d984
+  checksum: 10/e0735647f1922483c605a69026378c26d41e84fe67629ef9c59cc1c2a330d46d47b4147dd4932040410d35c727619b02d186714fadaaf0ebcac8162a748b7d84
   languageName: node
   linkType: hard
 

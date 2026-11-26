@@ -553,14 +553,16 @@ export async function writeVariableCSV(
 
     // Throw an error if not all variables exist
     if (variablesDF.shape.height !== variableIds.length) {
-        const fetchedVariableIds = variablesDF.getColumn("variableId").toArray()
+        const fetchedVariableIds = variablesDF
+            .getColumn("variableId")
+            .toArray() as number[]
         const missingVariables = _.difference(variableIds, fetchedVariableIds)
         throw Error(`Variable IDs do not exist: ${missingVariables.join(", ")}`)
     }
 
     // get data values as dataframe
     const dataValuesDF = await dataAsDF(
-        variablesDF.getColumn("variableId").toArray(),
+        variablesDF.getColumn("variableId").toArray() as number[],
         knex
     )
 
@@ -570,7 +572,9 @@ export async function writeVariableCSV(
         // variables as columns
         .pivot("value", {
             index: ["entityName", "year"],
-            columns: "variableName",
+            on: "variableName",
+            // keep variable columns in the columnOrder we sorted by above
+            maintainOrder: true,
         })
         .sort(["entityName", "year"])
         .rename({ entityName: "Entity", year: "Year" })
@@ -664,7 +668,7 @@ export const _dataAsDFfromS3 = async (
     }
 
     const entityDF = await entitiesAsDF(
-        df.getColumn("entityId").toArray(),
+        df.getColumn("entityId").toArray() as number[],
         knex
     )
 
