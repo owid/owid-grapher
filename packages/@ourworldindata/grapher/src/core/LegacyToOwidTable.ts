@@ -83,8 +83,6 @@ export const legacyToOwidTableAndDimensions = (
     dimensions: OwidChartDimensionInterface[],
     selectedEntityColors: SelectedEntityColors | undefined
 ): OwidTable => {
-    const lookupEntityName = makeEntityNameLookup(json)
-
     // One column per unique [variable, targetTime] pair, so a variable can
     // contribute several columns
     const indicatorDimensions = _.uniqBy(
@@ -179,7 +177,7 @@ export const legacyToOwidTableAndDimensions = (
     // names are looked up once, for the joined rows
     const entityIdColumn = findColumn(joined, OwidTableSlugs.EntityId)
     const entityNames = entityIdColumn
-        ? lookupEntityNames(entityIdColumn.values, lookupEntityName)
+        ? lookupEntityNames(json, entityIdColumn.values as number[])
         : []
     if (timeSource)
         extraColumns.push({
@@ -240,38 +238,26 @@ const makeEntityColorColumn = (
 // ---------------------------------------------------------------------------
 
 /**
- * Resolves entity ids to their (already parsed) name, caching per id.
+ * The name of each entity id, from the variables' metadata.
  *
  * Data comes from S3 and metadata from MySQL, so an id can be missing from the
  * metadata; such entities are named after their id.
  */
-const makeEntityNameLookup = (
-    json: MultipleOwidVariableDataDimensionsMap
-): ((id: number) => CoreValueType) => {
-    // Later variables win, matching the previous object-based lookup
-    const metaNameById = new Map<string, string | undefined>()
+const lookupEntityNames = (
+    json: MultipleOwidVariableDataDimensionsMap,
+    entityIds: readonly number[]
+): string[] => {
+    // Later variables win
+    const nameById = new Map<number, string | undefined>()
     for (const variable of json.values())
         for (const entity of variable.metadata.dimensions.entities.values)
-            metaNameById.set(entity.id.toString(), entity.name)
+            nameById.set(entity.id, entity.name)
 
-    const cache = new Map<number, CoreValueType>()
-    return (id: number): CoreValueType => {
-        let name = cache.get(id)
-        if (name === undefined) {
-            name = parseString(metaNameById.get(String(id)) ?? id.toString())
-            cache.set(id, name)
-        }
-        return name
+    const names: string[] = new Array(entityIds.length)
+    for (let row = 0; row < entityIds.length; row++) {
+        const id = entityIds[row]
+        names[row] = nameById.get(id) ?? id.toString()
     }
-}
-
-const lookupEntityNames = (
-    entityIds: readonly CoreValueType[],
-    lookupEntityName: (id: number) => CoreValueType
-): CoreValueType[] => {
-    const names: CoreValueType[] = new Array(entityIds.length)
-    for (let row = 0; row < entityIds.length; row++)
-        names[row] = lookupEntityName(entityIds[row] as number)
     return names
 }
 
@@ -491,12 +477,6 @@ const withFinestTimeColumnInterval = (
 // ---------------------------------------------------------------------------
 // Parsing, matching what OwidTable does for untyped input
 // ---------------------------------------------------------------------------
-
-const parseString = (value: unknown): CoreValueType => {
-    if (value === null) return ErrorValueTypes.NullButShouldBeString
-    if (value === undefined) return ErrorValueTypes.UndefinedButShouldBeString
-    return String(value)
-}
 
 const parseNumber = (value: unknown): CoreValueType => {
     if (typeof value === "number" && !Number.isNaN(value)) return value
