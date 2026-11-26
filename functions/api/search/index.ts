@@ -2,6 +2,7 @@ import * as Sentry from "@sentry/cloudflare"
 import { Env } from "../../_common/env.js"
 import { getAlgoliaConfig } from "./algoliaClient.js"
 import {
+    DEFAULT_PAGE_TYPES,
     searchCharts,
     searchPages,
     searchTopicPages,
@@ -18,6 +19,45 @@ import {
     ALL_GDOC_TYPES,
     TagGraphRoot,
 } from "@ourworldindata/types"
+import {
+    isTurbopufferArm,
+    isTurbopufferRegion,
+    isTurbopufferRerankModel,
+    TURBOPUFFER_ARMS,
+    TURBOPUFFER_REGIONS,
+    TURBOPUFFER_RERANK_MODELS,
+    turbopufferRegionForContinent,
+} from "@ourworldindata/utils"
+import {
+    searchChartsTurbopuffer,
+    searchPagesTurbopuffer,
+    TurbopufferPagesApiResponse,
+    TurbopufferRequest,
+    TurbopufferSearchApiResponse,
+} from "./turbopufferSearch.js"
+
+// Experimental: `engine=tpuf` answers type=charts and type=pages from
+// turbopuffer, from the region nearer the reader unless `region` names one, with
+// `arm` choosing the query shape, `midpoint` the popularity midpoint, and
+// `synonyms=1`, `fuzzy=1` and `pool` switching on query tuning, `model`
+// choosing T4's rerank model, and `rsyn=1` (synonyms in the rerank query) and
+// `popw` (popularity blended into the rerank score) tuning T4's rerank (see
+// turbopufferSearch.ts)
+const TURBOPUFFER_PARAMS = [
+    "engine",
+    "arm",
+    "midpoint",
+    "synonyms",
+    "fuzzy",
+    "pool",
+    "model",
+    "rsyn",
+    "popw",
+    "region",
+]
+
+/** The most rows a T3 sub-query may contribute to the fusion */
+const MAX_TURBOPUFFER_POOL = 200
 
 const DEFAULT_HITS_PER_PAGE = 20
 const MAX_HITS_PER_PAGE = 100
@@ -45,6 +85,7 @@ const KNOWN_PARAMS = new Set<string>([
     "pageTypes",
     "page",
     "hitsPerPage",
+    ...TURBOPUFFER_PARAMS,
 ])
 
 // The parameters only some search types read. A request that sends one to a
@@ -56,6 +97,10 @@ const PARAMS_BY_TYPE = new Map<string, readonly SearchType[]>([
     [SearchUrlParam.TOPIC, ["charts", "topics"]],
     [SearchUrlParam.REQUIRE_ALL_COUNTRIES, ["charts", "topics"]],
     ["pageTypes", ["pages"]],
+    ...TURBOPUFFER_PARAMS.map(
+        (param) =>
+            [param, ["charts", "pages"]] as [string, readonly SearchType[]]
+    ),
 ])
 
 // type=topics filters by country only when charts match a query, so never
@@ -89,6 +134,71 @@ async function fetchTagGraph(env: Env, baseUrl: string): Promise<TagGraphRoot> {
             `Failed to fetch /topicTagGraph.json: ${response.status}`
         )
     return response.json()
+}
+
+/** The `engine=tpuf` parameters: the region to query and the arm and its tuning */
+function parseTurbopufferRequest(
+    env: Env,
+    params: URLSearchParams,
+    continent: string | undefined
+): TurbopufferRequest {
+    // A client error, so requests to a deployment without the key don't reach Sentry
+    if (!env.TURBOPUFFER_API_KEY)
+        throw new SearchValidationError("engine=tpuf isn't available here")
+    const arm = params.get("arm") || "T1"
+    if (!isTurbopufferArm(arm))
+        throw new SearchValidationError(
+            `Invalid arm "${arm}". Valid arms: ${TURBOPUFFER_ARMS.join(", ")}`
+        )
+    const midpointParam = params.get("midpoint")
+    const midpoint = midpointParam ? Number(midpointParam) : undefined
+    if (midpoint !== undefined && !(Number.isFinite(midpoint) && midpoint > 0))
+        throw new SearchValidationError("midpoint must be a positive number")
+    const poolParam = params.get("pool")
+    const poolSize = poolParam ? Number(poolParam) : undefined
+    if (
+        poolSize !== undefined &&
+        !(
+            Number.isInteger(poolSize) &&
+            poolSize > 0 &&
+            poolSize <= MAX_TURBOPUFFER_POOL
+        )
+    )
+        throw new SearchValidationError(
+            `pool must be an integer from 1 to ${MAX_TURBOPUFFER_POOL}`
+        )
+    const rerankModel = params.get("model") || undefined
+    if (rerankModel !== undefined && !isTurbopufferRerankModel(rerankModel))
+        throw new SearchValidationError(
+            `Invalid model "${rerankModel}". Valid models: ${TURBOPUFFER_RERANK_MODELS.join(", ")}`
+        )
+    const popwParam = params.get("popw")
+    const rerankPopularityWeight = popwParam ? Number(popwParam) : undefined
+    if (
+        rerankPopularityWeight !== undefined &&
+        !(rerankPopularityWeight >= 0 && rerankPopularityWeight <= 1)
+    )
+        throw new SearchValidationError("popw must be a number from 0 to 1")
+    const region =
+        params.get("region") || turbopufferRegionForContinent(continent)
+    if (!isTurbopufferRegion(region))
+        throw new SearchValidationError(
+            `Invalid region "${region}". Valid regions: ${TURBOPUFFER_REGIONS.join(", ")}`
+        )
+    return {
+        apiKey: env.TURBOPUFFER_API_KEY,
+        region,
+        tuning: {
+            arm,
+            popularityMidpoint: midpoint,
+            expandSynonyms: params.get("synonyms") === "1",
+            fuzzy: params.get("fuzzy") === "1",
+            poolSize,
+            rerankModel,
+            rerankSynonyms: params.get("rsyn") === "1",
+            rerankPopularityWeight,
+        },
+    }
 }
 
 const hasSearchEnvVars = (env: Env): boolean => {
@@ -288,11 +398,32 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         // Extract base URL from request (for staging/preview deployments)
         const baseUrl = `${url.protocol}//${url.host}`
 
+        const tpuf =
+            url.searchParams.get("engine") === "tpuf"
+                ? parseTurbopufferRequest(
+                      env,
+                      url.searchParams,
+                      request.cf?.continent
+                  )
+                : undefined
+
         const search = (): Promise<
-            SearchApiResponse | SearchPagesApiResponse | SearchTopicsApiResponse
+            | SearchApiResponse
+            | SearchPagesApiResponse
+            | SearchTopicsApiResponse
+            | TurbopufferSearchApiResponse
+            | TurbopufferPagesApiResponse
         > => {
             switch (searchType) {
                 case "charts":
+                    if (tpuf)
+                        return searchChartsTurbopuffer(
+                            tpuf,
+                            searchState,
+                            page,
+                            hitsPerPage,
+                            baseUrl
+                        )
                     return searchCharts(
                         algoliaConfig,
                         searchState,
@@ -301,6 +432,15 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                         baseUrl
                     )
                 case "pages":
+                    if (tpuf)
+                        return searchPagesTurbopuffer(
+                            tpuf,
+                            query,
+                            page * hitsPerPage,
+                            hitsPerPage,
+                            pageTypes ?? DEFAULT_PAGE_TYPES,
+                            baseUrl
+                        )
                     return searchPages(
                         algoliaConfig,
                         query,

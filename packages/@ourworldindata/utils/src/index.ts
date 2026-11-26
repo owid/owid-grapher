@@ -463,6 +463,35 @@ export {
 
 export { isEmptyQuerySearchPayload } from "./search/emptyQuerySearchPayload.js"
 export {
+    synonyms,
+    buildSynonymMap,
+    findQuerySynonyms,
+} from "./search/synonyms.js"
+export {
+    TURBOPUFFER_REGIONS,
+    type TurbopufferRegion,
+    DEFAULT_TURBOPUFFER_REGION,
+    isTurbopufferRegion,
+    turbopufferRegionForContinent,
+    type TurbopufferIndex,
+    TURBOPUFFER_CHARTS_INDEX,
+    TURBOPUFFER_PAGES_INDEX,
+    TURBOPUFFER_INDEXES,
+    type TurbopufferIndexName,
+    TURBOPUFFER_ARMS,
+    type TurbopufferArm,
+    type TurbopufferQuery,
+    type TurbopufferResult,
+    type TurbopufferTuning,
+    isTurbopufferArm,
+    TURBOPUFFER_RERANK_MODELS,
+    type TurbopufferRerankModel,
+    isTurbopufferRerankModel,
+    chartFilters,
+    pageTypeFilters,
+    queryTurbopuffer,
+} from "./search/turbopuffer.js"
+export {
     type AlgoliaHostOption,
     getAlgoliaBaseUrl,
     getAlgoliaHostClientOptions,

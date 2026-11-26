@@ -15,11 +15,11 @@ import {
     excludeUndefined,
     PINNED_SEARCHES_ATTRIBUTE,
     getAlgoliaHostClientOptions,
+    synonyms,
 } from "@ourworldindata/utils"
 import { getIndexName } from "../../site/search/searchClient.js"
 import { PAGES_INDEX, CHARTS_INDEX } from "../../site/search/searchUtils.js"
 import { SearchIndexName } from "@ourworldindata/types"
-import { synonyms } from "../../site/search/synonymUtils.js"
 
 export const CONTENT_GRAPH_ALGOLIA_INDEX = getIndexName("graph")
 
