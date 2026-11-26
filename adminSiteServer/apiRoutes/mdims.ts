@@ -381,6 +381,7 @@ export async function handleGetMultiDims(
                 "id" | "catalogPath" | "slug" | "updatedAt" | "published"
             > & {
                 title: string
+                isDataExplorer: number | null
                 dimensionNames: string
                 tags: string
                 mdimViews: number
@@ -405,6 +406,7 @@ export async function handleGetMultiDims(
                 mdp.config->>'$.views[0].fullConfigId' as defaultViewConfigId,
                 mdp.updatedAt,
                 mdp.published,
+                mdp.config->>'$.presentation.pageType' = 'data-explorer' as isDataExplorer,
                 COALESCE(JSON_LENGTH(mdp.config, '$.views'), 0) as mdimViews,
                 ROUND(COALESCE(agv.views_365d, 0) / 365, 1) as viewsPerDay,
                 (
@@ -444,6 +446,7 @@ export async function handleGetMultiDims(
         const multiDims = results.map((row) => ({
             ...row,
             published: Boolean(row.published),
+            isDataExplorer: Boolean(row.isDataExplorer),
             dimensionNames: JSON.parse(row.dimensionNames),
             tags: JSON.parse(row.tags),
             mdimViews: Number(row.mdimViews),

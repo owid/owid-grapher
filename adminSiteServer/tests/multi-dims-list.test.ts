@@ -136,6 +136,31 @@ describe("Listing multi-dims", { timeout: 20000 }, () => {
             dimensionNames: ["Metric"],
             tags: ["Energy", "Climate Change"],
             mdimViews: 2,
+            isDataExplorer: false,
+        })
+    })
+
+    it("flags one presented as a data explorer", async () => {
+        const { id } = await env.request({
+            method: "PUT",
+            path: `/multi-dims/${encodeURIComponent(catalogPath)}`,
+            body: JSON.stringify({
+                config: {
+                    ...multiDimConfig([
+                        {
+                            dimensions: { metric: "total" },
+                            indicators: { y: variableId },
+                        },
+                    ]),
+                    presentation: {
+                        pageType: "data-explorer",
+                        explorerSubtitle: "Energy use by metric",
+                    },
+                },
+            }),
+        })
+        expect(await listedMultiDim(id)).toMatchObject({
+            isDataExplorer: true,
         })
     })
 
