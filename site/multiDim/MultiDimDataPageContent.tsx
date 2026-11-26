@@ -158,9 +158,11 @@ export function DataPageContent({
             getCachingInputTableFetcher(
                 DATA_API_URL,
                 archiveContext,
-                isPreviewing
+                isPreviewing,
+                undefined,
+                slug ?? undefined
             ),
-        [archiveContext, isPreviewing]
+        [archiveContext, isPreviewing, slug]
     )
 
     const titleFragments = useTitleFragments(config)

@@ -310,6 +310,7 @@ export class GrapherLoader {
             dimensions: config.dimensions,
             selectedEntityColors: config.selectedEntityColors,
             dataApiUrl,
+            slug: config.slug,
         }).then((table) => {
             if (table) grapherState.inputTable = table
             grapherState.isDataReady = true
