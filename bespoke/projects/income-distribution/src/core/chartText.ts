@@ -67,7 +67,7 @@ export function chartNoteSegments(
         ])
     if (year >= FIRST_NOWCAST_YEAR)
         sentences.push([
-            `Figures for ${year} are World\u00a0Bank `,
+            `Figures for ${year} are `,
             { dod: "nowcast" },
             ", which extrapolate the latest household surveys using economic growth.",
         ])

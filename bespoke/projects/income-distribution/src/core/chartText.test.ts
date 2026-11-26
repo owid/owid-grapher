@@ -123,7 +123,7 @@ describe(chartNoteSegments, () => {
         ).toEqual([
             "Germany reports ",
             { dod: "income" },
-            ". Figures for 2025 are World\u00a0Bank ",
+            ". Figures for 2025 are ",
             { dod: "nowcast" },
             ", which extrapolate the latest household surveys using economic growth.",
         ])

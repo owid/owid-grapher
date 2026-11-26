@@ -17,7 +17,7 @@ export interface DodDetails {
 export const DODS: Record<WelfareType | "nowcast", DodDetails> = {
     ...WELFARE_TYPE_DETAILS,
     nowcast: {
-        term: "nowcasts",
+        term: "World\u00a0Bank nowcasts",
         title: "Nowcast",
         description: [
             "A nowcast is an estimate of the current state of something, worked out before the official data is in. It fills the gap between what has already been measured and what will only be confirmed later.",
