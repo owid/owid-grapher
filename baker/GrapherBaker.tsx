@@ -42,16 +42,12 @@ import {
     getOwnersForVariables,
 } from "../db/model/Variable.js"
 import {
-    addTeamPagePhotos,
     fetchAndParseFaqs,
+    getLinkedAuthorsForOwners,
     getPrimaryTopic,
     resolveFaqsForVariable,
 } from "./DatapageHelpers.js"
-import {
-    getMinimalAuthorsByNames,
-    getTeamPagePhotos,
-    TeamPagePhoto,
-} from "../db/model/Gdoc/GdocBase.js"
+import { getTeamPagePhotos, TeamPagePhoto } from "../db/model/Gdoc/GdocBase.js"
 import { getDatapageDataV2 } from "../site/dataPage.js"
 import { getAllImages } from "../db/model/Image.js"
 import { parseAndMigrateChartConfig } from "../db/model/ChartConfigs.js"
@@ -241,22 +237,15 @@ export async function renderDataPageV2(
             ? archiveContextDictionary?.[grapher.id]
             : undefined
 
-    const authors = await getMinimalAuthorsByNames(knex, ownerNames)
-    const someoneLacksPhoto = ownerNames.some(
-        (name) =>
-            !authors.some(
-                (author) => author.name === name && author.featuredImage
-            )
+    datapageData.linkedAuthors = await getLinkedAuthorsForOwners(
+        knex,
+        ownerNames,
+        {
+            teamPagePhotos,
+            // Archive pages leave photos out
+            skipTeamPagePhotos: archiveContext?.type === "archive-page",
+        }
     )
-    // Archive pages leave photos out, so they don't need the team page's
-    datapageData.linkedAuthors =
-        someoneLacksPhoto && archiveContext?.type !== "archive-page"
-            ? addTeamPagePhotos(
-                  authors,
-                  ownerNames,
-                  teamPagePhotos ?? (await getTeamPagePhotos(knex))
-              )
-            : authors
 
     // If we're baking to an archival page, then we want to skip a bunch of sections
     // where the links would break
