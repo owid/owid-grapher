@@ -639,36 +639,39 @@ export const _dataAsDFfromS3 = async (
     const dfs = await Promise.all(
         variableIds.map(async (variableId) => {
             const s3values = await fetchS3Values(variableId)
-            // convert values to strings before creating dataframe
+            // convert values to strings before creating dataframe; numbers
+            // in the pl.String column would otherwise be dropped as null
             s3values.values = s3values.values.map((value) => {
                 // convert all to string except nulls and undefined
                 return value === null || value === undefined
                     ? value
                     : value.toString()
             })
-            return createDataFrame(s3values)
-                .rename({
-                    values: "value",
-                    entities: "entityId",
-                    years: "year",
-                })
-                .select(
-                    pl.col("entityId").cast(pl.Int32),
-                    pl.col("year").cast(pl.Int32),
-                    pl.col("value").cast(pl.Utf8),
-                    pl.lit(variableId).cast(pl.Int32).alias("variableId")
-                )
+            return createDataFrame(
+                {
+                    entityId: s3values.entities,
+                    year: s3values.years,
+                    value: s3values.values,
+                    variableId: s3values.years.map(() => variableId),
+                },
+                {
+                    entityId: pl.Int32,
+                    year: pl.Int32,
+                    value: pl.String,
+                    variableId: pl.Int32,
+                }
+            )
         })
     )
 
-    const df = pl.concat(dfs)
+    const df = pl.concat(dfs) as (typeof dfs)[number]
 
     if (df.height === 0) {
         return emptyDataDF()
     }
 
     const entityDF = await entitiesAsDF(
-        df.getColumn("entityId").toArray() as number[],
+        df.getColumn("entityId").toArray(),
         knex
     )
 
@@ -775,28 +778,33 @@ export const fetchS3MetadataByPath = async (
     }
 }
 
-export const createDataFrame = (data: unknown): pl.DataFrame => {
-    if (Array.isArray(data)) {
-        // transpose list of objects into object of lists because polars raises
-        // an error when creating a dataframe with null values (see https://github.com/pola-rs/nodejs-polars/issues/20)
-        // otherwise we'd just use pl.DataFrame(rows)
-        const keys = _.keys(data[0])
-        const values = _.map(keys, (key) => _.map(data, key))
-
-        return pl.DataFrame(_.zipObject(keys, values))
-    } else {
-        return pl.DataFrame(data)
-    }
+/**
+ * Create a dataframe from column arrays with exactly the columns and dtypes of
+ * `schema`.
+ *
+ * Careful: polars doesn't cast to the schema — a value of the wrong JS type
+ * (e.g. a number in a `pl.String` column) is silently dropped and becomes
+ * null. So the data must already have the schema's types.
+ */
+export const createDataFrame = <S extends Record<string, DataType>>(
+    columns: Record<keyof S, readonly unknown[]>,
+    schema: S
+): pl.DataFrame<S> => {
+    // Pass the columns in schema order, since polars assigns schema dtypes to
+    // the data's columns by position, not by name.
+    return pl.DataFrame(
+        _.mapValues(schema, (_dtype, name) => columns[name]),
+        { schema }
+    )
 }
 
 /**
  * Run a query and return its rows as a dataframe with exactly the columns and
  * dtypes of `schema`.
  *
- * Careful: polars doesn't cast to the schema — a value of the wrong JS type
- * (e.g. a number in a `pl.String` column) is silently dropped and becomes
- * null. So the schema must match what mysql2 returns: numbers for int columns,
- * strings for varchar columns.
+ * Careful: a value of the wrong JS type is silently dropped and becomes null
+ * (see createDataFrame). So the schema must match what mysql2 returns: numbers
+ * for int columns, strings for varchar columns.
  */
 export const readSQLasDF = async <S extends Record<string, DataType>>(
     sql: string,
@@ -805,12 +813,10 @@ export const readSQLasDF = async <S extends Record<string, DataType>>(
     schema: S
 ): Promise<pl.DataFrame<S>> => {
     const rows = await db.knexRaw<Record<string, unknown>>(knex, sql, params)
-    // Build the columns in schema order, since polars assigns schema dtypes
-    // to the data's columns by position, not by name.
     const columns = _.mapValues(schema, (_dtype, name) =>
         rows.map((row) => row[name])
     )
-    return pl.DataFrame(columns, { schema })
+    return createDataFrame(columns, schema)
 }
 
 export async function getVariableOfDatapageIfApplicable(
