@@ -135,7 +135,7 @@ export const DataPageV2Content = ({
                 <div className="DataPageContent grid grid-cols-12-full-width">
                     <div className="span-cols-14 grid grid-cols-12-full-width full-width--border">
                         <div
-                            className="chart-key-info col-start-2 span-cols-12"
+                            className="chart-key-info chart-key-info--chart-only col-start-2 span-cols-12"
                             data-dod-track-note="grapher"
                         >
                             {grapherConfig.slug && (

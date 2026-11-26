@@ -8,10 +8,7 @@ interface MetadataBoxToggleButtonProps {
     detailsId?: string
 }
 
-/**
- * Toggles a MetadataBoxExpander from the top of the box. Before hydration the
- * label follows the <details> through CSS :has(); hidden without JS.
- */
+/** Toggles a MetadataBoxExpander from the top of the box; hidden without JS */
 export function MetadataBoxToggleButton({
     detailsRef,
     detailsId,
