@@ -575,13 +575,11 @@ const fullJoinTables = (
             // The proper solution as mentioned above would be to never fall back to entity matches only and move
             // the tolerance matching into this function as well instead.
             //
-            // Only the first column of a table uses the last hit; the remaining
-            // columns (e.g. the originalTime column of a variable with a
-            // targetYear) use the first one. That's long-standing
-            // behaviour, kept as is.
-            targets[0].push(sources[0][indexHits[indexHits.length - 1]])
-            for (let d = 1; d < targets.length; d++)
-                targets[d].push(sources[d][indexHits[0]])
+            // All of the table's columns read that same row, so e.g. a value
+            // and its originalTime always come from one source row.
+            const row = indexHits[indexHits.length - 1]
+            for (let d = 0; d < targets.length; d++)
+                targets[d].push(sources[d][row])
         }
     }
     return new OwidTable(
