@@ -68,11 +68,11 @@
         "checkChartConfigsAgainstSchema": "tsx --tsconfig tsconfig.tsx.json devTools/schema/checkChartConfigsAgainstSchema.ts"
     },
     "dependencies": {
-        "@algolia/autocomplete-js": "^1.19.9",
-        "@algolia/autocomplete-plugin-recent-searches": "^1.19.9",
-        "@algolia/autocomplete-theme-classic": "^1.19.9",
-        "@algolia/client-common": "^5.57.0",
-        "@algolia/requester-fetch": "^5.57.0",
+        "@algolia/autocomplete-js": "^1.19.13",
+        "@algolia/autocomplete-plugin-recent-searches": "^1.19.13",
+        "@algolia/autocomplete-theme-classic": "^1.19.13",
+        "@algolia/client-common": "^5.65.0",
+        "@algolia/requester-fetch": "^5.65.0",
         "@ant-design/icons": "^6.3.4",
         "@anthropic-ai/sdk": "^1.6.0",
         "@aws-sdk/client-s3": "^3.1089.0",
@@ -111,7 +111,7 @@
         "@uiw/react-json-view": "^2.0.0-alpha.43",
         "ajv": "^8",
         "ajv-formats": "^3",
-        "algoliasearch": "^5.57.0",
+        "algoliasearch": "^5.65.0",
         "antd": "^6.6.6",
         "archieml": "^0.5.0",
         "bootstrap": "^4.6.1",
@@ -151,7 +151,7 @@
         "react-diff-viewer-continued": "^4.4.0",
         "react-dom": "^19.3.1",
         "react-horizontal-scrolling-menu": "^8.2.0",
-        "react-instantsearch": "^7.45.0",
+        "react-instantsearch": "^7.55.1",
         "react-markdown": "^10.1.0",
         "react-querybuilder": "^8.23.1",
         "react-router": "^5.3.4",
@@ -238,8 +238,8 @@
         "wrangler": "^4.153.0"
     },
     "resolutions": {
-        "preact@npm:^10.13.2": "patch:preact@npm%3A10.17.0#~/.yarn/patches/preact-npm-10.17.0-e831e619a5.patch",
-        "preact@npm:^10.10.0": "patch:preact@npm%3A10.17.0#~/.yarn/patches/preact-npm-10.17.0-e831e619a5.patch"
+        "preact@npm:^10.13.2": "patch:preact@npm%3A10.29.8#~/.yarn/patches/preact-npm-10.29.8-a0c0350ab6.patch",
+        "preact@npm:^10.10.0": "patch:preact@npm%3A10.29.8#~/.yarn/patches/preact-npm-10.29.8-a0c0350ab6.patch"
     },
     "lint-staged": {
         "*": "yarn oxfmt --no-error-on-unmatched-pattern"
