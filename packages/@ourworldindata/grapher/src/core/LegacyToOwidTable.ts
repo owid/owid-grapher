@@ -414,10 +414,10 @@ export const hasUniqueIndexValues = (
 // A table that adheres to this format is:
 // | Entity | Year |
 // | ------ | ---- |
-// | Haiti  | 2022 |
-// | Haiti  | 2024 |
-// | Aruba  | 2020 |
-// | Aruba  | 2021 |
+// | 2      | 2022 |
+// | 2      | 2024 |
+// | 1      | 2020 |
+// | 1      | 2021 |
 export const hasEntityRunsWithIncreasingTimes = (
     entities: unknown[],
     times: unknown[],
@@ -453,7 +453,7 @@ export const hasEntityRunsWithIncreasingTimes = (
  * The result is identical to the general join: shared columns come from the
  * first table, followed by each table's own columns, in table order.
  */
-const joinTablesWithIdenticalIndex = (
+const attemptToJoinTablesWithIdenticalIndex = (
     tables: OwidTable[],
     indexColumnNames: OwidTableSlugs[],
     sharedColumnNames: string[]
@@ -539,7 +539,10 @@ const fullJoinTables = (
         ...tables.map((table) => table.columnSlugs)
     )
 
-    const tablesWithIdenticalIndex = joinTablesWithIdenticalIndex(
+    // Quickly check whether all tables to be merged have the exact same indexes, in the same order.
+    // That's often the case for multiple variables coming from the same dataset, e.g. used for stacked charts.
+    // When it is, then we can just very efficiently concatenate the various columns together and are done already.
+    const tablesWithIdenticalIndex = attemptToJoinTablesWithIdenticalIndex(
         tables,
         indexColumnNames,
         sharedColumnNames
