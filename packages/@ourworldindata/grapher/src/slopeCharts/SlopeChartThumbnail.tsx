@@ -56,6 +56,9 @@ const MAX_MIRRORED_PADDING_SHARE = 0.15
 /** Widest the slope area gets, as a multiple of its height */
 const MAX_SLOPE_AREA_ASPECT_RATIO = 1.25
 
+/** Narrowest the mirroring and the aspect cap may make the slope area */
+const MIN_SLOPE_AREA_WIDTH = 4 * DOT_RADIUS
+
 @observer
 export class SlopeChartThumbnail
     extends React.Component<SlopeChartProps>
@@ -121,34 +124,52 @@ export class SlopeChartThumbnail
         return Math.max(0.5 * this.xEndMarkWidth, DOT_RADIUS)
     }
 
-    @computed get innerBounds(): Bounds {
+    /** Padding each side needs for its labels or its time mark */
+    @computed private get sidePadding(): SideWidths {
         const { left, right } = this.effectiveLabelWidths
-        const rightPadding = Math.max(
-            right > 0 ? right + LABEL_PADDING : 0, // end labels plus padding
-            this.xEndPadding
-        )
-        const leftPadding = Math.max(
-            left > 0 ? left + LABEL_PADDING : 0, // start labels plus padding
-            this.xStartPadding
-        )
-        const widerPadding = Math.max(leftPadding, rightPadding)
+        return {
+            left: Math.max(
+                left > 0 ? left + LABEL_PADDING : 0,
+                this.xStartPadding
+            ),
+            right: Math.max(
+                right > 0 ? right + LABEL_PADDING : 0,
+                this.xEndPadding
+            ),
+        }
+    }
+
+    /** Side padding with the narrower side raised towards the wider one */
+    @computed private get mirroredSidePadding(): SideWidths {
+        const { left, right } = this.sidePadding
+        const widerPadding = Math.max(left, right)
         const maxMirroredPadding =
             MAX_MIRRORED_PADDING_SHARE * this.bounds.width
-        const mirrorPadding = (ownPadding: number): number =>
-            R.clamp(maxMirroredPadding, { min: ownPadding, max: widerPadding })
+        const mirror = (ownPadding: number): number =>
+            Math.max(ownPadding, Math.min(widerPadding, maxMirroredPadding))
+        return { left: mirror(left), right: mirror(right) }
+    }
 
-        const paddedBounds = this.bounds
-            .padBottom(this.xMarksHeight)
-            .padRight(mirrorPadding(rightPadding))
-            .padLeft(mirrorPadding(leftPadding))
+    @computed get innerBounds(): Bounds {
+        const boundsWithoutTimeMarks = this.bounds.padBottom(this.xMarksHeight)
+        const paddedBounds = boundsWithoutTimeMarks.pad(this.sidePadding)
+        if (paddedBounds.width <= MIN_SLOPE_AREA_WIDTH) return paddedBounds
 
-        const excessWidth = Math.max(
-            0,
-            paddedBounds.width -
-                MAX_SLOPE_AREA_ASPECT_RATIO * paddedBounds.height
+        const balancedBounds = boundsWithoutTimeMarks.pad(
+            this.mirroredSidePadding
         )
-
-        return paddedBounds.padWidth(excessWidth / 2)
+        const width = R.clamp(
+            Math.min(
+                balancedBounds.width,
+                MAX_SLOPE_AREA_ASPECT_RATIO * paddedBounds.height
+            ),
+            { min: MIN_SLOPE_AREA_WIDTH, max: paddedBounds.width }
+        )
+        const x = R.clamp(balancedBounds.centerX - width / 2, {
+            min: paddedBounds.left,
+            max: paddedBounds.right - width,
+        })
+        return new Bounds(x, paddedBounds.top, width, paddedBounds.height)
     }
 
     /**
