@@ -38,8 +38,8 @@ export async function pickRelatedChartCards(
 }
 
 /**
- * Coviews, topped up from the primary topic, the other topics, their areas,
- * then site-wide, each ranked by aggregate coview score
+ * Coviews, topped up from the primary topic, the other topics, then site-wide,
+ * each ranked by aggregate coview score
  */
 export async function getRelatedChartCards(
     knex: db.KnexReadonlyTransaction,
@@ -76,16 +76,6 @@ export async function getRelatedChartCards(
             fetch: topChartsTaggedWith(
                 async () => (await getTopicTagIds()).others
             ),
-        },
-        {
-            tier: "topic-area",
-            fetch: topChartsTaggedWith(async () => {
-                const { primary, others } = await getTopicTagIds()
-                return db.getTopicTagIdsInSameAreas(
-                    knex,
-                    primary !== undefined ? [primary, ...others] : others
-                )
-            }),
         },
         {
             tier: "site-wide",

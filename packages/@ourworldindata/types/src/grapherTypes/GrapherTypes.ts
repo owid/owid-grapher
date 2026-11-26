@@ -110,7 +110,6 @@ export type RelatedChartTier =
     | "coviews"
     | "primary-topic"
     | "other-topics"
-    | "topic-area"
     | "site-wide"
 export enum DimensionProperty {
     y = "y",
