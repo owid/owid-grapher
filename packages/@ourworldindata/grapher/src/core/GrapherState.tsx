@@ -196,6 +196,7 @@ import {
     GrapherManager,
 } from "./Grapher.js"
 import { GrapherAnalytics } from "./GrapherAnalytics.js"
+import { getEntityCodeByName } from "./EntityCodes.js"
 import {
     type GrapherAnalyticsContext,
     type EntitySelectorEvent,
@@ -1249,7 +1250,7 @@ export class GrapherState
         const entityCodes =
             table.entityNameColumn.valuesIncludingErrorValues.map(
                 (entityName) =>
-                    getRegionByName(entityName as string)?.code ??
+                    getEntityCodeByName(entityName as string) ??
                     ErrorValueTypes.MissingValuePlaceholder
             )
         const hasEntityCodes = entityCodes.some(
