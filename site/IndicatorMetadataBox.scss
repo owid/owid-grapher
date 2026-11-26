@@ -221,6 +221,10 @@
     gap: 6px;
 }
 
+.indicator-metadata-box .linked-author-image {
+    flex-shrink: 0;
+}
+
 .indicator-metadata-box .metadata-box-key-data__row--full-width p + p {
     margin-top: 8px;
 }

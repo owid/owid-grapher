@@ -25,7 +25,7 @@ export default function AvatarByline({
                     name={name}
                     role={authorRoles?.[name]}
                     includeImage={true}
-                    includeInitials={showInitialsWithoutPhoto}
+                    showInitialsWithoutPhoto={showInitialsWithoutPhoto}
                 />
             ))}
         </div>

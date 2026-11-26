@@ -16,23 +16,31 @@ export default function LinkedAuthor({
     className,
     name,
     includeImage,
-    includeInitials,
+    showInitialsWithoutPhoto,
     role,
 }: {
     className?: string
     name: string
     includeImage?: boolean
     /** With includeImage, show the author's initials when there's no photo */
-    includeInitials?: boolean
+    showInitialsWithoutPhoto?: boolean
     role?: string
 }) {
     const author = useLinkedAuthor(name)
     // Archived pages have no image metadata, so they get initials too
     const photoMetadata = useImage(author.featuredImage ?? undefined)
-    const hasPhoto = includeInitials ? !!photoMetadata : !!author.featuredImage
 
     let avatar: React.ReactElement | undefined
-    if (includeImage && hasPhoto && author.featuredImage) {
+    if (includeImage && showInitialsWithoutPhoto && !photoMetadata) {
+        avatar = (
+            <span className="linked-author-initials" aria-hidden="true">
+                <span className="linked-author-initials__letters">
+                    {getAuthorInitials(author.name)}
+                </span>
+            </span>
+        )
+    } else if (includeImage && author.featuredImage) {
+        // Without metadata, Image renders nothing, or an error in previews
         avatar = (
             <Image
                 className="linked-author-image"
@@ -41,14 +49,6 @@ export default function LinkedAuthor({
                 containerType="author-byline"
                 shouldLightbox={false}
             />
-        )
-    } else if (includeImage && includeInitials) {
-        avatar = (
-            <span className="linked-author-initials" aria-hidden="true">
-                <span className="linked-author-initials__letters">
-                    {getAuthorInitials(author.name)}
-                </span>
-            </span>
         )
     }
 
