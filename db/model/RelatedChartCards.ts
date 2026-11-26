@@ -1,7 +1,7 @@
-import { RelatedChart, RelatedChartSource } from "@ourworldindata/types"
+import * as _ from "lodash-es"
+import { RelatedChart, RelatedChartTier } from "@ourworldindata/types"
 import * as db from "../db.js"
 import {
-    ChartTopicTagIds,
     getChartsByAggregateCoviewScore,
     getRelatedChartsForChart,
     getTopicTagIdsForChart,
@@ -9,28 +9,29 @@ import {
 
 const RELATED_CHART_CARD_COUNT = 5
 
-export interface RelatedChartStage {
-    source: RelatedChartSource
+/** One way of finding related charts. Tiers are tried in order until the cards are filled. */
+export interface RelatedChartTierQuery {
+    tier: RelatedChartTier
     fetch: (limit: number, excludeChartIds: number[]) => Promise<RelatedChart[]>
 }
 
-/** Runs each stage only while slots remain, asking only for what's missing */
+/** Runs each tier only while slots remain, asking only for what's missing */
 export async function pickRelatedChartCards(
     chartId: number,
-    stages: RelatedChartStage[],
+    tierQueries: RelatedChartTierQuery[],
     count: number = RELATED_CHART_CARD_COUNT
 ): Promise<RelatedChart[]> {
     const picked: RelatedChart[] = []
     const seen = new Set<number>([chartId])
-    for (const stage of stages) {
+    for (const { tier, fetch } of tierQueries) {
         const missing = count - picked.length
         if (missing <= 0) break
-        const candidates = await stage.fetch(missing, [...seen])
+        const candidates = await fetch(missing, [...seen])
         for (const chart of candidates) {
             if (picked.length >= count) break
             if (seen.has(chart.chartId)) continue
             seen.add(chart.chartId)
-            picked.push({ ...chart, source: stage.source })
+            picked.push({ ...chart, tier })
         }
     }
     return picked
@@ -43,43 +44,42 @@ export async function pickRelatedChartCards(
 export async function getRelatedChartCards(
     knex: db.KnexReadonlyTransaction,
     chartId: number,
-    topicTagNames: string[]
+    indicatorTopicNames: string[]
 ): Promise<RelatedChart[]> {
-    let topicTagIds: Promise<ChartTopicTagIds> | undefined
-    const getTopicTagIds = (): Promise<ChartTopicTagIds> =>
-        (topicTagIds ??= getTopicTagIdsForChart(knex, chartId, topicTagNames))
+    const getTopicTagIds = _.once(() =>
+        getTopicTagIdsForChart(knex, chartId, indicatorTopicNames)
+    )
 
-    const byScore =
-        (tagIds: () => Promise<number[] | undefined>) =>
-        async (
-            limit: number,
-            excludeChartIds: number[]
-        ): Promise<RelatedChart[]> =>
+    const topChartsTaggedWith =
+        (getTagIds: () => Promise<number[]>): RelatedChartTierQuery["fetch"] =>
+        async (limit, excludeChartIds) =>
             getChartsByAggregateCoviewScore(knex, {
-                tagIds: await tagIds(),
+                tagIds: await getTagIds(),
                 excludeChartIds,
                 limit,
             })
 
     return pickRelatedChartCards(chartId, [
         {
-            source: "coviews",
+            tier: "coviews",
             fetch: (limit) => getRelatedChartsForChart(knex, chartId, limit),
         },
         {
-            source: "primary-topic",
-            fetch: byScore(async () => {
+            tier: "primary-topic",
+            fetch: topChartsTaggedWith(async () => {
                 const { primary } = await getTopicTagIds()
                 return primary !== undefined ? [primary] : []
             }),
         },
         {
-            source: "other-topics",
-            fetch: byScore(async () => (await getTopicTagIds()).others),
+            tier: "other-topics",
+            fetch: topChartsTaggedWith(
+                async () => (await getTopicTagIds()).others
+            ),
         },
         {
-            source: "topic-area",
-            fetch: byScore(async () => {
+            tier: "topic-area",
+            fetch: topChartsTaggedWith(async () => {
                 const { primary, others } = await getTopicTagIds()
                 return db.getTopicTagIdsInSameAreas(
                     knex,
@@ -88,8 +88,12 @@ export async function getRelatedChartCards(
             }),
         },
         {
-            source: "site-wide",
-            fetch: byScore(async () => undefined),
+            tier: "site-wide",
+            fetch: (limit, excludeChartIds) =>
+                getChartsByAggregateCoviewScore(knex, {
+                    excludeChartIds,
+                    limit,
+                }),
         },
     ])
 }

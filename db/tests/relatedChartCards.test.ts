@@ -144,12 +144,12 @@ afterAll(async () => {
 
 async function cards(
     chartId: number,
-    topicTagNames: string[]
+    indicatorTopicNames: string[]
 ): Promise<[string, string | undefined][]> {
     return knexReadonlyTransaction(
         async (trx) =>
-            (await getRelatedChartCards(trx, chartId, topicTagNames)).map(
-                (c) => [c.slug, c.source]
+            (await getRelatedChartCards(trx, chartId, indicatorTopicNames)).map(
+                (c) => [c.slug, c.tier]
             ),
         TransactionCloseMode.KeepOpen,
         knexInstance
@@ -176,7 +176,7 @@ test("the chart's own topic tags stand in as other topics when the indicator lis
         ["co2Popular", "other-topics"],
         ["co2Niche", "other-topics"],
     ])
-    expect(result.slice(3).map(([, source]) => source)).toEqual([
+    expect(result.slice(3).map(([, tier]) => tier)).toEqual([
         "topic-area",
         "topic-area",
     ])

@@ -102,10 +102,11 @@ export interface RelatedChart extends BasicChartInformation {
     chartId: number
     keyChartLevel?: KeyChartLevel
     archiveContext?: ArchiveContext | undefined
-    source?: RelatedChartSource
+    /** Which fallback tier supplied the chart on a data page */
+    tier?: RelatedChartTier
 }
 
-export type RelatedChartSource =
+export type RelatedChartTier =
     | "coviews"
     | "primary-topic"
     | "other-topics"

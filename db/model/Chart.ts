@@ -762,10 +762,12 @@ export interface ChartTopicTagIds {
 export const getTopicTagIdsForChart = async (
     knex: db.KnexReadonlyTransaction,
     chartId: number,
-    topicTagNames: string[]
+    indicatorTopicNames: string[]
 ): Promise<ChartTopicTagIds> => {
-    const curatedClause =
-        topicTagNames.length > 0 ? "t.name IN (:topicTagNames) OR" : ""
+    const indicatorTopicClause =
+        indicatorTopicNames.length > 0
+            ? "t.name IN (:indicatorTopicNames) OR"
+            : ""
     const rows = await db.knexRaw<{
         id: number
         name: string
@@ -779,21 +781,21 @@ export const getTopicTagIdsForChart = async (
             JOIN tags parent ON parent.id = tg.parentId
             LEFT JOIN chart_tags ct ON ct.tagId = t.id AND ct.chartId = :chartId
             WHERE parent.name != :rootName
-                AND (${curatedClause} ct.chartId IS NOT NULL)
+                AND (${indicatorTopicClause} ct.chartId IS NOT NULL)
             ORDER BY t.id
         `,
-        { chartId, rootName: TagGraphRootName, topicTagNames }
+        { chartId, rootName: TagGraphRootName, indicatorTopicNames }
     )
     const idByName = new Map(rows.map((r) => [r.name, r.id]))
-    const primary = idByName.get(topicTagNames[0])
-    const otherCurated = lodash.compact(
-        topicTagNames.slice(1).map((name) => idByName.get(name))
+    const primary = idByName.get(indicatorTopicNames[0])
+    const otherIndicatorTopics = lodash.compact(
+        indicatorTopicNames.slice(1).map((name) => idByName.get(name))
     )
     const onChart = rows.filter((r) => r.onChart).map((r) => r.id)
     return {
         primary,
         others: lodash
-            .uniq([...otherCurated, ...onChart])
+            .uniq([...otherIndicatorTopics, ...onChart])
             .filter((id) => id !== primary),
     }
 }
