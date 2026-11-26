@@ -1,7 +1,6 @@
 .linked-author-image,
 .linked-author-initials {
     display: inline-block;
-    flex-shrink: 0;
     height: 24px;
     width: 24px;
     border-radius: 50%;
@@ -10,6 +9,7 @@
 
 .linked-author-initials {
     position: relative;
+    flex-shrink: 0;
     background-color: $blue-20;
 }
 

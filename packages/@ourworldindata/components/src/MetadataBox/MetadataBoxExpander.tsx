@@ -59,11 +59,7 @@ export function MetadataBoxExpander({
     }
 
     return (
-        <div
-            className={cx("metadata-box-expander", className, {
-                "metadata-box-expander--has-preview": preview,
-            })}
-        >
+        <div className={cx("metadata-box-expander", className)}>
             {preview && (
                 <div className="metadata-box-expander__preview metadata-box-expander__prose">
                     {preview}

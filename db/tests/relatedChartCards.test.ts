@@ -24,7 +24,7 @@ const USER_ID = 1
 //   tag-graph-root
 //   ├── Energy and Environment   (area)
 //   │   ├── CO2 Emissions        <- the page's primary topic
-//   │   │   └── CO2 by Sector    <- only reachable through the area
+//   │   │   └── CO2 by Sector    <- not one of the page's topics
 //   │   └── Energy               <- the page's second topic (not on the chart)
 //   └── Health                   (area)
 //       └── Life Expectancy
@@ -144,19 +144,19 @@ afterAll(async () => {
 
 async function cards(
     chartId: number,
-    topicTagNames: string[]
+    indicatorTopicNames: string[]
 ): Promise<[string, string | undefined][]> {
     return knexReadonlyTransaction(
         async (trx) =>
-            (await getRelatedChartCards(trx, chartId, topicTagNames)).map(
-                (c) => [c.slug, c.source]
+            (await getRelatedChartCards(trx, chartId, indicatorTopicNames)).map(
+                (c) => [c.slug, c.tier]
             ),
         TransactionCloseMode.KeepOpen,
         knexInstance
     )
 }
 
-test("coviews come first, then topics ranked by aggregate coview score, then the area", async () => {
+test("coviews come first, then topics ranked by aggregate coview score, then any chart", async () => {
     expect(
         await cards(charts.page, ["CO2 Emissions", "Energy", "No Such Topic"])
     ).toEqual([
@@ -164,7 +164,7 @@ test("coviews come first, then topics ranked by aggregate coview score, then the
         ["co2Popular", "primary-topic"],
         ["co2Niche", "primary-topic"],
         ["energy", "other-topics"],
-        ["co2BySector", "topic-area"],
+        ["co2BySector", "site-wide"],
     ])
 })
 
@@ -176,9 +176,9 @@ test("the chart's own topic tags stand in as other topics when the indicator lis
         ["co2Popular", "other-topics"],
         ["co2Niche", "other-topics"],
     ])
-    expect(result.slice(3).map(([, source]) => source)).toEqual([
-        "topic-area",
-        "topic-area",
+    expect(result.slice(3).map(([, tier]) => tier)).toEqual([
+        "site-wide",
+        "site-wide",
     ])
 })
 
@@ -188,7 +188,7 @@ test("an indicator's first topic outside the topic graph leaves no primary topic
         ["co2Popular", "other-topics"],
         ["co2Niche", "other-topics"],
         ["energy", "other-topics"],
-        ["co2BySector", "topic-area"],
+        ["co2BySector", "site-wide"],
     ])
 })
 

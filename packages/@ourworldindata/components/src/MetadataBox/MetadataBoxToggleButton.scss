@@ -23,17 +23,6 @@
     display: none;
 }
 
-// Separate rules, so browsers without :has() still get the hydrated one
-.metadata-box:has(.metadata-box-expander__details[open]) {
-    .metadata-box-toggle-button__show-more {
-        display: none;
-    }
-
-    .metadata-box-toggle-button__show-less {
-        display: inline;
-    }
-}
-
 .metadata-box-toggle-button--open {
     .metadata-box-toggle-button__show-more {
         display: none;

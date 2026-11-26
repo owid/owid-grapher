@@ -122,6 +122,22 @@
     font-style: italic;
 }
 
+// The publish switch, then when and by whom
+.chart-list__published {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+
+    .ant-switch {
+        margin-top: 2px;
+    }
+}
+
+// Wraps the switch so its tooltip shows while it's disabled
+.chart-list__publish-switch {
+    display: flex;
+}
+
 .chart-list__timestamp {
     min-width: 90px;
     line-height: 1.35;

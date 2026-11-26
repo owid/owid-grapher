@@ -51,16 +51,12 @@ import {
     getAuxiliaryIndicatorLinks,
 } from "../db/model/Variable.js"
 import {
-    addTeamPagePhotos,
     fetchAndParseFaqs,
+    getLinkedAuthorsForOwners,
     getPrimaryTopic,
     resolveFaqsForVariable,
 } from "./DatapageHelpers.js"
-import {
-    getMinimalAuthorsByNames,
-    getTeamPagePhotos,
-    TeamPagePhoto,
-} from "../db/model/Gdoc/GdocBase.js"
+import { getTeamPagePhotos, TeamPagePhoto } from "../db/model/Gdoc/GdocBase.js"
 import { getDatapageDataV2 } from "../site/dataPage.js"
 import { getAllImages } from "../db/model/Image.js"
 import { parseAndMigrateChartConfig } from "../db/model/ChartConfigs.js"
@@ -458,22 +454,15 @@ export async function renderDataPageV2(
             ? archiveContextDictionary?.[grapher.id]
             : undefined
 
-    const authors = await getMinimalAuthorsByNames(knex, ownerNames)
-    const someoneLacksPhoto = ownerNames.some(
-        (name) =>
-            !authors.some(
-                (author) => author.name === name && author.featuredImage
-            )
+    datapageData.linkedAuthors = await getLinkedAuthorsForOwners(
+        knex,
+        ownerNames,
+        {
+            teamPagePhotos,
+            // Archive pages leave photos out
+            skipTeamPagePhotos: archiveContext?.type === "archive-page",
+        }
     )
-    // Archive pages leave photos out, so they don't need the team page's
-    datapageData.linkedAuthors =
-        someoneLacksPhoto && archiveContext?.type !== "archive-page"
-            ? addTeamPagePhotos(
-                  authors,
-                  ownerNames,
-                  teamPagePhotos ?? (await getTeamPagePhotos(knex))
-              )
-            : authors
 
     // When every pane of a multi-indicator chart shares the same substantive
     // metadata, stitch the panes into a single pane + a templated

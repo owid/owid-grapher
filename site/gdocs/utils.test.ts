@@ -142,7 +142,7 @@ describe(getAuthorTeamAnchorUrl, () => {
 describe(getAuthorInitials, () => {
     it("takes the first and last names' initials", () => {
         expect(getAuthorInitials("Mojmír Vinkler")).toBe("MV")
-        expect(getAuthorInitials("Gyorgy Attila Ruzicska")).toBe("GR")
+        expect(getAuthorInitials("Anna Maria Rossi")).toBe("AR")
     })
 
     it("uses one letter for a single name and ignores a role", () => {

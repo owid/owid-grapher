@@ -26,7 +26,11 @@ import {
     getAuthorTeamAnchorId,
     getShortPageCitation,
 } from "../site/gdocs/utils.js"
-import { TeamPagePhoto } from "../db/model/Gdoc/GdocBase.js"
+import {
+    getMinimalAuthorsByNames,
+    getTeamPagePhotos,
+    TeamPagePhoto,
+} from "../db/model/Gdoc/GdocBase.js"
 
 /**
  * Get the datapage companion gdoc, if any.
@@ -168,8 +172,35 @@ export const getPrimaryTopic = async (
     return undefined
 }
 
-/** Matches names as team page anchors do, e.g. "Dr. Bastian Herre" */
-export function addTeamPagePhotos(
+/**
+ * The owners' author pages. Photos missing from those, and owners with no
+ * author page at all, are filled in from the team page.
+ */
+export async function getLinkedAuthorsForOwners(
+    knex: KnexReadonlyTransaction,
+    ownerNames: string[],
+    {
+        teamPagePhotos,
+        skipTeamPagePhotos = false,
+    }: { teamPagePhotos?: TeamPagePhoto[]; skipTeamPagePhotos?: boolean } = {}
+): Promise<LinkedAuthor[]> {
+    const authors = await getMinimalAuthorsByNames(knex, ownerNames)
+    const everyoneHasPhoto = ownerNames.every((name) =>
+        authors.some((author) => author.name === name && author.featuredImage)
+    )
+    if (everyoneHasPhoto || skipTeamPagePhotos) return authors
+    return fillInFromTeamPage(
+        authors,
+        ownerNames,
+        teamPagePhotos ?? (await getTeamPagePhotos(knex))
+    )
+}
+
+/**
+ * Matches names as team page anchors do, e.g. "Dr. Bastian Herre". People with
+ * no author page get an empty slug, which links them to the team page.
+ */
+export function fillInFromTeamPage(
     authors: LinkedAuthor[],
     names: string[],
     teamPagePhotos: TeamPagePhoto[]

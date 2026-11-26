@@ -64,14 +64,15 @@ beforeEach(() => {
 afterEach(() => vi.restoreAllMocks())
 
 function getDetails() {
-    const heading = document.getElementById("how-is-this-measured")!
-    const question = heading.closest("details")!
+    const question = document.getElementById(
+        "how-is-this-measured"
+    ) as HTMLDetailsElement
     const outer = question.parentElement!.closest("details")!
-    return { heading, question, outer }
+    return { question, outer }
 }
 
 describe("FAQ fragment compatibility", () => {
-    it("bakes the same heading IDs as the previous ArticleBlocks layout, including supertitles", () => {
+    it("gives each question the ID its heading had in the previous ArticleBlocks layout, including supertitles", () => {
         const previous = renderToStaticMarkup(
             <ArticleBlocks blocks={faqEntries.faqs} containerType="datapage" />
         )
@@ -88,15 +89,28 @@ describe("FAQ fragment compatibility", () => {
     it("opens the box and only the linked question for a fragment, even an encoded one", () => {
         window.history.replaceState(null, "", "#%68ow-is-this-measured")
         render(box)
-        const { heading, question, outer } = getDetails()
+        const { question, outer } = getDetails()
         expect(question.open).toBe(true)
         expect(outer.open).toBe(true)
-        expect(heading.scrollIntoView).toHaveBeenCalled()
+        expect(question.scrollIntoView).toHaveBeenCalled()
         expect(
-            document
-                .getElementById("measurement-what-is-gdp-ppp")!
-                .closest("details")!.open
+            (
+                document.getElementById(
+                    "measurement-what-is-gdp-ppp"
+                ) as HTMLDetailsElement
+            ).open
         ).toBe(false)
+    })
+
+    it("opens the box at the citations for the old layout's #reuse-this-work", () => {
+        window.history.replaceState(null, "", "#reuse-this-work")
+        const view = render(box)
+        const heading = view.getByRole("heading", { name: "How to cite" })
+        expect(document.getElementById("reuse-this-work")).toBe(heading)
+        expect(heading.closest("details")!.open).toBe(true)
+        expect(
+            vi.mocked(HTMLElement.prototype.scrollIntoView).mock.contexts
+        ).toContain(heading)
     })
 
     it.each(["#%E0%A4%A", "#outside"])(

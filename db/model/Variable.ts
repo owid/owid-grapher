@@ -889,7 +889,8 @@ export async function getOwnersForVariables(
 
     return rows
         .map((row) => {
-            // Free-form JSON: a non-list here would fail every page's bake
+            // Free-form JSON: a non-list here would fail the bake of the
+            // dataset's pages
             const parsed: unknown = row.owners ? JSON.parse(row.owners) : []
             return {
                 datasetId: row.id,

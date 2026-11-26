@@ -86,7 +86,6 @@ export const DataPageV2Content = ({
             bakedGrapherURL: BAKED_GRAPHER_URL,
             enableKeyboardShortcuts: typeof window !== "undefined",
             archiveContext,
-            useNewDatapageMetadataLayout: true,
         }),
         [grapherConfig, archiveContext]
     )
@@ -140,7 +139,7 @@ export const DataPageV2Content = ({
                 <div className="DataPageContent grid grid-cols-12-full-width">
                     <div className="span-cols-14 grid grid-cols-12-full-width full-width--border">
                         <div
-                            className="chart-key-info col-start-2 span-cols-12"
+                            className="chart-key-info chart-key-info--chart-only col-start-2 span-cols-12"
                             data-dod-track-note="grapher"
                         >
                             {grapherConfig.slug && (
@@ -169,12 +168,11 @@ export const DataPageV2Content = ({
                             canonicalUrl={canonicalUrl}
                             archiveContext={archiveContext}
                             id={DATAPAGE_ABOUT_THIS_DATA_SECTION_ID}
-                            license={grapherConfig.license}
                             pageCitationTitle={
                                 grapherConfig.title ?? datapageData.title.title
                             }
                         />
-                        {relatedResearch && relatedResearch.length > 0 && (
+                        {relatedResearch.length > 0 && (
                             <div className="datapage-research-and-writing-v2 col-start-2 span-cols-12">
                                 <DataPageResearchAndWriting
                                     relatedResearch={relatedResearch}

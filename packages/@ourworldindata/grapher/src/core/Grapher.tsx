@@ -152,8 +152,6 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     /** @internal */
     isEmbeddedInADataPage?: boolean
     /** @internal */
-    useNewDatapageMetadataLayout?: boolean
-    /** @internal */
     isConfigReady?: boolean
     /** @internal */
     isDataReady?: boolean

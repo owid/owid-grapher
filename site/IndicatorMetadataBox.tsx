@@ -1,5 +1,3 @@
-import cx from "clsx"
-import * as _ from "lodash-es"
 import { faCaretDown, faCaretUp } from "@fortawesome/free-solid-svg-icons"
 import {
     DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
@@ -9,6 +7,7 @@ import {
     CodeSnippet,
     makeSource,
     INDICATOR_PROCESSING_SECTION_ID,
+    REUSE_THIS_WORK_SECTION_ID,
     MetadataBoxExpander,
     MetadataBoxToggleButton,
     MetadataBoxSection,
@@ -33,6 +32,8 @@ import {
     LicenseOption,
     OwidEnrichedGdocBlock,
 } from "@ourworldindata/types"
+import cx from "clsx"
+import * as _ from "lodash-es"
 import React, { createRef, useEffect, useRef, useState } from "react"
 import {
     formatAttributions,
@@ -58,31 +59,6 @@ import { useSwitcherVariant } from "./useSwitcherVariant.js"
 import { useStitchedListPlacement } from "./useStitchedListPlacement.js"
 
 const analytics = new SiteAnalytics()
-
-interface IndicatorMetadataSectionsProps {
-    datapageData: DataPageDataV2
-    className?: string
-    faqEntries: FaqEntryData | undefined
-    detailsRef: React.RefObject<HTMLDetailsElement | null>
-    detailsId?: string
-    canonicalUrl: string
-    archiveContext: ArchiveContext | undefined
-    descriptionProcessing: string | undefined
-    license?: LicenseOption
-    // Disambiguates the section anchor ids (#faqs, #sources-and-processing,
-    // #indicator-processing) when several panes are in the DOM at once. The
-    // active pane gets "" so in-page anchors and the grapher footer's
-    // jump-to-sources resolve to the visible pane.
-    idSuffix?: string
-    // Toggles caused by programmatically switching indicators shouldn't be
-    // logged as user expands/collapses — see IndicatorMetadataBox.
-    suppressToggleLogUntilRef?: React.RefObject<number>
-    pageCitation?: PageCitationOptions
-    stitched?: StitchedPaneOptions
-    // Stitched / single-pane scatter pages: the size/colour line closes the
-    // WYSK, in the same typography.
-    auxiliaryIndicators?: AuxiliaryIndicator[]
-}
 
 /**
  * Multi-indicator pages (switcher or stitched) cite the PAGE by the chart
@@ -349,7 +325,7 @@ function IndicatorFaqs({
             {descriptionProcessing && (
                 <ExpandableToggle
                     label="How did Our World in Data process this data?"
-                    contentId={`${INDICATOR_PROCESSING_SECTION_ID}${idSuffix}`}
+                    id={`${INDICATOR_PROCESSING_SECTION_ID}${idSuffix}`}
                     content={
                         <div className="indicator-metadata-box__processing-notes">
                             <SimpleMarkdownText
@@ -369,9 +345,9 @@ function IndicatorFaqs({
             )}
             {faqQuestions.map((faq) => (
                 <ExpandableToggle
-                    key={faq.question}
+                    key={faq.id}
+                    id={`${faq.id}${idSuffix}`}
                     label={faq.question}
-                    titleId={`${faq.id}${idSuffix}`}
                     content={
                         <ArticleBlocks
                             blocks={faq.answer}
@@ -380,7 +356,7 @@ function IndicatorFaqs({
                     }
                     onToggle={(isOpen) =>
                         analytics.logExpandableToggle(
-                            // untranslated source text
+                            // The question itself, kept short for the event
                             faq.question.slice(0, 100),
                             isOpen
                         )
@@ -561,7 +537,11 @@ function IndicatorCitations({
 
     if (!citationShort && !citationLong) return null
     return (
-        <MetadataBoxSection title="How to cite">
+        <MetadataBoxSection
+            title="How to cite"
+            // The old layout's id, which existing links still use
+            id={REUSE_THIS_WORK_SECTION_ID}
+        >
             {citationDatapage && (
                 <ExpandableToggle
                     label="How to cite this page"
@@ -592,7 +572,7 @@ function IndicatorCitations({
                     label={pageCitation?.toggleLabel ?? "How to cite this data"}
                     content={
                         <>
-                            <p className="citation__paragraph">
+                            <p>
                                 If you have limited space (e.g. in data
                                 visualizations), you can use this abbreviated
                                 in-line citation:
@@ -603,9 +583,7 @@ function IndicatorCitations({
                             />
                             {citationLong && (
                                 <>
-                                    <p className="citation__paragraph">
-                                        Full citation
-                                    </p>
+                                    <p>Full citation</p>
                                     <CitationSnippet
                                         citation={citationLong}
                                         trackingContext="citation_data_full"
@@ -655,23 +633,65 @@ function IndicatorFinePrint({
     )
 }
 
-function IndicatorMetadataSections({
+// One indicator's pane: heading with the box's top toggle, key data, and the
+// expandable sections. Several sit inside one box on a switcher page.
+function IndicatorPane({
     datapageData,
-    className,
     faqEntries,
     detailsRef,
     detailsId,
     canonicalUrl,
     archiveContext,
-    descriptionProcessing,
-    license,
     idSuffix = "",
     suppressToggleLogUntilRef,
-    pageCitation,
     stitched,
+    pageCitation,
     auxiliaryIndicators,
-}: IndicatorMetadataSectionsProps) {
-    const stitchedIndicatorList = stitched?.list
+    headerControl,
+    descriptionInHeader,
+}: {
+    datapageData: DataPageDataV2
+    faqEntries: FaqEntryData | undefined
+    detailsRef: React.RefObject<HTMLDetailsElement | null>
+    detailsId?: string
+    canonicalUrl: string
+    archiveContext: ArchiveContext | undefined
+    // Disambiguates the section anchor ids (#faqs, #sources-and-processing,
+    // #indicator-processing) when several panes are in the DOM at once. The
+    // active pane gets "" so in-page anchors and the grapher footer's
+    // jump-to-sources resolve to the visible pane.
+    idSuffix?: string
+    // Toggles caused by programmatically switching indicators shouldn't be
+    // logged as user expands/collapses — see IndicatorMetadataBox.
+    suppressToggleLogUntilRef?: React.RefObject<number>
+    // Stitched: the heading reads "About this data" (no single indicator
+    // owns the pane) and the indicator list opens the expander.
+    stitched?: StitchedPaneOptions
+    pageCitation?: PageCitationOptions
+    // Stitched / single-pane scatter pages: the size/colour line closes the
+    // WYSK, in the same typography.
+    auxiliaryIndicators?: AuxiliaryIndicator[]
+    // A control beside the title (the "dropdown-inside" switcher). It wraps
+    // under the title, whole, when both don't fit on one line.
+    headerControl?: React.ReactNode
+    // The title is hidden (the "dropdown" switcher names the indicator above
+    // the box), so the short description takes its place beside the toggle.
+    descriptionInHeader?: boolean
+}): React.ReactElement {
+    // Owners of the dataset backing this indicator — the baker loads each
+    // pane's datapageData.owners from its own indicator's dataset.
+    const owners = datapageData.owners?.[0]?.owners ?? []
+
+    const descriptionProcessing = datapageData.descriptionProcessing?.trim()
+    const attribution = formatAttributions(datapageData.attributions ?? [])
+    const sourceString = makeSource({
+        attribution,
+        owidProcessingLevel: datapageData.owidProcessingLevel,
+        // Without processing notes there's nothing to link to
+        processingId: descriptionProcessing
+            ? `${INDICATOR_PROCESSING_SECTION_ID}${idSuffix}`
+            : null,
+    })
 
     // Only the start of a long descriptionKey is shown above the fold; the
     // rest goes inside the <details> so that it works without JavaScript and
@@ -702,160 +722,6 @@ function IndicatorMetadataSections({
         showStitchedList || !!descriptionKeyPreview || auxInPreview
 
     return (
-        <MetadataBoxExpander
-            className={className}
-            detailsRef={detailsRef}
-            detailsId={detailsId}
-            showMoreIcon={faCaretDown}
-            showLessIcon={faCaretUp}
-            preview={
-                hasPreview ? (
-                    <>
-                        {showStitchedList && (
-                            <StitchedIndicatorList
-                                entries={stitched.list}
-                                datapageData={datapageData}
-                                expanderOpen={expanderOpen}
-                                showFolded={listShowFolded}
-                                onShowFolded={() => setListShowFolded(true)}
-                            />
-                        )}
-                        {descriptionKeyPreview && (
-                            <>
-                                <h2 className="indicator-metadata-box__description-key-title">
-                                    What you should know about this data
-                                </h2>
-                                <SimpleMarkdownText
-                                    text={descriptionKeyPreview}
-                                    dataTrackNote="wysk_link"
-                                    dodTrackNote="wysk/preview"
-                                />
-                            </>
-                        )}
-                        {auxInPreview && (
-                            <AuxiliaryIndicatorsProse
-                                indicators={auxiliaryIndicators}
-                            />
-                        )}
-                    </>
-                ) : undefined
-            }
-            onToggle={(isOpen) => {
-                setExpanderOpen(isOpen)
-                // Closing the box folds a long stitched list again.
-                if (!isOpen) setListShowFolded(false)
-                // Skip toggles caused by switching indicators: those close
-                // the previous pane's expander and open the new one, and
-                // neither is a user expand/collapse (the switch itself is
-                // logged via data-track-note="metadata_box_indicator_switch").
-                if (
-                    suppressToggleLogUntilRef &&
-                    Date.now() < suppressToggleLogUntilRef.current
-                )
-                    return
-                analytics.logSiteClick(
-                    isOpen ? "expand_metadata_box" : "collapse_metadata_box"
-                )
-            }}
-        >
-            {descriptionKeyRest && (
-                <div className="metadata-box-expander__remainder metadata-box-expander__prose">
-                    <SimpleMarkdownText
-                        text={descriptionKeyRest}
-                        dataTrackNote="wysk_link"
-                        dodTrackNote="wysk/expanded"
-                    />
-                    {auxiliaryIndicators && (
-                        <AuxiliaryIndicatorsProse
-                            indicators={auxiliaryIndicators}
-                        />
-                    )}
-                </div>
-            )}
-            <IndicatorDataDetails
-                datapageData={datapageData}
-                stitchedList={detailsStitchedList}
-            />
-            <IndicatorFaqs
-                descriptionProcessing={descriptionProcessing}
-                faqEntries={faqEntries}
-                idSuffix={idSuffix}
-            />
-            <IndicatorProducerDocs
-                datapageData={datapageData}
-                stitchedList={stitchedIndicatorList}
-            />
-            <IndicatorDataSources
-                datapageData={datapageData}
-                stitchedList={stitchedIndicatorList}
-                idSuffix={idSuffix}
-            />
-            <IndicatorCitations
-                datapageData={datapageData}
-                canonicalUrl={canonicalUrl}
-                archiveContext={archiveContext}
-                pageCitation={pageCitation}
-            />
-            <IndicatorFinePrint license={license} />
-        </MetadataBoxExpander>
-    )
-}
-
-// One indicator's pane: heading with the box's top toggle, key data, and the
-// expandable sections. Several sit inside one box on a switcher page.
-function IndicatorPane({
-    datapageData,
-    faqEntries,
-    detailsRef,
-    detailsId,
-    canonicalUrl,
-    archiveContext,
-    license,
-    idSuffix = "",
-    suppressToggleLogUntilRef,
-    stitched,
-    pageCitation,
-    auxiliaryIndicators,
-    headerControl,
-    descriptionInHeader,
-}: {
-    datapageData: DataPageDataV2
-    faqEntries: FaqEntryData | undefined
-    detailsRef: React.RefObject<HTMLDetailsElement | null>
-    detailsId?: string
-    canonicalUrl: string
-    archiveContext: ArchiveContext | undefined
-    license?: LicenseOption
-    idSuffix?: string
-    suppressToggleLogUntilRef?: React.RefObject<number>
-    // Stitched: the heading reads "About this data" (no single indicator
-    // owns the pane) and the indicator list opens the expander.
-    stitched?: StitchedPaneOptions
-    pageCitation?: PageCitationOptions
-    auxiliaryIndicators?: AuxiliaryIndicator[]
-    // A control beside the title (the "dropdown-inside" switcher). It wraps
-    // under the title, whole, when both don't fit on one line.
-    headerControl?: React.ReactNode
-    // The title is hidden (the "dropdown" switcher names the indicator above
-    // the box), so the short description takes its place beside the toggle.
-    descriptionInHeader?: boolean
-}) {
-    // Owners of the dataset backing this indicator — the baker loads each
-    // pane's datapageData.owners from its own indicator's dataset.
-    const owners = datapageData.owners?.[0]?.owners ?? []
-
-    const descriptionProcessing = datapageData.descriptionProcessing?.trim()
-    const attribution = formatAttributions(datapageData.attributions ?? [])
-    const sourceString = makeSource({
-        attribution,
-        owidProcessingLevel: datapageData.owidProcessingLevel,
-        // Without processing notes there's nothing to link to
-        processingId: descriptionProcessing
-            ? `${INDICATOR_PROCESSING_SECTION_ID}${idSuffix}`
-            : null,
-    })
-
-    return (
         <>
             <div className="indicator-metadata-box__header">
                 <div className="indicator-metadata-box__heading">
@@ -863,7 +729,7 @@ function IndicatorPane({
                         {stitched
                             ? "About this data"
                             : datapageData.title.title}
-                        {!stitched && (
+                        {!stitched && datapageData.titleVariant && (
                             <span className="indicator-metadata-box__title-variant">
                                 {datapageData.titleVariant}
                             </span>
@@ -917,21 +783,104 @@ function IndicatorPane({
                     </MetadataBoxKeyDataRow>
                 )}
             </MetadataBoxKeyData>
-            <IndicatorMetadataSections
-                datapageData={datapageData}
-                faqEntries={faqEntries}
+            <MetadataBoxExpander
+                className={cx({
+                    "indicator-metadata-box__expander--has-preview": hasPreview,
+                })}
                 detailsRef={detailsRef}
                 detailsId={detailsId}
-                canonicalUrl={canonicalUrl}
-                archiveContext={archiveContext}
-                descriptionProcessing={descriptionProcessing}
-                license={license}
-                idSuffix={idSuffix}
-                suppressToggleLogUntilRef={suppressToggleLogUntilRef}
-                stitched={stitched}
-                pageCitation={pageCitation}
-                auxiliaryIndicators={auxiliaryIndicators}
-            />
+                showMoreIcon={faCaretDown}
+                showLessIcon={faCaretUp}
+                preview={
+                    hasPreview ? (
+                        <>
+                            {showStitchedList && (
+                                <StitchedIndicatorList
+                                    entries={stitched.list}
+                                    datapageData={datapageData}
+                                    expanderOpen={expanderOpen}
+                                    showFolded={listShowFolded}
+                                    onShowFolded={() => setListShowFolded(true)}
+                                />
+                            )}
+                            {descriptionKeyPreview && (
+                                <>
+                                    <h2 className="indicator-metadata-box__description-key-title">
+                                        What you should know about this data
+                                    </h2>
+                                    <SimpleMarkdownText
+                                        text={descriptionKeyPreview}
+                                        dataTrackNote="wysk_link"
+                                        dodTrackNote="wysk/preview"
+                                    />
+                                </>
+                            )}
+                            {auxInPreview && (
+                                <AuxiliaryIndicatorsProse
+                                    indicators={auxiliaryIndicators}
+                                />
+                            )}
+                        </>
+                    ) : undefined
+                }
+                onToggle={(isOpen) => {
+                    setExpanderOpen(isOpen)
+                    // Closing the box folds a long stitched list again.
+                    if (!isOpen) setListShowFolded(false)
+                    // Skip toggles caused by switching indicators: those close
+                    // the previous pane's expander and open the new one, and
+                    // neither is a user expand/collapse (the switch itself is
+                    // logged via data-track-note="metadata_box_indicator_switch").
+                    if (
+                        suppressToggleLogUntilRef &&
+                        Date.now() < suppressToggleLogUntilRef.current
+                    )
+                        return
+                    analytics.logSiteClick(
+                        isOpen ? "expand_metadata_box" : "collapse_metadata_box"
+                    )
+                }}
+            >
+                {descriptionKeyRest && (
+                    <div className="metadata-box-expander__remainder metadata-box-expander__prose">
+                        <SimpleMarkdownText
+                            text={descriptionKeyRest}
+                            dataTrackNote="wysk_link"
+                            dodTrackNote="wysk/expanded"
+                        />
+                        {auxiliaryIndicators && (
+                            <AuxiliaryIndicatorsProse
+                                indicators={auxiliaryIndicators}
+                            />
+                        )}
+                    </div>
+                )}
+                <IndicatorDataDetails
+                    datapageData={datapageData}
+                    stitchedList={detailsStitchedList}
+                />
+                <IndicatorFaqs
+                    descriptionProcessing={descriptionProcessing}
+                    faqEntries={faqEntries}
+                    idSuffix={idSuffix}
+                />
+                <IndicatorProducerDocs
+                    datapageData={datapageData}
+                    stitchedList={stitched?.list}
+                />
+                <IndicatorDataSources
+                    datapageData={datapageData}
+                    stitchedList={stitched?.list}
+                    idSuffix={idSuffix}
+                />
+                <IndicatorCitations
+                    datapageData={datapageData}
+                    canonicalUrl={canonicalUrl}
+                    archiveContext={archiveContext}
+                    pageCitation={pageCitation}
+                />
+                <IndicatorFinePrint license={datapageData.license} />
+            </MetadataBoxExpander>
         </>
     )
 }
@@ -943,11 +892,9 @@ export default function IndicatorMetadataBox({
     hideStitchedIndicatorList,
     auxiliaryIndicators,
     faqEntries,
-    className,
     id,
     canonicalUrl,
     archiveContext,
-    license,
     pageCitationTitle,
 }: {
     datapageData: DataPageDataV2
@@ -955,12 +902,10 @@ export default function IndicatorMetadataBox({
     stitchedIndicatorList?: StitchedIndicatorListEntry[]
     hideStitchedIndicatorList?: boolean
     auxiliaryIndicators?: AuxiliaryIndicator[]
-    className?: string
     id?: string
     faqEntries: FaqEntryData | undefined
     canonicalUrl: string
     archiveContext: ArchiveContext | undefined
-    license?: LicenseOption
     // The chart title, used to cite the PAGE on multi-indicator pages (the
     // per-indicator titles only describe one of the page's indicators).
     pageCitationTitle?: string
@@ -1105,7 +1050,6 @@ export default function IndicatorMetadataBox({
                 detailsId={detailsIdFor(i)}
                 canonicalUrl={canonicalUrl}
                 archiveContext={archiveContext}
-                license={license}
                 idSuffix={i === safeIndex ? "" : `--${i}`}
                 suppressToggleLogUntilRef={suppressToggleLogUntilRef}
                 stitched={stitched}
@@ -1138,7 +1082,7 @@ export default function IndicatorMetadataBox({
     if (!isMultiIndicator) {
         return (
             <div
-                className={cx("metadata-box indicator-metadata-box", className)}
+                className="metadata-box indicator-metadata-box"
                 id={id}
                 ref={rootRef}
                 onClick={openDetailsAroundLinkTarget}
@@ -1150,7 +1094,6 @@ export default function IndicatorMetadataBox({
                     detailsId={detailsIdFor(0)}
                     canonicalUrl={canonicalUrl}
                     archiveContext={archiveContext}
-                    license={license}
                     auxiliaryIndicators={auxiliaryIndicators}
                 />
             </div>
@@ -1196,8 +1139,7 @@ export default function IndicatorMetadataBox({
             className={cx(
                 "indicator-metadata-box-wrap",
                 `indicator-metadata-box-wrap--${switcherVariant}`,
-                { "indicator-metadata-box-wrap--stitched": !!stitched },
-                className
+                { "indicator-metadata-box-wrap--stitched": !!stitched }
             )}
             id={id}
             ref={rootRef}

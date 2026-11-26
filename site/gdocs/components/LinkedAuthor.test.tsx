@@ -18,7 +18,7 @@ const attachments: Attachments = {
 const renderLinkedAuthor = (
     name: string,
     value: Attachments = attachments,
-    props: { includeImage?: boolean; includeInitials?: boolean } = {}
+    props: { includeImage?: boolean; showInitialsWithoutPhoto?: boolean } = {}
 ): string =>
     renderToStaticMarkup(
         <AttachmentsContext.Provider value={value}>
@@ -88,7 +88,7 @@ describe(LinkedAuthor, () => {
         it("shows initials in place of a missing photo when asked to", () => {
             const html = renderLinkedAuthor("Lars Yencken", attachments, {
                 includeImage: true,
-                includeInitials: true,
+                showInitialsWithoutPhoto: true,
             })
 
             expect(html).toContain("linked-author-initials")
@@ -99,7 +99,7 @@ describe(LinkedAuthor, () => {
             const html = renderLinkedAuthor(
                 "Fiona Spooner",
                 { ...withPhoto, imageMetadata: photoMetadata },
-                { includeImage: true, includeInitials: true }
+                { includeImage: true, showInitialsWithoutPhoto: true }
             )
 
             expect(html).toContain("linked-author-image")
@@ -109,7 +109,7 @@ describe(LinkedAuthor, () => {
         it("falls back to initials when the photo has no image metadata, as on archived pages", () => {
             const html = renderLinkedAuthor("Fiona Spooner", withPhoto, {
                 includeImage: true,
-                includeInitials: true,
+                showInitialsWithoutPhoto: true,
             })
 
             expect(html).not.toContain("linked-author-image")

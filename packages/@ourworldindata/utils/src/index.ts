@@ -183,7 +183,7 @@ export {
     getOriginIdentityKey,
     formatSourceDate,
     getDateRange,
-    isSingleYearTimespan,
+    getDateRangeLabel,
     getIndicatorCitations,
 } from "./metadataHelpers.js"
 

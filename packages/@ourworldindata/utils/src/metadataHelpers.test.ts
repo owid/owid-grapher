@@ -5,7 +5,7 @@ import {
     getAttributionFragmentsFromVariable,
     getIndicatorCitations,
     getDateRange,
-    isSingleYearTimespan,
+    getDateRangeLabel,
     getETLPathComponents,
     getLastUpdatedFromVariable,
     getNextUpdateFromVariable,
@@ -935,18 +935,18 @@ describe(getDateRange, () => {
     })
 })
 
-describe(isSingleYearTimespan, () => {
-    it("is true when both ends are the same year", () => {
-        expect(isSingleYearTimespan("2023-2023")).toBe(true)
-        expect(isSingleYearTimespan("-500--500")).toBe(true)
+describe(getDateRangeLabel, () => {
+    it("is Year when both ends are the same year", () => {
+        expect(getDateRangeLabel("2023-2023")).toBe("Year")
+        expect(getDateRangeLabel("-500--500")).toBe("Year")
     })
 
-    it("is true for a single year written on its own", () => {
-        expect(isSingleYearTimespan("2023")).toBe(true)
+    it("is Year for a single year written on its own", () => {
+        expect(getDateRangeLabel("2023")).toBe("Year")
     })
 
-    it("is false for a range or anything that isn't a timespan", () => {
-        expect(isSingleYearTimespan("1990-2020")).toBe(false)
-        expect(isSingleYearTimespan("")).toBe(false)
+    it("is Date range for a range or anything that isn't a timespan", () => {
+        expect(getDateRangeLabel("1990-2020")).toBe("Date range")
+        expect(getDateRangeLabel("")).toBe("Date range")
     })
 })

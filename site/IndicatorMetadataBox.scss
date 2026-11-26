@@ -5,12 +5,10 @@
     grid-template-columns: repeat(12, 1fr);
     grid-column-start: 2;
     grid-column-end: span 12;
-    // Compensate for neighbour element padding from V1 datapage
-    margin-top: -104px;
+    margin-top: 16px;
     margin-right: -6px;
     margin-bottom: 48px;
     @include sm-only {
-        margin-top: -56px;
         margin-right: -8px;
         margin-left: -8px;
         margin-bottom: 16px;
@@ -26,7 +24,7 @@
     }
 }
 
-.indicator-metadata-box .metadata-box-expander--has-preview {
+.indicator-metadata-box .indicator-metadata-box__expander--has-preview {
     border-top: 1px solid $blue-20;
     margin-top: 16px;
 }
@@ -151,12 +149,6 @@
     margin-left: 8px;
     color: $blue-50;
 
-    // No variant: drop the margin, so it doesn't widen the gap to a control
-    // beside the title.
-    &:empty {
-        display: none;
-    }
-
     @include sm-only {
         margin-left: 0;
         line-height: 1.2;
@@ -255,6 +247,10 @@
 
 .indicator-metadata-box .avatar-byline__author {
     gap: 6px;
+}
+
+.indicator-metadata-box .linked-author-image {
+    flex-shrink: 0;
 }
 
 .indicator-metadata-box .metadata-box-key-data__row--full-width p + p {
@@ -365,8 +361,11 @@
     }
 }
 
-// Headings in FAQ answers (e.g. share-of-population-in-extreme-poverty)
-.indicator-metadata-box .metadata-box-section--faqs .ExpandableToggle__content {
+// Headings in FAQ answers (e.g. share-of-population-in-extreme-poverty), which
+// include the processing notes, and in the other markdown from the ETL
+.indicator-metadata-box .metadata-box-section--faqs .ExpandableToggle__content,
+.indicator-metadata-box .indicator-metadata-box__producer-docs,
+.indicator-metadata-box .indicator-sources .source .description {
     h1,
     h2,
     h3,
@@ -376,11 +375,13 @@
         @include body-3-bold;
         color: $blue-90;
         margin: 1.5em 0 0;
+    }
+}
 
-        // The toggle's padding already spaces an answer that opens with one
-        &:first-child {
-            margin-top: 0;
-        }
+// The toggle's padding already spaces an answer that opens with a heading
+.indicator-metadata-box .metadata-box-section--faqs .ExpandableToggle__content {
+    :is(h1, h2, h3, h4, h5, h6):first-child {
+        margin-top: 0;
     }
 }
 
@@ -406,17 +407,6 @@
 
     p {
         margin: 0 0 1.5em;
-    }
-
-    h1,
-    h2,
-    h3,
-    h4,
-    h5,
-    h6 {
-        @include body-3-bold;
-        color: $blue-90;
-        margin: 1.5em 0 0;
     }
 
     // Restores the indent the global `ul, ol { padding: 0 }` reset removes
@@ -451,13 +441,10 @@
     position: relative;
     grid-column-start: 2;
     grid-column-end: span 12;
-    // Compensate for neighbour element padding from V1 datapage (same
-    // treatment as the plain .indicator-metadata-box).
-    margin-top: -104px;
+    margin-top: 16px;
     margin-right: -6px;
     margin-bottom: 48px;
     @include sm-only {
-        margin-top: -56px;
         margin-right: -8px;
         margin-left: -8px;
         margin-bottom: 32px;
