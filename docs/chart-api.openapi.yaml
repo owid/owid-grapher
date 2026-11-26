@@ -85,7 +85,7 @@ paths:
         - `?imVariant=simplified`: a 1200×640 thumbnail with fewer gridlines and thinner lines
         - `?imVariant=simplified&imLabels=values`: the same thumbnail with values and no legend
 
-        Unrecognised `im*` params are ignored. Otherwise the endpoint answers 400 instead of guessing when a request is invalid or contradictory. That covers an unknown value for a recognised param, a size or font size that isn't a positive integer, a flag other than `0` or `1`, a preset combined with `imWidth`, `imHeight`, `imFontSize` or `imDetails`, a preset on `imVariant=uncaptioned` or `imVariant=simplified`, `imDetails=1` without a caption, `imLabels=values` on a captioned image, and a deprecated param next to the param that replaces it.
+        Unrecognised `im*` params are ignored. Otherwise the endpoint answers 400 instead of guessing when a request is invalid or contradictory. That covers an unknown value for a recognised param, a size or font size that isn't a positive integer, a flag other than `0` or `1`, a preset combined with `imWidth`, `imHeight`, `imFontSize` or `imDetails`, a preset on `imVariant=uncaptioned` or `imVariant=simplified`, `imDetails=1` without a caption, `imLabels=values` on a captioned image, and a deprecated param next to the param that replaces it. A request with only deprecated image params is the exception: it ignores what it ignored before the new params existed, so `imType=og`, `imType=twitter` and `imType=square` ignore every other image param, `imMinimal` is ignored without `imType=thumbnail` or `imType=uncaptioned`, and an unknown `imType` renders the default image.
       operationId: getChartImage
       tags:
         - Images
