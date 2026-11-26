@@ -181,7 +181,7 @@ export {
     prepareSourcesForDisplay,
     formatSourceDate,
     getDateRange,
-    isSingleYearTimespan,
+    getDateRangeLabel,
     getIndicatorCitations,
 } from "./metadataHelpers.js"
 

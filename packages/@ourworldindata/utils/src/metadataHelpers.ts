@@ -410,10 +410,13 @@ const parseTimespan = (
     return { firstYear: parseInt(first, 10), lastYear: parseInt(last, 10) }
 }
 
-export const isSingleYearTimespan = (timespan: string): boolean => {
+const isSingleYearTimespan = (timespan: string): boolean => {
     const years = parseTimespan(timespan)
     return !!years && years.firstYear === years.lastYear
 }
+
+export const getDateRangeLabel = (timespan: string): string =>
+    isSingleYearTimespan(timespan) ? "Year" : "Date range"
 
 const formatYear = (year: number, withEra = false): string =>
     year < 0 ? `${Math.abs(year)} BCE` : withEra ? `${year} CE` : `${year}`

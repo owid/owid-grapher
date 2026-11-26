@@ -8,7 +8,7 @@ import {
     getAttributionWithProcessing,
     OwidColumnDef,
     getDateRange,
-    isSingleYearTimespan,
+    getDateRangeLabel,
     getIndicatorCitations,
     prepareSourcesForDisplay,
     formatDate,
@@ -115,10 +115,11 @@ export function* getKeyDataLines(
 
     const timespan = def.timespan
     const dateRange = timespan ? getDateRange(timespan) : undefined
-    if (timespan && dateRange) {
-        const label = isSingleYearTimespan(timespan) ? "Year" : "Date range"
-        yield `${label}: ${dateRange}` + markdownNewlineEnding
-    }
+    if (timespan && dateRange)
+        yield (
+            `${getDateRangeLabel(timespan)}: ${dateRange}` +
+                markdownNewlineEnding
+        )
 
     const unit = def.unit
     if (unit) yield `Unit: ${unit}` + markdownNewlineEnding
