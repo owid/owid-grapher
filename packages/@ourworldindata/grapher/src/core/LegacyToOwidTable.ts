@@ -3,9 +3,9 @@
 //
 // Performance notes: this runs on every chart load and its input can be
 // hundreds of thousands of rows (daily indicators), so the per-variable tables
-// and the joins between them are built on plain column arrays. Only the final
-// result becomes an OwidTable, constructed from typed values so it never needs
-// to parse anything.
+// and the joins between them are built on plain column arrays (see FrameJoin).
+// Only the final result becomes an OwidTable, constructed from typed values so
+// it never needs to parse anything.
 
 import * as _ from "lodash-es"
 import {
@@ -18,12 +18,14 @@ import {
     IndicatorDimensionInterface,
     OwidChartDimensionInterface,
     OwidColumnDef,
+    OwidEntityCodeColumnDef,
+    OwidEntityIdColumnDef,
+    OwidEntityNameColumnDef,
     OwidTableSlugs,
     OwidVariableAnnotation,
     OwidVariableDimensions,
     OwidVariableDisplayConfigInterface,
     SelectedEntityColors,
-    StandardOwidColumnDefs,
     Time,
     TimeInterval,
     isIndicatorDimension,
@@ -56,42 +58,25 @@ import {
 import { isContinentsVariableId } from "./GrapherConstants"
 import { getIndicatorColumnSlug } from "../chart/ChartDimension.js"
 import { mergeDisplayIntoDef } from "./applyDisplayAndConversionFactor.js"
-
-// ---------------------------------------------------------------------------
-// Frames: a lightweight column store used while assembling the table
-// ---------------------------------------------------------------------------
-
-interface FrameColumn {
-    def: OwidColumnDef
-    values: CoreValueType[]
-}
-
-interface Frame {
-    /** In output order */
-    columns: FrameColumn[]
-    numRows: number
-    /** Set when every row is known to have a distinct value for these key columns */
-    uniqueKey?: string
-}
-
-const EMPTY_FRAME: Frame = { columns: [], numRows: 0 }
-
-const findColumn = (frame: Frame, slug: ColumnSlug): FrameColumn | undefined =>
-    frame.columns.find((column) => column.def.slug === slug)
-
-const frameToTable = (frame: Frame): OwidTable =>
-    new OwidTable(
-        [],
-        frame.columns.map(({ def, values }) => ({ ...def, values }))
-    )
+import {
+    EMPTY_FRAME,
+    Frame,
+    FrameColumn,
+    findColumn,
+    frameToTable,
+    fullJoin,
+    leftJoinWithFallbacks,
+} from "./FrameJoin.js"
 
 interface VariableFrame {
     frame: Frame
     interval: TimeInterval
+    timeSlug: OwidTableSlugs.Day | OwidTableSlugs.Year
+    valueSlug: ColumnSlug
 }
 
 // ---------------------------------------------------------------------------
-// Entry point
+// Entry points
 // ---------------------------------------------------------------------------
 
 export const legacyToOwidTableAndDimensions = (
@@ -125,45 +110,40 @@ export const legacyToOwidTableAndDimensions = (
         )
         const { targetYear } = dimension
         if (typeof targetYear === "number")
-            targetTimeFrames.push(
-                pinToTargetTime(variableFrame.frame, targetYear)
-            )
+            targetTimeFrames.push(pinToTargetTime(variableFrame, targetYear))
         else if (isSubYearly(variableFrame.interval))
             dayFrames.push(variableFrame)
         else yearFrames.push(variableFrame)
     }
 
-    // Day-based variables are joined among themselves on day+entity first,
-    // and day+entity then becomes the primary index of the final table. Year
-    // based variables are then joined in, looking up each row by
-    // day+entity, then year+entity (the year being derived from the day),
-    // then entity alone. The entity-only fallback keeps variables like
-    // continents, which only have values for 2015, attached to every day.
-    //
-    // A caveat of making day+entity the primary index is that entities that
-    // only occur in year-based variables are dropped (e.g. Antarctica from the
-    // continents variable, if no daily variable has data for it).
-    const joinedByDay = fullJoin(
-        dayFrames.map((v) => v.frame),
-        [OwidTableSlugs.Day, OwidTableSlugs.EntityId]
-    )
-
     let joined: Frame
     let primaryTimeSlug: OwidTableSlugs.Day | OwidTableSlugs.Year
-    if (yearFrames.length > 0 && dayFrames.length > 0) {
-        // Join each year table separately, so that each gets its own
-        // fallback lookups
-        joined = fullJoin(
-            [
-                withYearDerivedFromDay(joinedByDay),
-                ...yearFrames.map((v) => v.frame),
-            ],
-            [OwidTableSlugs.Day, OwidTableSlugs.EntityId],
-            [
-                [OwidTableSlugs.Year, OwidTableSlugs.EntityId],
-                [OwidTableSlugs.EntityId],
-            ]
+    if (dayFrames.length > 0) {
+        const joinedByDay = fullJoin(
+            dayFrames.map((v) => v.frame),
+            [OwidTableSlugs.Day, OwidTableSlugs.EntityId]
         )
+        // When both day-based and year-based variables are present, day+entity
+        // is the primary index. Each year-based variable is attached by
+        // year+entity (deriving year from day), falling back to entity alone so
+        // static variables like continents (which only have a single year) still
+        // attach to every day.
+        //
+        // Caveat: entities that only occur in year-based variables are dropped
+        // (e.g. Antarctica from the continents variable, if no daily variable
+        // has data for it).
+        joined =
+            yearFrames.length > 0
+                ? leftJoinWithFallbacks(
+                      withYearDerivedFromDay(joinedByDay),
+                      yearFrames.map((v) => v.frame),
+                      [OwidTableSlugs.Day, OwidTableSlugs.EntityId],
+                      [
+                          [OwidTableSlugs.Year, OwidTableSlugs.EntityId],
+                          [OwidTableSlugs.EntityId],
+                      ]
+                  )
+                : joinedByDay
         primaryTimeSlug = OwidTableSlugs.Day
     } else if (yearFrames.length > 0) {
         joined = fullJoin(
@@ -172,13 +152,14 @@ export const legacyToOwidTableAndDimensions = (
         )
         primaryTimeSlug = OwidTableSlugs.Year
     } else {
-        joined = joinedByDay
+        joined = EMPTY_FRAME
         primaryTimeSlug = OwidTableSlugs.Day
     }
 
     if (targetTimeFrames.length > 0)
-        joined = fullJoin(
-            [joined, ...targetTimeFrames],
+        joined = leftJoinWithFallbacks(
+            joined,
+            targetTimeFrames,
             [primaryTimeSlug, OwidTableSlugs.EntityId],
             [[OwidTableSlugs.EntityId]]
         )
@@ -299,33 +280,8 @@ const buildVariableFrame = (
     const { metadata, data } = variable
     const interval = getTimeInterval(metadata.display)
     const timeDef = TIME_COLUMN_DEF_BY_INTERVAL[interval]
-
-    const valueSlug = getIndicatorColumnSlug(dimension)
-    let valueDef: OwidColumnDef = {
-        ...columnDefFromOwidVariable(metadata),
-        slug: valueSlug,
-        // Database columns can contain mixed types, so we don't parse values
-        skipParsing: true,
-    }
-    valueDef.display = trimObject(valueDef.display)
-    if (dimension.targetYear !== undefined)
-        valueDef.targetTime = dimension.targetYear
-
-    const display = trimObject({
-        conversionFactor: metadata.display?.conversionFactor,
-        ...trimObject(dimension.display ?? {}),
-    }) as OwidVariableDisplayConfigInterface
-    let values: CoreValueType[] = data.values ?? []
-    if (!_.isEmpty(display)) {
-        valueDef = mergeDisplayIntoDef(valueDef, display)
-        // Scale before joining, so values repeated across joined rows are
-        // only converted once
-        const { conversionFactor } = display
-        if (conversionFactor !== undefined && conversionFactor !== 1)
-            values = values.map((value) =>
-                typeof value === "number" ? value * conversionFactor : value
-            )
-    }
+    const timeSlug = timeDef.slug as OwidTableSlugs.Day | OwidTableSlugs.Year
+    const valueColumn = buildValueColumn(metadata, dimension, data.values ?? [])
 
     const entityIds = data.entities ?? []
     const numRows = entityIds.length
@@ -342,11 +298,13 @@ const buildVariableFrame = (
 
     return {
         interval,
+        timeSlug,
+        valueSlug: valueColumn.def.slug,
         frame: {
             columns: [
-                { def: StandardOwidColumnDefs[0], values: names },
-                { def: StandardOwidColumnDefs[1], values: parsedIds },
-                { def: StandardOwidColumnDefs[2], values: codes },
+                { def: OwidEntityNameColumnDef, values: names },
+                { def: OwidEntityIdColumnDef, values: parsedIds },
+                { def: OwidEntityCodeColumnDef, values: codes },
                 {
                     def: timeDef,
                     values: timeValuesFromOwidVariable(
@@ -354,11 +312,46 @@ const buildVariableFrame = (
                         data.years ?? []
                     ),
                 },
-                { def: valueDef, values },
+                valueColumn,
             ],
             numRows,
         },
     }
+}
+
+const buildValueColumn = (
+    metadata: OwidVariableWithSourceAndDimension,
+    dimension: IndicatorDimensionInterface,
+    rawValues: CoreValueType[]
+): FrameColumn => {
+    let def: OwidColumnDef = {
+        ...columnDefFromOwidVariable(metadata),
+        slug: getIndicatorColumnSlug(dimension),
+        // Database columns can contain mixed types, so we don't parse values
+        skipParsing: true,
+    }
+    def.display = trimObject(def.display)
+    if (dimension.targetYear !== undefined)
+        def.targetTime = dimension.targetYear
+
+    const display = trimObject({
+        conversionFactor: metadata.display?.conversionFactor,
+        ...trimObject(dimension.display ?? {}),
+    }) as OwidVariableDisplayConfigInterface
+
+    let values = rawValues
+    if (!_.isEmpty(display)) {
+        def = mergeDisplayIntoDef(def, display)
+        // Scale before joining, so values repeated across joined rows are
+        // only converted once
+        const { conversionFactor } = display
+        if (conversionFactor !== undefined && conversionFactor !== 1)
+            values = values.map((value) =>
+                typeof value === "number" ? value * conversionFactor : value
+            )
+    }
+
+    return { def, values }
 }
 
 /**
@@ -366,69 +359,89 @@ const buildVariableFrame = (
  * the target time, and swaps the time column for an "originalTime" column, so
  * that the frame can be joined on entity alone.
  */
-const pinToTargetTime = (frame: Frame, targetTime: Time): Frame => {
-    const [nameColumn, , , timeColumn, valueColumn] = frame.columns
-    const times = timeColumn.values as number[]
+const pinToTargetTime = (
+    variableFrame: VariableFrame,
+    targetTime: Time
+): Frame => {
+    const { frame, timeSlug, valueSlug } = variableFrame
+    const nameColumn = findColumn(frame, OwidTableSlugs.EntityName)!
+    const timeColumn = findColumn(frame, timeSlug)!
+    const valueColumn = findColumn(frame, valueSlug)!
+
     const tolerance =
         valueColumn.def.display?.tolerance ?? valueColumn.def.tolerance ?? 0
-
-    let keepRow: (row: number) => boolean
-    if (tolerance === 0) {
-        keepRow = (row): boolean => times[row] === targetTime
-    } else {
-        // For each entity, find the row closest to the target time
-        const rowsByEntity = new Map<CoreValueType, number[]>()
-        for (let row = 0; row < frame.numRows; row++) {
-            const name = nameColumn.values[row]
-            const rows = rowsByEntity.get(name)
-            if (rows) rows.push(row)
-            else rowsByEntity.set(name, [row])
-        }
-        const keptRows = new Set<number>()
-        for (const rows of rowsByEntity.values()) {
-            const sortedRows = rows.sort((a, b) => times[a] - times[b])
-            const index = findClosestTimeIndex(
-                sortedRows.map((row) => times[row]),
-                targetTime,
-                tolerance
-            )
-            if (index !== undefined) keptRows.add(sortedRows[index])
-        }
-        keepRow = (row): boolean => keptRows.has(row)
-    }
-
-    const rows: number[] = []
-    for (let row = 0; row < frame.numRows; row++)
-        if (keepRow(row)) rows.push(row)
+    const keptRows = findRowsMatchingTargetTime(
+        nameColumn.values,
+        timeColumn.values as number[],
+        targetTime,
+        tolerance
+    )
     const take = (values: CoreValueType[]): CoreValueType[] =>
-        rows.map((row) => values[row])
+        keptRows.map((row) => values[row])
 
-    const takeColumnRows = (column: FrameColumn): FrameColumn => ({
-        def: column.def,
-        values: take(column.values),
-    })
     return {
         columns: [
             ...frame.columns
                 .filter((column) => column !== timeColumn)
-                .map(takeColumnRows),
+                .map((column) => ({
+                    def: column.def,
+                    values: take(column.values),
+                })),
             {
                 def: {
                     ...timeColumn.def,
-                    slug: makeOriginalTimeSlugFromColumnSlug(
-                        valueColumn.def.slug
-                    ),
+                    slug: makeOriginalTimeSlugFromColumnSlug(valueSlug),
                     display: { includeInTable: false },
                     derivedFrom: {
-                        columnSlug: valueColumn.def.slug,
+                        columnSlug: valueSlug,
                         relationship: "originalTime",
                     },
                 },
                 values: take(timeColumn.values),
             },
         ],
-        numRows: rows.length,
+        numRows: keptRows.length,
     }
+}
+
+const findRowsMatchingTargetTime = (
+    entityNames: CoreValueType[],
+    times: number[],
+    targetTime: Time,
+    tolerance: number
+): number[] => {
+    if (tolerance === 0) {
+        const rows: number[] = []
+        for (let row = 0; row < times.length; row++)
+            if (times[row] === targetTime) rows.push(row)
+        return rows
+    }
+
+    // For each entity, find the row closest to the target time within tolerance
+    const rowsByEntity = new Map<CoreValueType, number[]>()
+    for (let row = 0; row < times.length; row++) {
+        const name = entityNames[row]
+        const rows = rowsByEntity.get(name)
+        if (rows) rows.push(row)
+        else rowsByEntity.set(name, [row])
+    }
+
+    const keptRowSet = new Set<number>()
+    for (const rows of rowsByEntity.values()) {
+        const sortedRows = rows.sort((a, b) => times[a] - times[b])
+        const index = findClosestTimeIndex(
+            sortedRows.map((row) => times[row]),
+            targetTime,
+            tolerance
+        )
+        if (index !== undefined) keptRowSet.add(sortedRows[index])
+    }
+
+    // Preserve original row order
+    const keptRows: number[] = []
+    for (let row = 0; row < times.length; row++)
+        if (keptRowSet.has(row)) keptRows.push(row)
+    return keptRows
 }
 
 /** Appends a year column, derived from the frame's day column */
@@ -480,402 +493,6 @@ const withFinestTimeColumnInterval = (
                 ? { ...column, def: { ...column.def, ...timeDef } }
                 : column
         ),
-    }
-}
-
-// ---------------------------------------------------------------------------
-// Joining
-// ---------------------------------------------------------------------------
-
-type JoinKey = [ColumnSlug] | [ColumnSlug, ColumnSlug]
-
-/**
- * A map keyed by the values of one or two columns. Nesting maps avoids
- * building a string key for every row.
- */
-class KeyMap<T> {
-    private readonly index:
-        | { arity: 1; values: Map<unknown, T> }
-        | { arity: 2; values: Map<unknown, Map<unknown, T>> }
-
-    constructor(arity: 1 | 2) {
-        this.index =
-            arity === 1
-                ? { arity, values: new Map<unknown, T>() }
-                : { arity, values: new Map<unknown, Map<unknown, T>>() }
-    }
-
-    get(firstKey: unknown, secondKey: unknown): T | undefined {
-        const index = this.index
-        if (index.arity === 1) return index.values.get(firstKey)
-        return index.values.get(firstKey)?.get(secondKey)
-    }
-
-    set(firstKey: unknown, secondKey: unknown, value: T): void {
-        const index = this.index
-        if (index.arity === 1) {
-            index.values.set(firstKey, value)
-            return
-        }
-        let inner = index.values.get(firstKey)
-        if (inner === undefined) {
-            inner = new Map<unknown, T>()
-            index.values.set(firstKey, inner)
-        }
-        inner.set(secondKey, value)
-    }
-}
-
-const getJoinKeyColumns = (
-    frame: Frame,
-    key: JoinKey
-): [CoreValueType[], CoreValueType[]] | undefined => {
-    const columns = key.map((slug) => findColumn(frame, slug)?.values)
-    if (columns.some((values) => values === undefined)) return undefined
-    // For one-column keys, the second key part is always undefined
-    return [columns[0]!, columns[1] ?? []]
-}
-
-/**
- * Full outer join of the given frames on the `key` columns.
- *
- * Columns that all frames have (the key columns, but also entityName and
- * entityCode) end up once in the result, taken from the first frame that has
- * a row for the key; we assume they agree across frames. All other columns are
- * copied over from their frame.
- *
- * Rows are only enumerated from frames that have all key columns. When a frame
- * has no row for a key, the `fallbackKeys` are tried in turn, using the values
- * of the first frame's row. This is how year-based variables are joined onto
- * a day-based index (by year+entity, then entity only). When several rows
- * match a fallback key, the last one is used, which is usually the most recent
- * time; a proper fix would be a time- and tolerance-aware join.
- */
-const fullJoin = (
-    frames: Frame[],
-    key: JoinKey,
-    fallbackKeys?: JoinKey[]
-): Frame => {
-    if (frames.length === 0) return EMPTY_FRAME
-    // Not marked as unique: a single frame can have duplicate keys
-    if (frames.length === 1) return frames[0]
-
-    const uniqueKey = key.join(",")
-    const [firstFrame] = frames
-
-    const { rowsByFrame, owners, numOutRows, allFramesAligned } =
-        buildJoinRowMapping(frames, key, !!fallbackKeys)
-
-    // Columns shared by all frames are taken from the owner frame. Their
-    // order follows the last frame, preserving the legacy column order.
-    const sharedSlugs = frames[frames.length - 1].columns
-        .map((column) => column.def.slug)
-        .filter((slug) => frames.every((frame) => findColumn(frame, slug)))
-    const sharedSlugSet = new Set(sharedSlugs)
-
-    const outColumns: FrameColumn[] = sharedSlugs.map((slug) => {
-        const def = { ...findColumn(firstFrame, slug)!.def }
-        if (!owners)
-            return { def, values: findColumn(firstFrame, slug)!.values }
-        const sources = frames.map((frame) => findColumn(frame, slug)!.values)
-        const values: CoreValueType[] = []
-        for (let outRow = 0; outRow < numOutRows; outRow++)
-            values.push(sources[owners.frame[outRow]][owners.row[outRow]])
-        return { def, values }
-    })
-
-    // All other columns are looked up per frame, falling back to the
-    // fallback keys for result rows owned by the first frame.
-    const fallbackKeyValues = fallbackKeys?.map((fallbackKey) =>
-        getJoinKeyColumns(firstFrame, fallbackKey)
-    )
-    frames.forEach((frame, frameIndex) => {
-        const valueColumns = frame.columns.filter(
-            (column) => !sharedSlugSet.has(column.def.slug)
-        )
-        if (valueColumns.length === 0) return
-
-        // The frame's rows are the result rows, so its columns carry over
-        if (allFramesAligned || (frameIndex === 0 && !owners)) {
-            for (const { def, values } of valueColumns)
-                outColumns.push({ def: { ...def }, values })
-            return
-        }
-
-        const rows = rowsByFrame[frameIndex]
-        if (fallbackKeys && fallbackKeyValues)
-            resolveFallbackRows(
-                frame,
-                rows,
-                fallbackKeys,
-                fallbackKeyValues,
-                rowsByFrame[0],
-                owners?.frame
-            )
-
-        for (const column of valueColumns) {
-            const source = column.values
-            const values: CoreValueType[] = []
-            for (let outRow = 0; outRow < numOutRows; outRow++) {
-                const row = rows[outRow]
-                values.push(
-                    row === -1
-                        ? ErrorValueTypes.NoMatchingValueAfterJoin
-                        : source[row]
-                )
-            }
-            outColumns.push({ def: { ...column.def }, values })
-        }
-    })
-
-    return { columns: outColumns, numRows: numOutRows, uniqueKey }
-}
-
-interface JoinRowMapping {
-    /** Source row for each output row, indexed by frame; -1 means no match. */
-    rowsByFrame: Int32Array[]
-    /** Omitted when the first frame supplies all output rows in its original order. */
-    owners?: { frame: number[]; row: number[] }
-    numOutRows: number
-    /** Every frame can reuse its column arrays; rowsByFrame is empty in this case. */
-    allFramesAligned: boolean
-}
-
-/** Chooses a fast path or builds the row lookups needed to assemble the join. */
-const buildJoinRowMapping = (
-    frames: Frame[],
-    key: JoinKey,
-    hasFallbackKeys: boolean
-): JoinRowMapping => {
-    const [firstFrame] = frames
-    const uniqueKey = key.join(",")
-    if (haveIdenticalKeys(frames, key) && isUniqueOnKey(firstFrame, key)) {
-        // Every frame has the same unique keys in the same order, so reuse
-        // the column arrays directly without allocating row lookups.
-        return {
-            rowsByFrame: [],
-            numOutRows: firstFrame.numRows,
-            allFramesAligned: true,
-        }
-    }
-
-    if (
-        firstFrame.uniqueKey === uniqueKey &&
-        frames.every(
-            (frame, frameIndex) =>
-                frameIndex === 0 || !getJoinKeyColumns(frame, key)
-        )
-    ) {
-        // Only the first frame contributes primary keys, and a previous join
-        // already proved them unique. Other frames are matched via fallbacks.
-        const numOutRows = firstFrame.numRows
-        return {
-            rowsByFrame: frames.map((_frame, frameIndex) =>
-                frameIndex === 0
-                    ? Int32Array.from({ length: numOutRows }, (_, row) => row)
-                    : new Int32Array(numOutRows).fill(-1)
-            ),
-            numOutRows,
-            allFramesAligned: false,
-        }
-    }
-
-    const { rowsByFrame, ownerFrame, ownerRow } = enumerateKeys(
-        frames,
-        key,
-        hasFallbackKeys
-    )
-    const numOutRows = ownerFrame.length
-    // Keys are enumerated in frame order. If the first frame owns the last
-    // output row, it owns all of them. Equal row counts also prove its keys
-    // unique, allowing its column arrays to be reused without reordering.
-    const firstFrameOwnsAllRows =
-        numOutRows === firstFrame.numRows &&
-        (numOutRows === 0 || ownerFrame[numOutRows - 1] === 0)
-    return {
-        rowsByFrame,
-        owners: firstFrameOwnsAllRows
-            ? undefined
-            : { frame: ownerFrame, row: ownerRow },
-        numOutRows,
-        allFramesAligned: false,
-    }
-}
-
-/** Whether every frame has the key columns, with the same values in the same order */
-const haveIdenticalKeys = (frames: Frame[], key: JoinKey): boolean => {
-    const firstColumns = getJoinKeyColumns(frames[0], key)
-    if (!firstColumns) return false
-    const { numRows } = frames[0]
-    for (let frameIndex = 1; frameIndex < frames.length; frameIndex++) {
-        if (frames[frameIndex].numRows !== numRows) return false
-        const columns = getJoinKeyColumns(frames[frameIndex], key)
-        if (!columns) return false
-        for (let columnIndex = 0; columnIndex < key.length; columnIndex++) {
-            const first = firstColumns[columnIndex]
-            const other = columns[columnIndex]
-            if (first === other) continue
-            for (let row = 0; row < numRows; row++)
-                if (other[row] !== first[row]) return false
-        }
-    }
-    return true
-}
-
-/**
- * Whether no two rows of the frame share a key. Only proven cheaply: either
- * the frame came out of a join on this key, or (for a time + entity key) each
- * entity's rows form one run with strictly increasing times, which is how our
- * data is usually laid out. Returns false when it can't tell.
- */
-const isUniqueOnKey = (frame: Frame, key: JoinKey): boolean => {
-    if (frame.uniqueKey === key.join(",")) return true
-    if (key.length !== 2 || key[1] !== OwidTableSlugs.EntityId) return false
-    const columns = getJoinKeyColumns(frame, key)
-    if (!columns) return false
-    const [times, entities] = columns
-    const seenEntities = new Set<unknown>()
-    for (let row = 0; row < frame.numRows; row++) {
-        const time = times[row]
-        const entity = entities[row]
-        if (typeof time !== "number" || typeof entity !== "number") return false
-        if (row > 0 && entity === entities[row - 1]) {
-            if (!(time > (times[row - 1] as number))) return false
-        } else {
-            // A new run starts; the entity must not have had one before
-            if (seenEntities.has(entity)) return false
-            seenEntities.add(entity)
-        }
-    }
-    return true
-}
-
-const enumerateKeys = (
-    frames: Frame[],
-    key: JoinKey,
-    hasFallbackKeys: boolean
-): { rowsByFrame: Int32Array[]; ownerFrame: number[]; ownerRow: number[] } => {
-    const outIndex = new KeyMap<number>(key.length)
-    const ownerFrame: number[] = []
-    const ownerRow: number[] = []
-    // outRowsByFrame[frameIndex][row]: the result row that a row of frame frameIndex maps to
-    const outRowsByFrame = frames.map((frame, frameIndex) => {
-        const columns = getJoinKeyColumns(frame, key)
-        // Without fallbacks every frame is expected to have the key
-        if (!columns && !hasFallbackKeys)
-            throw new Error(`Frame ${frameIndex} is missing join key columns`)
-        if (!columns) return undefined
-        const [firstKey, secondKey] = columns
-        const outRows = new Int32Array(frame.numRows)
-        for (let row = 0; row < frame.numRows; row++) {
-            let outRow = outIndex.get(firstKey[row], secondKey[row])
-            if (outRow === undefined) {
-                outRow = ownerFrame.length
-                outIndex.set(firstKey[row], secondKey[row], outRow)
-                ownerFrame.push(frameIndex)
-                ownerRow.push(row)
-            }
-            outRows[row] = outRow
-        }
-        return outRows
-    })
-    const numOutRows = ownerFrame.length
-
-    let numDuplicateHits = 0
-    const rowsByFrame = outRowsByFrame.map((outRows) => {
-        const rows = new Int32Array(numOutRows).fill(-1)
-        if (!outRows) return rows
-        // Mark the first row per key; count keys hit more than once
-        const hitCount = new Uint8Array(numOutRows)
-        for (let row = 0; row < outRows.length; row++) {
-            const outRow = outRows[row]
-            if (rows[outRow] === -1) rows[outRow] = row
-            if (hitCount[outRow] === 1) numDuplicateHits++
-            if (hitCount[outRow] < 2) hitCount[outRow]++
-        }
-        return rows
-    })
-    // This should be rare. We then use the first matching row, which can be
-    // the wrong one, so leave a hint for debugging
-    for (let i = 0; i < numDuplicateHits; i++)
-        console.error(
-            "Found more than one matching row for a join key in a frame"
-        )
-
-    return { rowsByFrame, ownerFrame, ownerRow }
-}
-
-/** Fills in (in place) the rows of a frame that are found via fallback keys */
-const resolveFallbackRows = (
-    frame: Frame,
-    rows: Int32Array,
-    fallbackKeys: JoinKey[],
-    fallbackKeyValues: ([CoreValueType[], CoreValueType[]] | undefined)[],
-    firstFrameRows: Int32Array,
-    /** Undefined when the first frame owns every result row */
-    ownerFrame: number[] | undefined
-): void => {
-    // Built lazily, since most frames match on the primary key
-    const indexes: (KeyMap<number> | null | undefined)[] = []
-    const getIndex = (fallbackIndex: number): KeyMap<number> | null => {
-        let index = indexes[fallbackIndex]
-        if (index === undefined) {
-            const columns = getJoinKeyColumns(
-                frame,
-                fallbackKeys[fallbackIndex]
-            )
-            if (!columns) index = null
-            else {
-                index = new KeyMap<number>(fallbackKeys[fallbackIndex].length)
-                const [firstKey, secondKey] = columns
-                // Later rows overwrite earlier ones: the last match wins
-                for (let row = 0; row < frame.numRows; row++)
-                    index.set(firstKey[row], secondKey[row], row)
-            }
-            indexes[fallbackIndex] = index
-        }
-        return index
-    }
-
-    // Consecutive rows usually share their fallback key (e.g. the days of a
-    // year for one entity), so remember the last lookup per fallback key
-    const lastFirstKey: unknown[] = []
-    const lastSecondKey: unknown[] = []
-    const lastRow: (number | undefined)[] = []
-
-    for (let outRow = 0; outRow < rows.length; outRow++) {
-        if (rows[outRow] !== -1) continue
-        if (ownerFrame && ownerFrame[outRow] !== 0) continue
-        const firstFrameRow = firstFrameRows[outRow]
-        for (
-            let fallbackIndex = 0;
-            fallbackIndex < fallbackKeys.length;
-            fallbackIndex++
-        ) {
-            const keyValues = fallbackKeyValues[fallbackIndex]
-            if (!keyValues) continue
-            const firstKey = keyValues[0][firstFrameRow]
-            const secondKey = keyValues[1][firstFrameRow]
-            let row: number | undefined
-            if (
-                fallbackIndex in lastRow &&
-                lastFirstKey[fallbackIndex] === firstKey &&
-                lastSecondKey[fallbackIndex] === secondKey
-            )
-                row = lastRow[fallbackIndex]
-            else {
-                const index = getIndex(fallbackIndex)
-                if (!index) continue
-                row = index.get(firstKey, secondKey)
-                lastFirstKey[fallbackIndex] = firstKey
-                lastSecondKey[fallbackIndex] = secondKey
-                lastRow[fallbackIndex] = row
-            }
-            if (row !== undefined) {
-                rows[outRow] = row
-                break
-            }
-        }
     }
 }
 
