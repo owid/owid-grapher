@@ -47,7 +47,6 @@ export interface ControlsRowManager
         DataTableFilterDropdownManager,
         DataTableSearchFieldManager {
     sidePanelBounds?: Bounds
-    isSmall?: boolean
 }
 
 interface ControlsRowProps {
@@ -111,7 +110,9 @@ export class ControlsRow extends Component<ControlsRowProps> {
     private renderTableControls(): React.ReactElement {
         return (
             <div className="controls table-controls">
-                <DataTableFilterDropdown manager={this.manager} />
+                {this.layout.showTableFilter && (
+                    <DataTableFilterDropdown manager={this.manager} />
+                )}
                 <DataTableSearchField manager={this.manager} />
             </div>
         )

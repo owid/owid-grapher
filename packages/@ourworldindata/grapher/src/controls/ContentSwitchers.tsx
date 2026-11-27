@@ -23,7 +23,6 @@ export interface ContentSwitchersManager {
     activeTab?: GrapherTabName
     setTab: (tab: GrapherTabName) => void
     onTabChange: (oldTab: GrapherTabName, newTab: GrapherTabName) => void
-    isMedium?: boolean
 }
 
 const MAX_VISIBLE_TABS = 4
