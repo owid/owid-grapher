@@ -9,6 +9,7 @@ import {
 } from "@ourworldindata/grapher/src/tooltip/TooltipContents.js"
 import { TooltipFooterIcon } from "@ourworldindata/grapher/src/tooltip/TooltipProps.js"
 
+import { AreaHint } from "../../../../components/AreaYardstick/AreaYardstick.js"
 import { ResponsiveContainer } from "../../../../components/ResponsiveContainer/ResponsiveContainer.js"
 import {
     Sankey,
@@ -439,7 +440,12 @@ function makeNodeTooltip({
 
     const subtitle = formatYearRange(yearRange)
     const value = Math.max(sumLinks(incomingLinks), sumLinks(outgoingLinks))
-    const share = <ValueWithShare value={value} total={graph.total} />
+    const share = (
+        <>
+            <ValueWithShare value={value} total={graph.total} />
+            <AreaHint hectares={value} />
+        </>
+    )
 
     // The chart is about the selected country, which the focus node stands for
     const countryLabel = [...labelById].find(([id]) => isFocusNodeId(id))?.[1]
@@ -497,6 +503,7 @@ function makeNodeTooltip({
                         <span className="deforestation-sankey__tooltip-headline-description">
                             {headlineDescription}
                         </span>
+                        <AreaHint hectares={value} />
                     </div>
                     <PartnerShareTable
                         heading={
