@@ -11,6 +11,7 @@ import {
 } from "../core/GrapherConstants"
 import {
     EntityLabelMode,
+    EntityLabelParts,
     measureMenuToggleWidth,
     resolveEntityLabel,
 } from "./controlsRow/ControlsRowHelpers"
@@ -29,28 +30,24 @@ export interface EntitySelectionManager {
     shouldShowEntitySelectorAs?: GrapherWindowType
 }
 
-interface EntitySelectionLabel {
+interface EntitySelectionLabel extends EntityLabelParts {
     icon: React.ReactElement
-    action: string
-    entity: string
-    /**
-     * Optional tail of the entity name that is dropped before
-     * the entity name collapses entirely
-     */
-    entitySuffix?: string
+}
+
+interface EntitySelectionToggleProps {
+    manager: EntitySelectionManager
+    labelMode: EntityLabelMode
 }
 
 @observer
-export class EntitySelectionToggle extends React.Component<{
-    manager: EntitySelectionManager
-}> {
-    constructor(props: { manager: EntitySelectionManager }) {
+export class EntitySelectionToggle extends React.Component<EntitySelectionToggleProps> {
+    constructor(props: EntitySelectionToggleProps) {
         super(props)
         makeObservable(this)
     }
 
     static shouldShow(manager: EntitySelectionManager): boolean {
-        const toggle = new EntitySelectionToggle({ manager })
+        const toggle = new EntitySelectionToggle({ manager, labelMode: "full" })
         return toggle.showToggle
     }
 
@@ -58,7 +55,10 @@ export class EntitySelectionToggle extends React.Component<{
         manager: EntitySelectionManager,
         entityLabel: EntityLabelMode
     ): number | undefined {
-        const { showToggle, label } = new EntitySelectionToggle({ manager })
+        const { showToggle, label } = new EntitySelectionToggle({
+            manager,
+            labelMode: entityLabel,
+        })
         if (!showToggle || !label) return undefined
         return measureMenuToggleWidth(resolveEntityLabel(entityLabel, label))
     }
@@ -135,11 +135,7 @@ export class EntitySelectionToggle extends React.Component<{
         const { isEntitySelectorModalOrDrawerOpen: active } = this.props.manager
 
         return showToggle && label ? (
-            <div
-                className={classnames("entity-selection-menu", {
-                    "entity-selection-menu--shortenable": !!label.entitySuffix,
-                })}
-            >
+            <div className="entity-selection-menu">
                 <button
                     className={classnames("menu-toggle", { active })}
                     onClick={action((e): void => {
@@ -149,19 +145,11 @@ export class EntitySelectionToggle extends React.Component<{
                     })}
                     type="button"
                     data-track-note="chart_add_entity"
-                    aria-label={`${label.action} ${label.entity}${label.entitySuffix ?? ""}`}
+                    aria-label={resolveEntityLabel("full", label)}
                 >
                     {label.icon}
                     <label className="label">
-                        {label.action}{" "}
-                        <span>
-                            {label.entity}
-                            {label.entitySuffix && (
-                                <span className="entity-suffix">
-                                    {label.entitySuffix}
-                                </span>
-                            )}
-                        </span>
+                        {resolveEntityLabel(this.props.labelMode, label)}
                     </label>
                 </button>
             </div>

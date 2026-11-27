@@ -94,9 +94,13 @@ export class ControlsRow extends Component<ControlsRowProps> {
     private renderChartControls(): React.ReactElement {
         return (
             <div className="controls chart-controls">
-                <EntitySelectionToggle manager={this.manager} />
+                <EntitySelectionToggle
+                    manager={this.manager}
+                    labelMode={this.layout.entityLabel}
+                />
                 <SettingsMenu
                     manager={this.manager}
+                    labelMode={this.layout.settingsLabel}
                     popoverMaxWidth={this.props.popoverMaxWidth}
                     popoverMaxHeight={this.props.popoverMaxHeight}
                 />
@@ -130,7 +134,10 @@ export class ControlsRow extends Component<ControlsRowProps> {
                 <MapZoomToSelectionButton manager={this.manager} />
                 <MapResetButton manager={this.manager} action="resetView" />
                 <MapRegionDropdown manager={this.manager} />
-                <EntitySelectionToggle manager={this.manager} />
+                <EntitySelectionToggle
+                    manager={this.manager}
+                    labelMode={this.layout.entityLabel}
+                />
             </>
         )
     }
