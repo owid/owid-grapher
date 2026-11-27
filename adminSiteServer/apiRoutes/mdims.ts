@@ -37,7 +37,7 @@ import {
     setMultiDimPublished,
     setMultiDimSlug,
 } from "../multiDim.js"
-import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
+import { enqueueDeployChange } from "../../baker/DeployUtils.js"
 import { Request } from "../authentication.js"
 import { HandlerResponse } from "../FunctionalRouter.js"
 import * as db from "../../db/db.js"
@@ -502,7 +502,7 @@ export async function handlePutMultiDim(
             .where("published", true)
             .first()) ?? {}
     if (publishedSlug) {
-        await triggerStaticBuild(
+        enqueueDeployChange(
             res.locals.user,
             `Publishing multidimensional chart ${publishedSlug}`
         )
@@ -561,7 +561,7 @@ export async function handlePatchMultiDim(
         action = published ? "publish" : "unpublish"
     }
     if (action) {
-        await triggerStaticBuild(
+        enqueueDeployChange(
             res.locals.user,
             `${action === "publish" ? "Publishing" : "Unpublishing"} multidimensional chart ${multiDim.slug}`
         )
@@ -819,7 +819,7 @@ export async function handlePostMultiDimRedirect(
         multiDim,
         viewConfigId ?? null
     )
-    await triggerStaticBuild(
+    enqueueDeployChange(
         res.locals.user,
         `Creating multi-dim redirect from '${source}' to '${targetDescription}'`
     )
@@ -1039,7 +1039,7 @@ export async function handleBulkCreateMultiDimRedirects(
     const errors = results.filter((r) => r.status === "error").length
 
     if (created > 0) {
-        await triggerStaticBuild(
+        enqueueDeployChange(
             res.locals.user,
             `Bulk-creating ${created} multi-dim redirect(s) to ${[
                 ...targetSlugs,
@@ -1083,7 +1083,7 @@ export async function handleDeleteMultiDimRedirect(
         multiDim,
         viewConfigId
     )
-    await triggerStaticBuild(
+    enqueueDeployChange(
         res.locals.user,
         `Deleting multi-dim redirect from '${redirect.source}' to '${targetDescription}'`
     )

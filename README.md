@@ -57,7 +57,7 @@ Each explorer can be configured via a [panel](explorerAdminServer/) in the admin
 
 ### [Baker](baker/)
 
-A [PM2](https://github.com/Unitech/pm2) project that builds a static copy of the Our World in Data website by merging the content authored in Gdocs with the grapher charts created in Grapher Admin.
+Builds a static copy of the Our World in Data website by merging the content authored in Gdocs with the grapher charts created in Grapher Admin.
 
 ### [Site](site/)
 

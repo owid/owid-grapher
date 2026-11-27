@@ -9,7 +9,7 @@ import {
     updateSlideshow,
     deleteSlideshow,
 } from "./apiRoutes/slideshows.js"
-import { DeployQueueServer } from "../baker/DeployQueueServer.js"
+import { BuildkiteTrigger } from "../baker/BuildkiteTrigger.js"
 import {
     getChartBulkUpdate,
     updateBulkChartConfigs,
@@ -98,7 +98,11 @@ import {
     handlePostNewChartRedirect,
     handleDeleteChartRedirect,
 } from "./apiRoutes/redirects.js"
-import { triggerStaticBuild } from "../baker/GrapherBakingUtils.js"
+import { requestManualDeploy } from "../baker/DeployUtils.js"
+import {
+    BAKE_ON_CHANGE,
+    BUILDKITE_API_ACCESS_TOKEN,
+} from "../settings/serverSettings.js"
 import {
     suggestTopics,
     suggestAltTextForCloudflareImage,
@@ -732,11 +736,17 @@ getRouteWithROTransaction(
 
 // Deploy helpers
 apiRouter.get("/deploys.json", async () => ({
-    deploys: await new DeployQueueServer().getDeploys(),
+    // Local dev has no token, and so no deploys to list
+    builds: BUILDKITE_API_ACCESS_TOKEN
+        ? await new BuildkiteTrigger().listRecentBuilds()
+        : [],
 }))
 
 apiRouter.put("/deploy", async (req, res) => {
-    return triggerStaticBuild(res.locals.user, "Manually triggered deploy")
+    // Not `error`: the admin client treats that key as a failed request
+    if (!BAKE_ON_CHANGE) return { success: false, message: "Deploys are off" }
+    const buildNumber = await requestManualDeploy(res.locals.user)
+    return { success: true, buildNumber }
 })
 
 export { apiRouter }

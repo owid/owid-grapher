@@ -19,7 +19,7 @@ import { expectInt } from "../../serverUtils/serverUtil.js"
 import * as db from "../../db/db.js"
 import { Request } from "../authentication.js"
 import { HandlerResponse } from "../FunctionalRouter.js"
-import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
+import { enqueueDeployChange } from "../../baker/DeployUtils.js"
 
 function chartUrlToLink(
     url: string
@@ -178,7 +178,7 @@ export async function createSlideshow(
         await rebuildSlideshowLinksAndImages(trx, id, config)
     }
 
-    await triggerStaticBuild(res.locals.user, `Creating slideshow ${slug}`)
+    enqueueDeployChange(res.locals.user, `Creating slideshow ${slug}`)
 
     return { success: true, slideshowId: id }
 }
@@ -223,7 +223,7 @@ export async function updateSlideshow(
         await rebuildSlideshowLinksAndImages(trx, id, config)
     }
 
-    await triggerStaticBuild(
+    enqueueDeployChange(
         res.locals.user,
         `Updating slideshow ${slug ?? existing.slug}`
     )
@@ -246,10 +246,7 @@ export async function deleteSlideshow(
     // Don't need to delete from slideshow_links or slideshow_x_images explicitly, as those tables have ON DELETE CASCADE
     await trx(SlideshowsTableName).where({ id }).delete()
 
-    await triggerStaticBuild(
-        res.locals.user,
-        `Deleting slideshow ${existing.slug}`
-    )
+    enqueueDeployChange(res.locals.user, `Deleting slideshow ${existing.slug}`)
 
     return { success: true }
 }

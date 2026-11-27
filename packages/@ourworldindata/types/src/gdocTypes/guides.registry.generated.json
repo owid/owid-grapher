@@ -174,7 +174,7 @@
     "description": "How a Google Doc becomes a page.",
     "prose": {
       "intro": "How a Google Doc becomes a page.",
-      "notes": "## Previewing\n\nPreview a document at\n`https://admin.owid.io/admin/gdocs/<GDOC_ID>/preview`, where `GDOC_ID` is\nthe long segment of the document's own Google Docs URL (the part after\n`/document/d/`). The document must already be registered at /admin/gdocs\nfor this to work — see `{guide:linking}`.\n\n## Publishing\n\nPublishing (or updating a published document) happens from the document's\npage in the admin and, alongside indexing it for search, enqueues a\nstatic-site rebuild through the deploy queue — the change goes live once\nthat bake completes."
+      "notes": "## Previewing\n\nPreview a document at\n`https://admin.owid.io/admin/gdocs/<GDOC_ID>/preview`, where `GDOC_ID` is\nthe long segment of the document's own Google Docs URL (the part after\n`/document/d/`). The document must already be registered at /admin/gdocs\nfor this to work — see `{guide:linking}`.\n\n## Publishing\n\nPublishing (or updating a published document) happens from the document's\npage in the admin and, alongside indexing it for search, starts a\nstatic-site rebuild — the change goes live once that bake completes\n(progress at /admin/deploys)."
     },
     "examples": [],
     "related": [

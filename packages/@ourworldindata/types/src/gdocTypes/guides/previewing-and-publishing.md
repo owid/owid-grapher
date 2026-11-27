@@ -16,6 +16,6 @@ for this to work — see `{guide:linking}`.
 ## Publishing
 
 Publishing (or updating a published document) happens from the document's
-page in the admin and, alongside indexing it for search, enqueues a
-static-site rebuild through the deploy queue — the change goes live once
-that bake completes.
+page in the admin and, alongside indexing it for search, starts a
+static-site rebuild — the change goes live once that bake completes
+(progress at /admin/deploys).
