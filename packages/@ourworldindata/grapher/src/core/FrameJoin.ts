@@ -80,6 +80,12 @@ export const frameToTable = (frame: Frame): OwidTable =>
  * Output columns are `[entityId, time, ...values]`, with
  * `ErrorValueTypes.NoMatchingValueAfterJoin` where an indicator has no row for
  * a `(time, entityId)` key.
+ *
+ * Overall, it works as follows:
+ * 1. Collect all unique `(time, entityId)` keys across all indicators, and give them an incremental output row index.
+ * 2. For each frame, create an Int32Array which contains the key index for every row in that frame.
+ * 3. Then, we invert this mapping to get a map from output row index to the first row in the indicator that corresponds to that key.
+ * 4. From this mapping, we can efficiently gather the values for each output row from the corresponding rows in the indicator frames.
  */
 export const fullJoin = (indicators: IndicatorFrame[]): Frame => {
     if (indicators.length === 0) return EMPTY_FRAME
@@ -166,10 +172,11 @@ const joinAlignedFrames = (
  * Attaches `otherFrames` onto `baseFrame`, keeping `baseFrame`'s unique rows
  * (on `baseKey`) as the output index.
  *
- * Each secondary frame is matched against `baseFrame` by trying `fallbackKeys`
- * in order (e.g. year+entity, then entity alone). When several rows in a
- * secondary frame share a fallback key, the last one wins (usually the most
- * recent time; a proper fix would be a time- and tolerance-aware join).
+ * Each secondary frame is matched against `baseFrame` by trying `baseKey` first
+ * and then `fallbackKeys` in order (e.g. entity+day, then entity+year, then
+ * entity alone). When several rows in a secondary frame share a matching key,
+ * the last one wins (usually the most recent time; a proper fix would be a
+ * time- and tolerance-aware join).
  */
 export const leftJoinWithFallbacks = (
     baseFrame: Frame,
@@ -186,6 +193,7 @@ export const leftJoinWithFallbacks = (
 
     const sharedSlugs = getSharedColumnSlugs([base, ...otherFrames])
     const sharedSlugSet = new Set(sharedSlugs)
+    const lookupKeys: JoinKey[] = [baseKey, ...fallbackKeys]
 
     // Shared columns come first (ordered by the last frame to preserve legacy
     // column order), followed by base's remaining columns, all reused directly.
@@ -214,7 +222,7 @@ export const leftJoinWithFallbacks = (
             continue
         }
 
-        const matchedRows = matchRowsByFallbacks(base, otherFrame, fallbackKeys)
+        const matchedRows = matchRowsByFallbacks(base, otherFrame, lookupKeys)
         for (const column of valueColumns)
             outColumns.push({
                 def: { ...column.def },
@@ -461,6 +469,7 @@ const deduplicateOnKey = (frame: Frame, key: PairKey): Frame => {
         }
     }
 
+    // The frame was already unique on this key before, so we can just return it as-is.
     if (keptRows.length === frame.numRows)
         return { ...frame, uniqueKey: key.join(",") }
 
@@ -484,6 +493,9 @@ interface FallbackMatcher {
 
 /**
  * Creates a lazy lookup from `baseFrame` rows to `otherFrame` rows on `key`.
+ *
+ * The factory method returns undefined when the key columns cannot be found
+ * in either frame.
  *
  * The index is built on first use (so lower-priority fallbacks cost nothing
  * when higher-priority ones match everything) and caches the previous lookup
@@ -545,6 +557,9 @@ const createPairKeyMatcher = (
     const [otherFirst, otherSecond] = otherColumns
 
     let index: PairMap<number> | undefined
+
+    // Caching the last matched (first, second) key and its corresponding row for performance:
+    // When matching on (entityId, year) for daily data, consecutive rows often have the same key, so caching improves performance significantly.
     let hasCached = false
     let cachedFirst: CoreValueType
     let cachedSecond: CoreValueType
