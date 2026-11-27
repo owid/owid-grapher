@@ -19,10 +19,11 @@ const stateKinds: Record<string, DeployStateKind> = {
     failed: "failed",
 }
 
-const stateLabels: Record<DeployStateKind, string> = {
+// A deploy that went through needs no label: only the exceptions stand out
+const stateLabels: Record<DeployStateKind, string | undefined> = {
     waiting: "Waiting",
     deploying: "Deploying",
-    deployed: "Deployed",
+    deployed: undefined,
     failed: "Failed",
     other: "Didn't run",
 }
@@ -104,16 +105,16 @@ export class DeployStatusPage extends Component {
                                             <td
                                                 className={`cell-status cell-status--${kind}`}
                                             >
+                                                {stateLabels[kind]}
+                                            </td>
+                                            <td className="cell-message">
                                                 <a
                                                     href={build.webUrl}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                 >
-                                                    {stateLabels[kind]}
+                                                    {build.message}
                                                 </a>
-                                            </td>
-                                            <td className="cell-message">
-                                                {build.message}
                                             </td>
                                             <td className="cell-time">
                                                 <Timeago

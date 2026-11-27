@@ -1191,24 +1191,21 @@ main:not(.ChartEditorPage):not(.GdocsEditPage):not(.MultiDimDetailPage) {
     .cell-status {
         font-weight: 700;
         white-space: nowrap;
-
-        a {
-            color: #999;
-        }
+        color: #999;
     }
-    .cell-status--waiting a,
-    .cell-status--deploying a {
+    .cell-status--waiting,
+    .cell-status--deploying {
         color: #c36d00;
     }
-    .cell-status--deployed a {
-        color: green;
-    }
-    .cell-status--failed a {
+    .cell-status--failed {
         color: #c00;
     }
     .cell-message {
         font-weight: 700;
-        color: #333;
+
+        a {
+            color: #333;
+        }
     }
     .cell-time {
         white-space: nowrap;
