@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# This script copies the font files from the public/fonts directory,
-# converts them to .ttf format, and then renames them to .ttf.bin for use inside
-# Cloudflare Functions (they rely on the .bin extension to serve them correctly).
+# This script converts some of the .woff2 fonts in public/fonts to .ttf and
+# writes them to public/fonts/ttf. Our Cloudflare Functions fetch them from
+# there (via env.ASSETS) to render PNG thumbnails, since resvg can't read woff2.
 
 # Needs woff2_decompress to be available: Run `brew install woff2` to install it on macOS.
 
@@ -12,8 +12,8 @@ if ! command -v woff2_decompress &> /dev/null; then
     exit 1
 fi
 
-SRC_DIR="$(dirname "$0")/../../../public/fonts"
-DEST_DIR="$(dirname "$0")"
+SRC_DIR="$(dirname "$0")/../../public/fonts"
+DEST_DIR="$SRC_DIR/ttf"
 
 # resolve these dirs to absolute paths
 SRC_DIR="$(realpath "$SRC_DIR")"
@@ -30,11 +30,10 @@ FONTS=(
 echo "Copying fonts from $SRC_DIR to $DEST_DIR"
 
 for FONT in "${FONTS[@]}"; do
-    echo "Copying $FONT.woff2 -> $FONT.ttf.bin"
+    echo "Copying $FONT.woff2 -> ttf/$FONT.ttf"
     cp "$SRC_DIR/$FONT.woff2" "$DEST_DIR/$FONT.woff2"
 
     woff2_decompress "$DEST_DIR/$FONT.woff2"
-    mv "$DEST_DIR/$FONT.ttf" "$DEST_DIR/$FONT.ttf.bin"
 
     rm "$DEST_DIR/$FONT.woff2"
 done
