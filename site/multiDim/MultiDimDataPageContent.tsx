@@ -75,6 +75,7 @@ export type MultiDimDataPageContentProps = {
     config: MultiDimDataPageConfig
     faqEntries?: FaqEntryKeyedByGdocIdAndFragmentId
     primaryTopic?: PrimaryTopic
+    topicArea?: string
     relatedResearchCandidates: DataPageRelatedResearch[]
     imageMetadata: Record<string, ImageMetadata>
     isPreviewing?: boolean
@@ -103,6 +104,7 @@ export function DataPageContent({
     isPreviewing,
     faqEntries,
     primaryTopic,
+    topicArea,
     relatedResearchCandidates,
     imageMetadata,
     archiveContext,
@@ -517,6 +519,7 @@ export function DataPageContent({
                                 key={datapageViewId}
                                 datapageData={varDatapageData}
                                 hasFaq={!!faqEntriesForView?.length}
+                                topicArea={topicArea}
                             />
                         )}
                     </div>
@@ -563,6 +566,7 @@ export function MultiDimDataPageContent({
     isPreviewing,
     faqEntries,
     primaryTopic,
+    topicArea,
     relatedResearchCandidates,
     imageMetadata,
     archiveContext,
@@ -594,6 +598,7 @@ export function MultiDimDataPageContent({
             isPreviewing={isPreviewing}
             faqEntries={faqEntries}
             primaryTopic={primaryTopic}
+            topicArea={topicArea}
             relatedResearchCandidates={relatedResearchCandidates}
             imageMetadata={imageMetadata}
             archiveContext={archiveContext}

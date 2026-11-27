@@ -1,6 +1,8 @@
 export interface Env {
     ASSETS: Fetcher
     url: URL
+    // Public site origin. In local development, Pages Functions and the
+    // site run on different ports.
     BAKED_BASE_URL?: string
     GRAPHER_CONFIG_R2_BUCKET?: R2Bucket
     GRAPHER_CONFIG_R2_BUCKET_FALLBACK?: R2Bucket
@@ -9,8 +11,16 @@ export interface Env {
     MAILGUN_SENDING_KEY: string
     MAILGUN_DOMAIN: string
     MAILCHIMP_API_KEY: string
-    MAILCHIMP_API_SERVER: string
-    MAILCHIMP_DONOR_LIST_ID: string
+    // Postmark server API token used to send email notifications.
+    POSTMARK_SERVER_TOKEN: string
+    // Override for Postmark's API base URL. Point it at the local Postmark
+    // catcher (yarn postmarkCatcher) to inspect emails during development
+    // without sending anything.
+    POSTMARK_API_BASE_URL?: string
+    // Basic-auth password for Postmark webhooks (Postmark has no HMAC
+    // signatures).
+    POSTMARK_WEBHOOK_SECRET: string
+    EMAIL_NOTIFICATIONS_DB: D1Database
     CF_PAGES_BRANCH: string
     CLOUDFLARE_IMAGES_API_KEY: string
     CLOUDFLARE_IMAGES_URL: string

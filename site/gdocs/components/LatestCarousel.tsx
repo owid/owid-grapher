@@ -8,7 +8,7 @@ import * as R from "remeda"
 
 import { Button, getPrefersReducedMotion } from "@ourworldindata/components"
 import { formatAuthors, OwidEnrichedGdocBlock } from "@ourworldindata/utils"
-import { findThumbnailImageBlock } from "../../latest/latestUtils.js"
+import { splitLeadImage } from "../../latest/latestUtils.js"
 import Image from "./Image.js"
 import { ArticleBlocks } from "./ArticleBlocks.js"
 import DataInsightDateline from "./DataInsightDateline.js"
@@ -220,8 +220,8 @@ const CarouselCard = memo(function CarouselCard({
     trackNote?: string
 }) {
     const titleId = `latest-carousel__card-title-${index}`
-    const firstImageBlock = findThumbnailImageBlock(body)
-    const otherBlocks = body.filter((block) => block !== firstImageBlock)
+    const { leadImage: firstImageBlock, rest: otherBlocks } =
+        splitLeadImage(body)
     return (
         <li
             className={cx("latest-carousel__card", {

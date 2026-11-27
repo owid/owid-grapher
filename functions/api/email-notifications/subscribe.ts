@@ -1,0 +1,303 @@
+import {
+    EmailNotificationsPreferences,
+    JsonError,
+    mergeEmailNotificationsPreferences,
+} from "@ourworldindata/utils"
+import { EmailNotificationsSubscribeRequestTypeObject } from "@ourworldindata/types/email-notifications-schemas"
+import { validateNewsletterCaptcha } from "../../_common/newsletterCaptcha.js"
+import { Env } from "../../_common/env.js"
+import {
+    handleJsonError,
+    handleOptionsRequest,
+    makeJsonResponse,
+    sendWelcomeEmail,
+    validateEmailNotificationsDatabase,
+} from "../../_common/emailNotifications.js"
+import { logErrorAndCaptureInSentry } from "../../_common/errorLog.js"
+import { describeInvalidRequest } from "../../_common/requestValidation.js"
+import {
+    MailchimpCleanedContactError,
+    enableOwidBriefSubscription,
+    isMailchimpSubscriber,
+} from "../../_common/mailchimp.js"
+import {
+    POSTMARK_REACTIVATION_USER_MESSAGE,
+    PostmarkRecipientReactivationError,
+    reactivatePostmarkRecipient,
+} from "../../_common/postmarkClient.js"
+import {
+    findLocalSuppressionState,
+    markReactivatedLocally,
+} from "../../_common/postmarkSuppressions.js"
+import { chooseSubscribeEmail } from "../../_common/subscribeEmail.js"
+
+export const onRequestOptions = handleOptionsRequest
+
+export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
+    try {
+        let rawPayload: unknown
+        try {
+            rawPayload = await request.json()
+        } catch {
+            throw new JsonError("Malformed JSON payload", 400)
+        }
+
+        const { data, error } =
+            EmailNotificationsSubscribeRequestTypeObject.safeParse(rawPayload)
+        if (!data) {
+            throw new JsonError(describeInvalidRequest(error), 400)
+        }
+
+        // Silently discard submissions caught by the honeypot.
+        if (data.website) return makeJsonResponse({ ok: true }, 200)
+
+        await validateNewsletterCaptcha(data.captchaToken, env, "subscribe")
+
+        const email = data.email.trim().toLowerCase()
+        validateEmailNotificationsDatabase(env)
+        const db = env.EMAIL_NOTIFICATIONS_DB
+        // Every subscriber gets a D1 identity so the magic-link preferences
+        // page can manage both products. A Brief-only identity has email
+        // notifications disabled and no notification preferences row.
+        const user = await ensureUserIdentity(db, email)
+
+        // Mailchimp already sent its subscribers a welcome email, so they
+        // don't get ours. Checked before the Brief opt-in below can subscribe
+        // the address, and only until a welcome email is recorded as sent.
+        let isWelcomeEmailSent = user.welcomeEmailSentAt !== null
+        if (
+            !isWelcomeEmailSent &&
+            (await checkIsMailchimpSubscriber(env, email))
+        ) {
+            await markWelcomeEmailSent(db, user.id)
+            isWelcomeEmailSent = true
+        }
+
+        // Mailchimp runs before the remaining writes and welcome email because
+        // it is idempotent. Do not expose active vs pending: this tokenless
+        // endpoint must not reveal the address's Mailchimp history.
+        const origin = new URL(request.url).origin
+        // Whether the Brief subscription is active, so the welcome email only
+        // promises the Brief when the address will actually get it. A pending
+        // opt-in still needs Mailchimp's confirmation (which isn't resent to an
+        // already-pending member), and a cleaned address is rejected.
+        let isBriefActive = false
+        if (data.subscribeToOwidBrief) {
+            try {
+                isBriefActive =
+                    (await enableOwidBriefSubscription(env, email)) === "active"
+            } catch (error) {
+                // Keep the response independent of the address's history. A
+                // cleaned address could not receive confirmation anyway.
+                if (!(error instanceof MailchimpCleanedContactError))
+                    throw error
+            }
+        }
+
+        let preferences: EmailNotificationsPreferences | null = null
+        if (data.notifications) {
+            // Signup is single opt-in: the submission takes effect
+            // immediately and the welcome email confirms it. For an address
+            // that already exists (whatever its status), the chosen
+            // preferences are unioned with the stored ones rather than
+            // replacing them — the form is public and tokenless, so a
+            // submission may broaden what a subscription covers but never
+            // narrow it (only the frequency follows the latest submission);
+            // narrowing requires the magic-link preferences page. The
+            // welcome email's footer links let the address's owner undo a
+            // submission they didn't make. The response is identical whether
+            // the email was already known or not, and both branches send
+            // exactly one email: the full welcome until it has been sent to
+            // the address once, a short confirmation after that.
+            const postmarkSuppression = await findLocalSuppressionState(
+                db,
+                email
+            )
+            if (postmarkSuppression?.isSuppressed) {
+                await reactivatePostmarkRecipient(env, email)
+                await markReactivatedLocally(
+                    db,
+                    email,
+                    postmarkSuppression.postmarkChangedAt
+                )
+            }
+            preferences = await resubscribeUser(db, user, data.notifications)
+        }
+
+        const subscribeEmail = chooseSubscribeEmail({
+            preferences,
+            isWelcomeEmailSent,
+            isBriefActive,
+        })
+        if (subscribeEmail) {
+            await sendWelcomeEmail(env, origin, {
+                userId: user.id,
+                to: email,
+                userToken: user.token,
+                email: subscribeEmail,
+            })
+            // Recorded only after the send, so a retry after a failed send
+            // still gets the full welcome.
+            if (subscribeEmail.template !== "subscriptionUpdated")
+                await markWelcomeEmailSent(db, user.id)
+        }
+
+        return makeJsonResponse({ ok: true }, 200)
+    } catch (error) {
+        if (error instanceof PostmarkRecipientReactivationError) {
+            logErrorAndCaptureInSentry(
+                "Failed to reactivate a Postmark recipient while subscribing",
+                error
+            )
+            return makeJsonResponse(
+                { error: POSTMARK_REACTIVATION_USER_MESSAGE },
+                500
+            )
+        }
+        return handleJsonError(
+            error,
+            "Failed to handle an email notifications subscription"
+        )
+    }
+}
+
+interface EmailNotificationsUser {
+    id: number
+    email: string
+    token: string
+    welcomeEmailSentAt: string | null
+}
+
+/**
+ * Whether Mailchimp lists the address as a subscriber. If Mailchimp can't be
+ * reached, the address counts as not one: an extra welcome email is better
+ * than a failed signup.
+ */
+async function checkIsMailchimpSubscriber(
+    env: Env,
+    email: string
+): Promise<boolean> {
+    try {
+        return await isMailchimpSubscriber(env, email)
+    } catch (error) {
+        logErrorAndCaptureInSentry(
+            "Failed to check whether a subscriber is in Mailchimp",
+            error
+        )
+        return false
+    }
+}
+
+async function markWelcomeEmailSent(
+    db: D1Database,
+    userId: number
+): Promise<void> {
+    await db
+        .prepare(
+            `UPDATE users
+             SET welcomeEmailSentAt = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'),
+                 updatedAt = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+             WHERE id = ?1`
+        )
+        .bind(userId)
+        .run()
+}
+
+async function ensureUserIdentity(
+    db: D1Database,
+    email: string
+): Promise<EmailNotificationsUser> {
+    await db
+        .prepare(
+            `INSERT OR IGNORE INTO users
+                 (email, token, emailNotificationsStatus)
+             VALUES (?1, ?2, 'unsubscribed')`
+        )
+        .bind(email, crypto.randomUUID())
+        .run()
+    const user = await db
+        .prepare(
+            `SELECT id, email, token, welcomeEmailSentAt
+             FROM users WHERE email = ?1`
+        )
+        .bind(email)
+        .first<EmailNotificationsUser>()
+    if (!user) {
+        throw new JsonError("Failed to store subscriber identity", 500)
+    }
+    return user
+}
+
+/**
+ * Re-apply the subscribe form for an existing address: union the submitted
+ * preferences with the stored ones and set the user back to 'subscribed'.
+ * Returns the merged preferences for the welcome email.
+ */
+async function resubscribeUser(
+    db: D1Database,
+    user: EmailNotificationsUser,
+    incoming: EmailNotificationsPreferences
+): Promise<EmailNotificationsPreferences> {
+    const existing = await findPreferences(db, user.id)
+    const merged = existing
+        ? mergeEmailNotificationsPreferences(existing, incoming)
+        : incoming
+    await db.batch([
+        db
+            .prepare(
+                `UPDATE users
+                 SET emailNotificationsStatus = 'subscribed',
+                     updatedAt = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+                 WHERE id = ?1`
+            )
+            .bind(user.id),
+        db
+            .prepare(
+                `INSERT INTO notification_preferences
+                     (userId, topicTags, contentTypes, frequency)
+                 VALUES (?1, ?2, ?3, ?4)
+                 ON CONFLICT (userId) DO UPDATE SET
+                     topicTags = excluded.topicTags,
+                     contentTypes = excluded.contentTypes,
+                     frequency = excluded.frequency,
+                     updatedAt = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')`
+            )
+            .bind(
+                user.id,
+                JSON.stringify(merged.topicTags),
+                JSON.stringify(merged.contentTypes),
+                merged.frequency
+            ),
+    ])
+    return merged
+}
+
+/**
+ * The user's stored preferences, or null if the row is missing.
+ */
+async function findPreferences(
+    db: D1Database,
+    userId: number
+): Promise<EmailNotificationsPreferences | null> {
+    const row = await db
+        .prepare(
+            `SELECT topicTags, contentTypes, frequency
+             FROM notification_preferences WHERE userId = ?1`
+        )
+        .bind(userId)
+        .first<{
+            topicTags: string
+            contentTypes: string
+            frequency: string
+        }>()
+    if (!row) return null
+    return {
+        topicTags: JSON.parse(
+            row.topicTags
+        ) as EmailNotificationsPreferences["topicTags"],
+        contentTypes: JSON.parse(
+            row.contentTypes
+        ) as EmailNotificationsPreferences["contentTypes"],
+        frequency: row.frequency as EmailNotificationsPreferences["frequency"],
+    }
+}

@@ -155,6 +155,7 @@ export interface OwidGdocBaseInterface {
     tags?: MinimalTag[] | null
     errors?: OwidGdocErrorMessage[]
     breadcrumbs?: BreadcrumbItem[] | null
+    topicArea?: string
     markdown: string | null
 }
 

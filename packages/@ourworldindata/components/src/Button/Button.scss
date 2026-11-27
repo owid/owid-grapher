@@ -18,8 +18,7 @@
         &.owid-btn--solid-dark-blue,
         &.owid-btn--solid-light-blue,
         &.owid-btn--solid-vermillion {
-            color: $blue-50;
-            background-color: $blue-10;
+            opacity: 50%;
         }
 
         &.owid-btn--outline-vermillion,

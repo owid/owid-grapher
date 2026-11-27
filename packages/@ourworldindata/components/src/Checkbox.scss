@@ -7,7 +7,11 @@
 
     position: relative;
 
+    // The label's typography is set here rather than on .label so the box
+    // inherits its line height and can center itself on the first line.
+    // Callers that change the label's line height should do so here too.
     label {
+        @include grapher_label-2-regular;
         margin: 0; // style leak in admin
     }
 
@@ -23,6 +27,7 @@
         position: absolute;
         left: 0;
         top: 0;
+        top: calc((1lh - $checkbox-size) / 2);
         content: " ";
         width: $checkbox-size;
         height: $checkbox-size;
@@ -78,7 +83,6 @@
     }
 
     .label {
-        @include grapher_label-2-regular;
         padding-left: $checkbox-size + 8px;
         cursor: pointer;
         user-select: none;

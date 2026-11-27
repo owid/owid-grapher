@@ -252,6 +252,7 @@ export class GdocBase implements OwidGdocBaseInterface {
         OwidGdocPublicationContext.listed
     breadcrumbs: BreadcrumbItem[] | null = null
     manualBreadcrumbs: BreadcrumbItem[] | null = null
+    topicArea: string | undefined = undefined
     tags: DbPlainTag[] | null = null
     errors: OwidGdocErrorMessage[] = []
     donors: string[] = []

@@ -11,7 +11,7 @@ import cx from "clsx"
 import { LatestHitMetadata } from "./LatestHitMetadata.js"
 import {
     LATEST_HIT_GRID_CLASSES,
-    findThumbnailImageBlock,
+    splitLeadImage,
     makeAttachments,
 } from "./latestUtils.js"
 import { useLatestContext } from "./LatestContext.js"
@@ -63,8 +63,9 @@ const CondensedDataInsightHit = ({
         content: { type: OwidGdocType.DataInsight },
     })
     const isLikelyBaked = useIsLikelyBaked(hit)
-    const firstImage = findThumbnailImageBlock(hit.body)
-    const otherBlocks = hit.body.filter((block) => block !== firstImage)
+    const { leadImage: firstImage, rest: otherBlocks } = splitLeadImage(
+        hit.body
+    )
     const titleId = `latest-hit-${hit.slug}-title`
 
     if (!isLikelyBaked) return null

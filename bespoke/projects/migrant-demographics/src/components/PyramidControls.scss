@@ -17,15 +17,10 @@
     }
 }
 
-// Center the label text vertically against the checkbox: border-box so the
-// box is really 16px (the shadow DOM has no global border-box like the
-// site), and a matching line height on the single-line label
+// Border-box so the checkbox is really 16px (the shadow DOM has no global
+// border-box like the site), which it needs to center on the label's line
 .migrant-pyramid-controls__compare .custom {
     box-sizing: border-box;
-}
-
-.migrant-pyramid-controls__compare .label {
-    line-height: 16px;
 }
 
 // The unlabelled checkbox bottom-aligns with the labelled controls; nudge it
