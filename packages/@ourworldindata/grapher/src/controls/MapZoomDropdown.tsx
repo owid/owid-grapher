@@ -28,6 +28,8 @@ import { MAP_REGION_LABELS } from "../mapCharts/MapChartConstants"
 import { match } from "ts-pattern"
 import * as R from "remeda"
 
+const ZOOM_DROPDOWN_WIDTH_PX = 202 // keep in sync with the flex-basis in MapZoomDropdown.scss
+
 export interface MapZoomDropdownManager {
     mapConfig?: MapConfig
     isOnMapTab?: boolean
@@ -71,6 +73,11 @@ export class MapZoomDropdown extends React.Component<{
     static shouldShow(manager: MapZoomDropdownManager): boolean {
         const menu = new MapZoomDropdown({ manager })
         return menu.showMenu
+    }
+
+    static measureWidth(manager: MapZoomDropdownManager): number | undefined {
+        if (!MapZoomDropdown.shouldShow(manager)) return undefined
+        return ZOOM_DROPDOWN_WIDTH_PX
     }
 
     @computed private get showMenu(): boolean {

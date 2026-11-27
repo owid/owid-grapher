@@ -15,28 +15,63 @@ import {
     Popover,
 } from "react-aria-components"
 import { GrapherTabIcon } from "@ourworldindata/components"
+import { Bounds } from "@ourworldindata/utils"
+import {
+    ControlsRowLayout,
+    pickVisibleTabs,
+    TabPartition,
+} from "./controlsRow/ControlsRowHelpers"
 
 export interface ContentSwitchersManager {
     availableTabs?: GrapherTabName[]
     activeTab?: GrapherTabName
     setTab: (tab: GrapherTabName) => void
     onTabChange: (oldTab: GrapherTabName, newTab: GrapherTabName) => void
-    isMedium?: boolean
 }
 
-const MAX_VISIBLE_TABS = 4
-const MAX_VISIBLE_TABS_BEFORE_OVERFLOW = 3
+// Keep in sync with Tabs.scss and ContentSwitchers.scss
+const TAB_FONT_SIZE_PX = 13
+const TAB_LIST_PADDING_PX = 2
+const TAB_ICON_PX = 13
+const TAB_ICON_GAP_PX = 6
+const OVERFLOW_BUTTON_PADDING_PX = 8
+
+const BOLD_IN_PLACE_OF_MEDIUM = 700
+const OVERFLOW_LABEL_HAIR_SPACE_PX = 1
 
 function shouldShowContentSwitchers(manager: ContentSwitchersManager): boolean {
     return (manager.availableTabs ?? []).length > 1
 }
 
-@observer
-export class ContentSwitchers extends React.Component<{
+interface ContentSwitchersProps {
     manager: ContentSwitchersManager
-}> {
+    layout: ControlsRowLayout["tabs"]
+    visibleTabCount: number
+}
+
+@observer
+export class ContentSwitchers extends React.Component<ContentSwitchersProps> {
     static shouldShow(manager: ContentSwitchersManager): boolean {
         return shouldShowContentSwitchers(manager)
+    }
+
+    static measureWidth(
+        manager: ContentSwitchersManager,
+        tabsLayout: ControlsRowLayout["tabs"],
+        visibleTabCount: number
+    ): number {
+        const switchers = new ContentSwitchers({
+            manager,
+            layout: tabsLayout,
+            visibleTabCount,
+        })
+        if (!switchers.shouldShow) return 0
+        const { visible, hidden } = switchers.tabPartition
+        return measureTabGroupWidth(
+            visible.map((tab) => makeLabelForGrapherTab(tab)),
+            hidden.length,
+            tabsLayout
+        )
     }
 
     @computed private get manager(): ContentSwitchersManager {
@@ -51,31 +86,11 @@ export class ContentSwitchers extends React.Component<{
         return shouldShowContentSwitchers(this.manager)
     }
 
-    @computed private get visibleTabs(): GrapherTabName[] {
-        const { activeTab, availableTabs } = this
-
-        // If there are four or fewer tabs, show all of them
-        if (availableTabs.length <= MAX_VISIBLE_TABS) {
-            return availableTabs
-        }
-
-        // Otherwise, only show the first 3 tabs
-        const visibleTabs = availableTabs.slice(
-            0,
-            MAX_VISIBLE_TABS_BEFORE_OVERFLOW
-        )
-
-        // If the active tab is not visible, replace the last visible tab with it
-        if (!visibleTabs.includes(activeTab)) {
-            visibleTabs[visibleTabs.length - 1] = activeTab
-        }
-
-        return visibleTabs
-    }
-
-    @computed private get hiddenTabs(): GrapherTabName[] {
-        return this.availableTabs.filter(
-            (tab) => !this.visibleTabs.includes(tab)
+    @computed private get tabPartition(): TabPartition {
+        return pickVisibleTabs(
+            this.availableTabs,
+            this.activeTab,
+            this.props.visibleTabCount
         )
     }
 
@@ -84,9 +99,15 @@ export class ContentSwitchers extends React.Component<{
     }
 
     @computed private get tabItems(): TabItem<GrapherTabName>[] {
-        return this.visibleTabs.map((tab) => ({
+        return this.tabPartition.visible.map((tab) => ({
             key: tab,
-            element: <TabContent key={tab} tab={tab} />,
+            element: (
+                <TabContent
+                    key={tab}
+                    tab={tab}
+                    showLabel={this.props.layout.labelMode === "label"}
+                />
+            ),
             buttonProps: {
                 className: cx({ active: tab === this.activeTab }),
                 dataTrackNote: "chart_click_" + tab,
@@ -105,20 +126,23 @@ export class ContentSwitchers extends React.Component<{
     override render(): React.ReactElement | null {
         if (!this.shouldShow) return null
 
+        const { labelMode, paddingPx } = this.props.layout
+        const { hidden } = this.tabPartition
         return (
             <div className="ContentSwitchers__Container">
                 <Tabs
                     variant="slim"
-                    className="ContentSwitchers"
+                    className={cx("ContentSwitchers", {
+                        "ContentSwitchers--tab-padding-12": paddingPx === 12,
+                        "ContentSwitchers--tab-padding-8": paddingPx === 8,
+                        "ContentSwitchers--icon-only": labelMode === "icon",
+                    })}
                     items={this.tabItems}
                     selectedKey={this.activeTab}
                     onChange={this.setTab}
                 />
-                {this.hiddenTabs.length > 0 && (
-                    <OverflowMenu
-                        hiddenTabs={this.hiddenTabs}
-                        onSelect={this.setTab}
-                    />
+                {hidden.length > 0 && (
+                    <OverflowMenu hiddenTabs={hidden} onSelect={this.setTab} />
                 )}
             </div>
         )
@@ -170,11 +194,65 @@ function OverflowMenu({
     )
 }
 
-function TabContent({ tab }: { tab: GrapherTabName }): React.ReactElement {
+function TabContent({
+    tab,
+    showLabel = true,
+}: {
+    tab: GrapherTabName
+    showLabel?: boolean
+}): React.ReactElement {
     return (
         <span className="ContentSwitchers__TabContent">
             <GrapherTabIcon tab={tab} />
-            <span className="label">{makeLabelForGrapherTab(tab)}</span>
+            {showLabel && (
+                <span className="label">{makeLabelForGrapherTab(tab)}</span>
+            )}
         </span>
     )
+}
+
+function measureTabGroupWidth(
+    visibleTabLabels: string[],
+    hiddenTabCount: number,
+    tabsLayout: ControlsRowLayout["tabs"]
+): number {
+    const tabsWidth =
+        2 * TAB_LIST_PADDING_PX +
+        sumWidths(
+            visibleTabLabels.map((label) => measureTabWidth(label, tabsLayout))
+        )
+    if (hiddenTabCount === 0) return tabsWidth
+    return tabsWidth + measureOverflowButtonWidth(hiddenTabCount)
+}
+
+function measureTabWidth(
+    label: string,
+    { labelMode, paddingPx }: ControlsRowLayout["tabs"]
+): number {
+    if (labelMode === "icon") return 2 * paddingPx + TAB_ICON_PX
+    return (
+        2 * paddingPx +
+        TAB_ICON_PX +
+        TAB_ICON_GAP_PX +
+        measureTabTextWidth(label)
+    )
+}
+
+function measureOverflowButtonWidth(hiddenTabCount: number): number {
+    return (
+        2 * OVERFLOW_BUTTON_PADDING_PX +
+        measureTabTextWidth(`+${hiddenTabCount}`) +
+        OVERFLOW_LABEL_HAIR_SPACE_PX
+    )
+}
+
+function measureTabTextWidth(text: string): number {
+    return Bounds.forText(text, {
+        fontSize: TAB_FONT_SIZE_PX,
+        fontWeight: BOLD_IN_PLACE_OF_MEDIUM,
+    }).width
+}
+
+function sumWidths(widths: number[]): number {
+    return widths.reduce((total, width) => total + width, 0)
 }

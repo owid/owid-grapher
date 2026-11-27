@@ -29,6 +29,15 @@ import {
     MapZoomToSelectionButtonManager,
 } from "../MapZoomToSelectionButton"
 import { MapZoomDropdown, MapZoomDropdownManager } from "../MapZoomDropdown"
+import {
+    ControlsRowLayout,
+    countVisibleTabs,
+    findControlsRowLayout,
+} from "./ControlsRowHelpers"
+
+// Keep in sync with CaptionedChart.scss and Controls.scss
+const ROW_SIDES_GAP_PX = 16
+const CONTROLS_GAP_PX = 8
 
 export interface ControlsRowManager
     extends
@@ -42,12 +51,11 @@ export interface ControlsRowManager
         DataTableFilterDropdownManager,
         DataTableSearchFieldManager {
     sidePanelBounds?: Bounds
-    isSmall?: boolean
 }
 
 interface ControlsRowProps {
     manager: ControlsRowManager
-    maxWidth?: number
+    maxWidth: number
     popoverMaxWidth?: number
     popoverMaxHeight?: number
 }
@@ -62,37 +70,44 @@ export class ControlsRow extends Component<ControlsRowProps> {
     }
 
     static shouldShow(manager: ControlsRowManager): boolean {
-        const test = new ControlsRow({ manager })
-        return test.showControlsRow
+        return shouldShowControlsRow(manager)
+    }
+
+    static measureWidth(
+        manager: ControlsRowManager,
+        layout: ControlsRowLayout
+    ): number {
+        return measureControlsRowWidth(
+            ContentSwitchers.measureWidth(
+                manager,
+                layout.tabs,
+                countVisibleTabs(manager.availableTabs?.length ?? 0)
+            ),
+            measureControlWidths(manager, layout)
+        )
     }
 
     @computed private get manager(): ControlsRowManager {
         return this.props.manager
     }
 
-    @computed private get showControlsRow(): boolean {
-        return (
-            ContentSwitchers.shouldShow(this.manager) ||
-            SettingsMenu.shouldShow(this.manager) ||
-            EntitySelectionToggle.shouldShow(this.manager) ||
-            // Map controls
-            MapRegionDropdown.shouldShow(this.manager) ||
-            MapZoomDropdown.shouldShow(this.manager) ||
-            MapZoomToSelectionButton.shouldShow(this.manager) ||
-            MapResetButton.shouldShow(this.manager, "resetZoom") ||
-            MapResetButton.shouldShow(this.manager, "resetView") ||
-            // Table controls
-            DataTableFilterDropdown.shouldShow(this.manager) ||
-            DataTableSearchField.shouldShow(this.manager)
+    @computed private get layout(): ControlsRowLayout {
+        return findControlsRowLayout(
+            (layout) => ControlsRow.measureWidth(this.manager, layout),
+            this.props.maxWidth
         )
     }
 
     private renderChartControls(): React.ReactElement {
         return (
             <div className="controls chart-controls">
-                <EntitySelectionToggle manager={this.manager} />
+                <EntitySelectionToggle
+                    manager={this.manager}
+                    labelMode={this.layout.entityLabel}
+                />
                 <SettingsMenu
                     manager={this.manager}
+                    labelMode={this.layout.settingsLabel}
                     popoverMaxWidth={this.props.popoverMaxWidth}
                     popoverMaxHeight={this.props.popoverMaxHeight}
                 />
@@ -103,7 +118,9 @@ export class ControlsRow extends Component<ControlsRowProps> {
     private renderTableControls(): React.ReactElement {
         return (
             <div className="controls table-controls">
-                <DataTableFilterDropdown manager={this.manager} />
+                {this.layout.showTableFilter && (
+                    <DataTableFilterDropdown manager={this.manager} />
+                )}
                 <DataTableSearchField manager={this.manager} />
             </div>
         )
@@ -126,7 +143,10 @@ export class ControlsRow extends Component<ControlsRowProps> {
                 <MapZoomToSelectionButton manager={this.manager} />
                 <MapResetButton manager={this.manager} action="resetView" />
                 <MapRegionDropdown manager={this.manager} />
-                <EntitySelectionToggle manager={this.manager} />
+                <EntitySelectionToggle
+                    manager={this.manager}
+                    labelMode={this.layout.entityLabel}
+                />
             </>
         )
     }
@@ -154,7 +174,13 @@ export class ControlsRow extends Component<ControlsRowProps> {
                 style={{ padding: `0 ${this.framePaddingHorizontal}px` }}
             >
                 <div>
-                    <ContentSwitchers manager={this.manager} />
+                    <ContentSwitchers
+                        manager={this.manager}
+                        layout={this.layout.tabs}
+                        visibleTabCount={countVisibleTabs(
+                            this.manager.availableTabs?.length ?? 0
+                        )}
+                    />
                 </div>
                 <div className="controls">
                     {this.manager.isOnMapTab
@@ -166,4 +192,72 @@ export class ControlsRow extends Component<ControlsRowProps> {
             </nav>
         )
     }
+}
+
+function shouldShowControlsRow(manager: ControlsRowManager): boolean {
+    return (
+        ContentSwitchers.shouldShow(manager) ||
+        SettingsMenu.shouldShow(manager) ||
+        EntitySelectionToggle.shouldShow(manager) ||
+        // Map controls
+        MapRegionDropdown.shouldShow(manager) ||
+        MapZoomDropdown.shouldShow(manager) ||
+        MapZoomToSelectionButton.shouldShow(manager) ||
+        MapResetButton.shouldShow(manager, "resetZoom") ||
+        MapResetButton.shouldShow(manager, "resetView") ||
+        // Table controls
+        DataTableFilterDropdown.shouldShow(manager) ||
+        DataTableSearchField.shouldShow(manager)
+    )
+}
+
+function measureControlWidths(
+    manager: ControlsRowManager,
+    layout: ControlsRowLayout
+): (number | undefined)[] {
+    if (manager.isOnMapTab) {
+        if (manager.isMapSelectionEnabled)
+            return [
+                MapResetButton.measureWidth(manager, "resetZoom"),
+                MapZoomToSelectionButton.measureWidth(manager),
+                MapResetButton.measureWidth(manager, "resetView"),
+                MapRegionDropdown.measureWidth(manager),
+                EntitySelectionToggle.measureWidth(manager, layout.entityLabel),
+            ]
+
+        const resetZoomWidth = MapResetButton.measureWidth(manager, "resetZoom")
+        if (resetZoomWidth !== undefined) return [resetZoomWidth]
+        if (manager.isFaceted) return [MapRegionDropdown.measureWidth(manager)]
+        return [MapZoomDropdown.measureWidth(manager)]
+    }
+
+    if (manager.isOnTableTab)
+        return [
+            DataTableFilterDropdown.measureWidth(
+                manager,
+                layout.showTableFilter
+            ),
+            DataTableSearchField.measureWidth(manager),
+        ]
+
+    return [
+        EntitySelectionToggle.measureWidth(manager, layout.entityLabel),
+        SettingsMenu.measureWidth(manager, layout.settingsLabel),
+    ]
+}
+
+function measureControlsRowWidth(
+    tabGroupWidth: number,
+    controlWidths: (number | undefined)[]
+): number {
+    const shownControlWidths = controlWidths.filter(
+        (width) => width !== undefined
+    )
+    const gapsWidth =
+        Math.max(0, shownControlWidths.length - 1) * CONTROLS_GAP_PX
+    const controlsWidth = shownControlWidths.reduce(
+        (total, width) => total + width,
+        0
+    )
+    return tabGroupWidth + ROW_SIDES_GAP_PX + controlsWidth + gapsWidth
 }

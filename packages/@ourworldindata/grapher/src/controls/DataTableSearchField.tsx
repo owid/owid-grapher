@@ -11,6 +11,8 @@ import { DEFAULT_GRAPHER_ENTITY_TYPE } from "../core/GrapherConstants"
 import { isAnyRegionPublisher } from "../core/RegionGroups"
 import { match } from "ts-pattern"
 
+const SEARCH_FIELD_WIDTH_PX = 208 // keep in sync with the flex-basis in DataTableSearchField.scss
+
 export interface DataTableSearchFieldManager {
     dataTableConfig: DataTableConfig
     dataTableFilter: DataTableFilter
@@ -30,6 +32,13 @@ export class DataTableSearchField extends React.Component<{
     static shouldShow(manager: DataTableSearchFieldManager): boolean {
         const menu = new DataTableSearchField({ manager })
         return menu.shouldShow
+    }
+
+    static measureWidth(
+        manager: DataTableSearchFieldManager
+    ): number | undefined {
+        if (!DataTableSearchField.shouldShow(manager)) return undefined
+        return SEARCH_FIELD_WIDTH_PX
     }
 
     @computed private get manager(): DataTableSearchFieldManager {

@@ -10,6 +10,8 @@ import {
 import { hasDataTableFilterChoice } from "../dataTable/DataTableHelpers"
 import { regionGroupLabels } from "../core/RegionGroups"
 
+const TABLE_FILTER_WIDTH_PX = 194 // keep in sync with the width in DataTableFilterDropdown.scss
+
 const FILTER_LABELS: Record<DataTableFilter, string> = {
     all: "All",
     selection: "Selection",
@@ -21,7 +23,6 @@ export interface DataTableFilterDropdownManager {
     dataTableFilter: DataTableFilter
     dataTableFilterOptions: DataTableFilterOption[]
     isOnTableTab?: boolean
-    isSemiNarrow?: boolean
 }
 
 interface DropdownOption extends DataTableFilterOption {
@@ -43,6 +44,15 @@ export class DataTableFilterDropdown extends React.Component<{
         return menu.shouldShow
     }
 
+    static measureWidth(
+        manager: DataTableFilterDropdownManager,
+        showTableFilter: boolean
+    ): number | undefined {
+        if (!showTableFilter || !DataTableFilterDropdown.shouldShow(manager))
+            return undefined
+        return TABLE_FILTER_WIDTH_PX
+    }
+
     @computed private get manager(): DataTableFilterDropdownManager {
         return this.props.manager
     }
@@ -50,8 +60,7 @@ export class DataTableFilterDropdown extends React.Component<{
     @computed private get shouldShow(): boolean {
         return (
             !!this.manager.isOnTableTab &&
-            hasDataTableFilterChoice(this.manager.dataTableFilterOptions) &&
-            !this.manager.isSemiNarrow
+            hasDataTableFilterChoice(this.manager.dataTableFilterOptions)
         )
     }
 

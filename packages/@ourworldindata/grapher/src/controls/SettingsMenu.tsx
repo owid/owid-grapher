@@ -40,6 +40,13 @@ import {
 } from "./settings/NoDataAreaToggle"
 import { GRAPHER_SETTINGS_CLASS } from "../core/GrapherConstants"
 import { LONG_CHART_TYPE_LABEL } from "../chart/ChartTabs"
+import {
+    ControlsRowLayout,
+    measureIconOnlyMenuToggleWidth,
+    measureMenuToggleWidth,
+} from "./controlsRow/ControlsRowHelpers"
+
+const SETTINGS_LABEL = "Settings"
 
 const {
     LineChart,
@@ -85,6 +92,7 @@ export interface SettingsMenuManager
 
 interface SettingsMenuProps {
     manager: SettingsMenuManager
+    labelMode: ControlsRowLayout["settingsLabel"]
     popoverMaxWidth?: number
     popoverMaxHeight?: number
 }
@@ -100,8 +108,17 @@ export class SettingsMenu extends React.Component<SettingsMenuProps> {
     }
 
     static shouldShow(manager: SettingsMenuManager): boolean {
-        const test = new SettingsMenu({ manager })
+        const test = new SettingsMenu({ manager, labelMode: "label" })
         return test.showSettingsMenuToggle
+    }
+
+    static measureWidth(
+        manager: SettingsMenuManager,
+        settingsLabel: ControlsRowLayout["settingsLabel"]
+    ): number | undefined {
+        if (!SettingsMenu.shouldShow(manager)) return undefined
+        if (settingsLabel === "icon") return measureIconOnlyMenuToggleWidth()
+        return measureMenuToggleWidth(SETTINGS_LABEL)
     }
 
     @computed get chartType(): GrapherChartType {
@@ -317,6 +334,7 @@ export class SettingsMenu extends React.Component<SettingsMenuProps> {
 
     private renderSettingsButtonAndPopup(): React.ReactElement {
         const { active } = this
+        const { labelMode } = this.props
 
         return (
             <div className="settings-menu">
@@ -325,12 +343,17 @@ export class SettingsMenu extends React.Component<SettingsMenuProps> {
                     onOpenChange={this.toggleVisibility}
                 >
                     <Button
-                        className={classnames("menu-toggle", { active })}
+                        className={classnames("menu-toggle", {
+                            active,
+                            "menu-toggle--icon-only": labelMode === "icon",
+                        })}
                         data-track-note="chart_settings_menu_toggle"
                         aria-label="Chart settings"
                     >
                         <FontAwesomeIcon icon={faGear} />
-                        <span className="label">Settings</span>
+                        {labelMode === "label" && (
+                            <span className="label">{SETTINGS_LABEL}</span>
+                        )}
                     </Button>
                     <Popover
                         className={GRAPHER_SETTINGS_CLASS}
