@@ -9,20 +9,16 @@
 
 import * as _ from "lodash-es"
 import {
-    AnnotationTimeScope,
     ColumnTypeNames,
     CoreValueType,
     EntityName,
     ErrorValue,
-    IndicatorAnnotation,
     IndicatorDimensionInterface,
     OwidChartDimensionInterface,
     OwidColumnDef,
     OwidEntityIdColumnDef,
     OwidEntityNameColumnDef,
     OwidTableSlugs,
-    OwidVariableAnnotation,
-    OwidVariableDimensions,
     OwidVariableDisplayConfigInterface,
     SelectedEntityColors,
     Time,
@@ -39,10 +35,8 @@ import {
     EPOCH_DATE,
     MultipleOwidVariableDataDimensionsMap,
     OwidVariableDataMetadataDimensions,
-    OwidVariableType,
     OwidVariableWithSource,
     OwidVariableWithSourceAndDimension,
-    convertDateToDaysSinceEpoch,
     dayjs,
     diffDatesInDays,
     epochDate,
@@ -54,7 +48,6 @@ import {
     snapToIntervalStart,
     trimObject,
 } from "@ourworldindata/utils"
-import { isContinentsVariableId } from "./GrapherConstants"
 import { getIndicatorColumnSlug } from "../chart/ChartDimension.js"
 import { mergeDisplayIntoDef } from "./applyDisplayAndConversionFactor.js"
 import {
@@ -66,12 +59,20 @@ import {
     fullJoin,
     leftJoinWithFallbacks,
 } from "./FrameJoin.js"
+import { columnDefFromOwidVariable } from "./indicatorColumnDef.js"
 
 interface VariableFrame {
     frame: Frame
     interval: TimeInterval
     timeSlug: OwidTableSlugs.Day | OwidTableSlugs.Year
     valueSlug: ColumnSlug
+}
+
+interface IndicatorBuckets {
+    dayFrames: VariableFrame[]
+    yearFrames: VariableFrame[]
+    /** Variables pinned to a target time; joined on entity only */
+    targetTimeFrames: Frame[]
 }
 
 // ---------------------------------------------------------------------------
@@ -83,16 +84,57 @@ export const legacyToOwidTableAndDimensions = (
     dimensions: OwidChartDimensionInterface[],
     selectedEntityColors: SelectedEntityColors | undefined
 ): OwidTable => {
-    // One column per unique [variable, targetTime] pair, so a variable can
-    // contribute several columns
+    const buckets = buildIndicatorBuckets(json, dimensions)
+    let joined = joinIndicatorBuckets(buckets)
+
+    // Each time bucket can mix intervals (day/week/month/quarter in `day`,
+    // year/decade in `year`), and a chart can use both buckets at once, so
+    // tag each bucket's column independently with its finest common interval
+    joined = withFinestTimeColumnInterval(
+        joined,
+        buckets.dayFrames,
+        OwidTableSlugs.Day
+    )
+    joined = withFinestTimeColumnInterval(
+        joined,
+        buckets.yearFrames,
+        OwidTableSlugs.Year
+    )
+
+    return frameToTable(
+        appendDerivedColumns(joined, json, selectedEntityColors)
+    )
+}
+
+/** Adds the entity color column that applies a config's `selectedEntityColors` */
+export const appendSelectedEntityColors = (
+    table: OwidTable,
+    selectedEntityColors: SelectedEntityColors | undefined
+): OwidTable => {
+    if (_.isEmpty(selectedEntityColors)) return table
+    const { def, values } = makeEntityColorColumn(
+        table.entityNameColumn.valuesIncludingErrorValues,
+        selectedEntityColors
+    )
+    return table.appendColumns([{ ...def, values }])
+}
+
+// ---------------------------------------------------------------------------
+// High-level assembly steps
+// ---------------------------------------------------------------------------
+
+/** Builds one frame per unique [variable, targetTime] dimension and buckets them */
+const buildIndicatorBuckets = (
+    json: MultipleOwidVariableDataDimensionsMap,
+    dimensions: OwidChartDimensionInterface[]
+): IndicatorBuckets => {
     const indicatorDimensions = _.uniqBy(
         dimensions.filter(isIndicatorDimension),
         getIndicatorColumnSlug
     )
 
-    const yearFrames: VariableFrame[] = []
     const dayFrames: VariableFrame[] = []
-    // Variables pinned to a target time; joined on entity only
+    const yearFrames: VariableFrame[] = []
     const targetTimeFrames: Frame[] = []
 
     for (const dimension of indicatorDimensions) {
@@ -109,22 +151,34 @@ export const legacyToOwidTableAndDimensions = (
         else yearFrames.push(variableFrame)
     }
 
+    return { dayFrames, yearFrames, targetTimeFrames }
+}
+
+/**
+ * Joins the day, year, and target-time buckets into a single frame.
+ *
+ * When both day-based and year-based variables are present, day+entity is the
+ * primary index. Each year-based variable is attached by year+entity (deriving
+ * year from day), falling back to entity alone so static variables like
+ * continents (which only have a single year) still attach to every day.
+ *
+ * Caveat: entities that only occur in year-based variables are dropped (e.g.
+ * Antarctica from the continents variable, if no daily variable has data for
+ * it).
+ */
+const joinIndicatorBuckets = ({
+    dayFrames,
+    yearFrames,
+    targetTimeFrames,
+}: IndicatorBuckets): Frame => {
     let joined: Frame
     let primaryTimeSlug: OwidTableSlugs.Day | OwidTableSlugs.Year
+
     if (dayFrames.length > 0) {
         const joinedByDay = fullJoin(
             dayFrames.map((v) => v.frame),
             [OwidTableSlugs.Day, OwidTableSlugs.EntityId]
         )
-        // When both day-based and year-based variables are present, day+entity
-        // is the primary index. Each year-based variable is attached by
-        // year+entity (deriving year from day), falling back to entity alone so
-        // static variables like continents (which only have a single year) still
-        // attach to every day.
-        //
-        // Caveat: entities that only occur in year-based variables are dropped
-        // (e.g. Antarctica from the continents variable, if no daily variable
-        // has data for it).
         joined =
             yearFrames.length > 0
                 ? leftJoinWithFallbacks(
@@ -157,28 +211,32 @@ export const legacyToOwidTableAndDimensions = (
             [[OwidTableSlugs.EntityId]]
         )
 
-    // A bucket can hold several intervals (e.g. a daily and a monthly
-    // indicator both live in the day bucket), but the joined table has a
-    // single time column, which should be tagged with the finest of them
-    joined = withFinestTimeColumnInterval(joined, dayFrames, OwidTableSlugs.Day)
-    joined = withFinestTimeColumnInterval(
-        joined,
-        yearFrames,
-        OwidTableSlugs.Year
-    )
+    return joined
+}
 
-    // Inject the canonical "time" column, e.g. used for the timeline
-    const timeSource =
-        findColumn(joined, OwidTableSlugs.Day) ??
-        findColumn(joined, OwidTableSlugs.Year)
-    const extraColumns: FrameColumn[] = []
-
-    // Entity ids and names map one to one, so the joins only carry ids and
-    // names are looked up once, for the joined rows
-    const entityIdColumn = findColumn(joined, OwidTableSlugs.EntityId)
+/**
+ * Attaches `entityName`, the canonical `time` column, and optional
+ * `entityColor` column to the joined frame.
+ */
+const appendDerivedColumns = (
+    frame: Frame,
+    json: MultipleOwidVariableDataDimensionsMap,
+    selectedEntityColors: SelectedEntityColors | undefined
+): Frame => {
+    // Entity ids and names map one to one, so joins only carry ids and names
+    // are looked up once for the final joined rows
+    const entityIdColumn = findColumn(frame, OwidTableSlugs.EntityId)
     const entityNames = entityIdColumn
         ? lookupEntityNames(json, entityIdColumn.values as number[])
         : []
+    const entityNameColumns: FrameColumn[] = entityIdColumn
+        ? [{ def: OwidEntityNameColumnDef, values: entityNames }]
+        : []
+
+    const extraColumns: FrameColumn[] = []
+    const timeSource =
+        findColumn(frame, OwidTableSlugs.Day) ??
+        findColumn(frame, OwidTableSlugs.Year)
     if (timeSource)
         extraColumns.push({
             def: {
@@ -194,26 +252,10 @@ export const legacyToOwidTableAndDimensions = (
             makeEntityColorColumn(entityNames, selectedEntityColors)
         )
 
-    const entityNameColumns: FrameColumn[] = entityIdColumn
-        ? [{ def: OwidEntityNameColumnDef, values: entityNames }]
-        : []
-    return frameToTable({
-        columns: [...entityNameColumns, ...joined.columns, ...extraColumns],
-        numRows: joined.numRows,
-    })
-}
-
-/** Adds the entity color column that applies a config's `selectedEntityColors` */
-export const appendSelectedEntityColors = (
-    table: OwidTable,
-    selectedEntityColors: SelectedEntityColors | undefined
-): OwidTable => {
-    if (_.isEmpty(selectedEntityColors)) return table
-    const { def, values } = makeEntityColorColumn(
-        table.entityNameColumn.valuesIncludingErrorValues,
-        selectedEntityColors
-    )
-    return table.appendColumns([{ ...def, values }])
+    return {
+        columns: [...entityNameColumns, ...frame.columns, ...extraColumns],
+        numRows: frame.numRows,
+    }
 }
 
 const makeEntityColorColumn = (
@@ -556,188 +598,4 @@ const timeValuesFromOwidVariable = (
     return years.map((year) =>
         parseTime(snapToIntervalStart(year + offset, interval))
     )
-}
-
-// ---------------------------------------------------------------------------
-// Column defs
-// ---------------------------------------------------------------------------
-
-const variableTypeToColumnType = (type: OwidVariableType): ColumnTypeNames => {
-    switch (type) {
-        case "ordinal":
-            return ColumnTypeNames.Ordinal
-        case "string":
-            return ColumnTypeNames.String
-        case "int":
-            return ColumnTypeNames.Integer
-        case "float":
-            return ColumnTypeNames.Numeric
-        case "mixed":
-        default:
-            return ColumnTypeNames.NumberOrString
-    }
-}
-
-/** The sort order of an ordinal variable's categories, e.g. Low, Medium, High */
-const getSortFromDimensions = (
-    dimensions: OwidVariableDimensions
-): string[] | undefined => {
-    const sort = dimensions.values?.values
-        ?.map((value) => value.name)
-        .filter((name) => name !== undefined)
-    return sort?.length ? sort : undefined
-}
-
-const columnDefFromOwidVariable = (
-    variable: OwidVariableWithSourceAndDimension
-): OwidColumnDef => {
-    const { source, display } = variable
-    const parsedType = variable.type
-        ? variableTypeToColumnType(variable.type)
-        : ColumnTypeNames.NumberOrString
-
-    return {
-        name: variable.name,
-        slug: variable.id.toString(),
-        unit: variable.unit,
-        shortUnit: variable.shortUnit,
-        description: variable.description,
-        descriptionShort: variable.descriptionShort,
-        descriptionProcessing: variable.descriptionProcessing,
-        descriptionKey: variable.descriptionKey,
-        descriptionFromProducer: variable.descriptionFromProducer,
-        coverage: variable.coverage,
-        datasetId: variable.datasetId,
-        datasetName: variable.datasetName,
-        display,
-        color: display?.color,
-        nonRedistributable: variable.nonRedistributable,
-        sourceLink: source?.link,
-        sourceName: source?.name,
-        dataPublishedBy: source?.dataPublishedBy,
-        dataPublisherSource: source?.dataPublisherSource,
-        retrievedDate: source?.retrievedDate,
-        additionalInfo: source?.additionalInfo,
-        timespan: variable.timespan,
-        origins: variable.origins,
-        annotations: parseIndicatorAnnotations(variable),
-        presentation: variable.presentation,
-        catalogPath: variable.catalogPath,
-        updatePeriodDays: variable.updatePeriodDays,
-        owidVariableId: variable.id,
-        owidProcessingLevel: variable.processingLevel,
-        owidSchemaVersion: variable.schemaVersion,
-        // The Continents variable gets its own column type
-        type: isContinentsVariableId(variable.id)
-            ? ColumnTypeNames.Continent
-            : parsedType,
-        sort:
-            parsedType === ColumnTypeNames.Ordinal
-                ? getSortFromDimensions(variable.dimensions)
-                : undefined,
-        shortName: variable.shortName,
-    }
-}
-
-// ---------------------------------------------------------------------------
-// Annotations
-// ---------------------------------------------------------------------------
-
-const parseIndicatorAnnotations = (
-    variable: OwidVariableWithSourceAndDimension
-): IndicatorAnnotation[] | undefined => {
-    const legacyAnnotations = parseLegacyEntityAnnotations(
-        variable.display?.entityAnnotationsMap
-    )
-    if (!variable.annotations?.length && !legacyAnnotations.length)
-        return undefined
-
-    const annotations = (variable.annotations ?? []).flatMap((annotation) => {
-        const parsed = parseIndicatorAnnotation(annotation, variable)
-        return parsed ? [parsed] : []
-    })
-    return [...annotations, ...legacyAnnotations]
-}
-
-/**
- * Parses the legacy `entityAnnotationsMap`: one "Entity: text" line per
- * entity. A repeated entity keeps its last line.
- */
-const parseLegacyEntityAnnotations = (
-    entityAnnotationsMap: string | undefined
-): IndicatorAnnotation[] => {
-    const textByEntity = new Map<string, string>()
-    for (const line of (entityAnnotationsMap ?? "").split("\n")) {
-        const [entityName, ...words] = line.split(":")
-        textByEntity.set(entityName.trim(), words.join(":").trim())
-    }
-    return [...textByEntity].flatMap(([entityName, text]) =>
-        entityName && text
-            ? [{ text, entityNames: [entityName], timeScope: "all" }]
-            : []
-    )
-}
-
-const parseIndicatorAnnotation = (
-    annotation: OwidVariableAnnotation,
-    variable: OwidVariableWithSourceAndDimension
-): IndicatorAnnotation | undefined => {
-    const { text, entities } = annotation
-    const timeScope = parseTimeScope(annotation, variable)
-    if (!timeScope) return undefined
-
-    const [firstEntityName, ...otherEntityNames] = entities ?? []
-    return firstEntityName === undefined
-        ? { text, ...timeScope }
-        : {
-              text,
-              entityNames: [firstEntityName, ...otherEntityNames],
-              ...timeScope,
-          }
-}
-
-const parseTimeScope = (
-    annotation: OwidVariableAnnotation,
-    variable: OwidVariableWithSourceAndDimension
-): AnnotationTimeScope | undefined => {
-    const drop = (reason: string): undefined => {
-        console.warn(
-            `Dropping annotation of variable ${variable.id} with ${reason}`
-        )
-        return undefined
-    }
-
-    if (annotation.time === undefined) {
-        if (annotation.timeEnd === undefined) return { timeScope: "all" }
-        return drop(`a timeEnd but no time: ${annotation.timeEnd}`)
-    }
-
-    const interval = getTimeInterval(variable.display)
-    const time = parseAnnotationTime(annotation.time, interval)
-    if (time === undefined) return drop(`an invalid time: ${annotation.time}`)
-
-    if (annotation.timeEnd === undefined) return { timeScope: "point", time }
-    const timeEnd = parseAnnotationTime(annotation.timeEnd, interval)
-    if (timeEnd === undefined)
-        return drop(`an invalid timeEnd: ${annotation.timeEnd}`)
-
-    if (timeEnd === time) return { timeScope: "point", time }
-    if (timeEnd < time)
-        return drop(
-            `end time ${annotation.timeEnd} before start time ${annotation.time}`
-        )
-    return { timeScope: "range", startTime: time, endTime: timeEnd }
-}
-
-const parseAnnotationTime = (
-    value: Time | string,
-    interval: TimeInterval
-): Time | undefined => {
-    if (!isSubYearly(interval))
-        return typeof value === "number" ? value : undefined
-
-    if (typeof value !== "string") return undefined
-    const date = dayjs.utc(value)
-    if (!date.isValid() || date.format("YYYY-MM-DD") !== value) return undefined
-    return snapToIntervalStart(convertDateToDaysSinceEpoch(date), interval)
 }

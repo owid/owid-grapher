@@ -54,7 +54,7 @@ export const frameToTable = (frame: Frame): OwidTable =>
  */
 export const fullJoin = (frames: Frame[], key: PairKey): Frame => {
     if (frames.length === 0) return EMPTY_FRAME
-    // Not marked as unique: a single frame can have duplicate keys
+    // Not marked as unique: a single frame can still have duplicate keys
     if (frames.length === 1) return frames[0]
 
     const uniqueKey = key.join(",")
@@ -64,22 +64,8 @@ export const fullJoin = (frames: Frame[], key: PairKey): Frame => {
 
     // Fast path: every frame has the same unique keys in the same order, so
     // reuse all column arrays directly without building any lookup tables.
-    if (haveIdenticalKeys(frames, key) && isUniqueOnKey(firstFrame, key)) {
-        const outColumns: FrameColumn[] = sharedSlugs.map((slug) => {
-            const column = findColumn(firstFrame, slug)!
-            return { def: { ...column.def }, values: column.values }
-        })
-        for (const frame of frames) {
-            for (const column of frame.columns) {
-                if (!sharedSlugSet.has(column.def.slug))
-                    outColumns.push({
-                        def: { ...column.def },
-                        values: column.values,
-                    })
-            }
-        }
-        return { columns: outColumns, numRows: firstFrame.numRows, uniqueKey }
-    }
+    if (haveIdenticalKeys(frames, key) && isUniqueOnKey(firstFrame, key))
+        return joinAlignedFrames(frames, sharedSlugs, sharedSlugSet, uniqueKey)
 
     const { rowsByFrame, ownerFrame, ownerRow } = enumerateKeys(frames, key)
     const numOutRows = ownerFrame.length
@@ -117,6 +103,30 @@ export const fullJoin = (frames: Frame[], key: PairKey): Frame => {
     return { columns: outColumns, numRows: numOutRows, uniqueKey }
 }
 
+/** Zero-copy join when all frames already share identical unique keys in the same order */
+const joinAlignedFrames = (
+    frames: Frame[],
+    sharedSlugs: ColumnSlug[],
+    sharedSlugSet: Set<ColumnSlug>,
+    uniqueKey: string
+): Frame => {
+    const [firstFrame] = frames
+    const outColumns: FrameColumn[] = sharedSlugs.map((slug) => {
+        const column = findColumn(firstFrame, slug)!
+        return { def: { ...column.def }, values: column.values }
+    })
+    for (const frame of frames) {
+        for (const column of frame.columns) {
+            if (!sharedSlugSet.has(column.def.slug))
+                outColumns.push({
+                    def: { ...column.def },
+                    values: column.values,
+                })
+        }
+    }
+    return { columns: outColumns, numRows: firstFrame.numRows, uniqueKey }
+}
+
 // ---------------------------------------------------------------------------
 // Left join with fallback keys (attaching secondary frames onto a base index)
 // ---------------------------------------------------------------------------
@@ -143,8 +153,7 @@ export const leftJoinWithFallbacks = (
             ? baseFrame
             : deduplicateOnKey(baseFrame, baseKey)
 
-    const allFrames = [base, ...otherFrames]
-    const sharedSlugs = getSharedColumnSlugs(allFrames)
+    const sharedSlugs = getSharedColumnSlugs([base, ...otherFrames])
     const sharedSlugSet = new Set(sharedSlugs)
 
     // Shared columns come first (ordered by the last frame to preserve legacy
@@ -247,6 +256,14 @@ const gatherColumnValues = (
     return values
 }
 
+const logDuplicateJoinKey = (): void => {
+    console.error("Found more than one matching row for a join key in a frame")
+}
+
+// ---------------------------------------------------------------------------
+// Key alignment, uniqueness & enumeration
+// ---------------------------------------------------------------------------
+
 /** Whether every frame has the key columns with the same values in the same order */
 const haveIdenticalKeys = (frames: Frame[], key: PairKey): boolean => {
     const firstColumns = getPairKeyColumns(frames[0], key)
@@ -284,6 +301,7 @@ const isUniqueOnKey = (frame: Frame, key: PairKey): boolean => {
         const entity = entities[row]
         if (typeof time !== "number" || typeof entity !== "number") return false
         if (row > 0 && entity === entities[row - 1]) {
+            // Strict `>` also rejects NaN times within a run
             if (!(time > (times[row - 1] as number))) return false
         } else {
             // A new run starts; the entity must not have appeared earlier
@@ -298,11 +316,30 @@ const enumerateKeys = (
     frames: Frame[],
     key: PairKey
 ): { rowsByFrame: Int32Array[]; ownerFrame: number[]; ownerRow: number[] } => {
+    const { outRowsByFrame, ownerFrame, ownerRow } = assignOutputRows(
+        frames,
+        key
+    )
+    const numOutRows = ownerFrame.length
+    const rowsByFrame = outRowsByFrame.map((outRows) =>
+        invertToFirstRowPerKey(outRows, numOutRows)
+    )
+    return { rowsByFrame, ownerFrame, ownerRow }
+}
+
+/** Assigns each unique key an output row index in frame order */
+const assignOutputRows = (
+    frames: Frame[],
+    key: PairKey
+): {
+    outRowsByFrame: Int32Array[]
+    ownerFrame: number[]
+    ownerRow: number[]
+} => {
     const outIndex = new PairMap<number>()
     const ownerFrame: number[] = []
     const ownerRow: number[] = []
 
-    // Pass 1: assign each unique key an output row in frame order
     const outRowsByFrame = frames.map((frame, frameIndex) => {
         const columns = getPairKeyColumns(frame, key)
         if (!columns)
@@ -322,30 +359,33 @@ const enumerateKeys = (
         return outRows
     })
 
-    // Pass 2: invert to outputRow -> first matching inputRow per frame
-    const numOutRows = ownerFrame.length
-    const rowsByFrame = outRowsByFrame.map((outRows) => {
-        const rows = new Int32Array(numOutRows).fill(-1)
-        let duplicateOutRows: Set<number> | undefined
-        for (let row = 0; row < outRows.length; row++) {
-            const outRow = outRows[row]
-            if (rows[outRow] === -1) {
-                rows[outRow] = row
-            } else {
-                // Rare: log once per duplicate key in a frame as a debugging hint
-                duplicateOutRows ??= new Set()
-                if (!duplicateOutRows.has(outRow)) {
-                    duplicateOutRows.add(outRow)
-                    console.error(
-                        "Found more than one matching row for a join key in a frame"
-                    )
-                }
+    return { outRowsByFrame, ownerFrame, ownerRow }
+}
+
+/**
+ * Inverts `inputRow -> outRow` into `outRow -> firstMatchingInputRow` (-1 if
+ * absent), logging once per duplicate key in the frame.
+ */
+const invertToFirstRowPerKey = (
+    outRows: Int32Array,
+    numOutRows: number
+): Int32Array => {
+    const rows = new Int32Array(numOutRows).fill(-1)
+    // Allocated lazily since duplicate keys in a single frame are rare
+    let duplicateOutRows: Set<number> | undefined
+    for (let row = 0; row < outRows.length; row++) {
+        const outRow = outRows[row]
+        if (rows[outRow] === -1) {
+            rows[outRow] = row
+        } else {
+            duplicateOutRows ??= new Set()
+            if (!duplicateOutRows.has(outRow)) {
+                duplicateOutRows.add(outRow)
+                logDuplicateJoinKey()
             }
         }
-        return rows
-    })
-
-    return { rowsByFrame, ownerFrame, ownerRow }
+    }
+    return rows
 }
 
 /** Keeps the first row for each distinct key, logging duplicates once per key */
@@ -367,9 +407,7 @@ const deduplicateOnKey = (frame: Frame, key: PairKey): Frame => {
             duplicateRows ??= new Set()
             if (!duplicateRows.has(existing)) {
                 duplicateRows.add(existing)
-                console.error(
-                    "Found more than one matching row for a join key in a frame"
-                )
+                logDuplicateJoinKey()
             }
         }
     }
@@ -387,6 +425,10 @@ const deduplicateOnKey = (frame: Frame, key: PairKey): Frame => {
     }
 }
 
+// ---------------------------------------------------------------------------
+// Fallback matching
+// ---------------------------------------------------------------------------
+
 interface FallbackMatcher {
     match(baseRow: number): number | undefined
 }
@@ -403,37 +445,50 @@ const createFallbackMatcher = (
     baseFrame: Frame,
     otherFrame: Frame,
     key: JoinKey
+): FallbackMatcher | undefined =>
+    key.length === 1
+        ? createSingleKeyMatcher(baseFrame, otherFrame, key[0])
+        : createPairKeyMatcher(baseFrame, otherFrame, key)
+
+const createSingleKeyMatcher = (
+    baseFrame: Frame,
+    otherFrame: Frame,
+    slug: ColumnSlug
 ): FallbackMatcher | undefined => {
-    if (key.length === 1) {
-        const baseValues = findColumn(baseFrame, key[0])?.values
-        const otherValues = findColumn(otherFrame, key[0])?.values
-        if (!baseValues || !otherValues) return undefined
+    const baseValues = findColumn(baseFrame, slug)?.values
+    const otherValues = findColumn(otherFrame, slug)?.values
+    if (!baseValues || !otherValues) return undefined
 
-        let index: Map<CoreValueType, number> | undefined
-        let hasCached = false
-        let cachedKey: CoreValueType
-        let cachedRow: number | undefined
+    let index: Map<CoreValueType, number> | undefined
+    let hasCached = false
+    let cachedKey: CoreValueType
+    let cachedRow: number | undefined
 
-        return {
-            match(baseRow: number): number | undefined {
-                const keyValue = baseValues[baseRow]
-                if (hasCached && keyValue === cachedKey) return cachedRow
+    return {
+        match(baseRow: number): number | undefined {
+            const keyValue = baseValues[baseRow]
+            if (hasCached && keyValue === cachedKey) return cachedRow
 
-                if (!index) {
-                    index = new Map()
-                    // Later rows overwrite earlier ones: the last match wins
-                    for (let row = 0; row < otherFrame.numRows; row++)
-                        index.set(otherValues[row], row)
-                }
+            if (!index) {
+                index = new Map()
+                // Later rows overwrite earlier ones: the last match wins
+                for (let row = 0; row < otherFrame.numRows; row++)
+                    index.set(otherValues[row], row)
+            }
 
-                cachedKey = keyValue
-                cachedRow = index.get(keyValue)
-                hasCached = true
-                return cachedRow
-            },
-        }
+            cachedKey = keyValue
+            cachedRow = index.get(keyValue)
+            hasCached = true
+            return cachedRow
+        },
     }
+}
 
+const createPairKeyMatcher = (
+    baseFrame: Frame,
+    otherFrame: Frame,
+    key: PairKey
+): FallbackMatcher | undefined => {
     const baseColumns = getPairKeyColumns(baseFrame, key)
     const otherColumns = getPairKeyColumns(otherFrame, key)
     if (!baseColumns || !otherColumns) return undefined
