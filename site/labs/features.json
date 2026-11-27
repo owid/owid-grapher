@@ -1,4 +1,15 @@
 {
-    "master": "",
-    "features": []
+    "master": "4571f2b327",
+    "features": [
+        {
+            "number": 7480,
+            "title": "Viewfinder — set up a chart's view by describing it",
+            "author": "Marigold"
+        },
+        {
+            "number": 7755,
+            "title": "Staff-only random-search button on /search",
+            "author": "Marigold"
+        }
+    ]
 }
