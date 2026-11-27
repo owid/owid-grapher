@@ -18,6 +18,43 @@ export async function searchSingleForHits<T>(
     return response.results[0]
 }
 
+// Words this short are almost never the unfinished beginning of a longer
+// word in a submitted search, but as prefixes they match a lot. Three-letter
+// words stay prefixes, so that "tax" still finds "taxation".
+const SHORT_WORD_MAX_LENGTH = 2
+
+export function endsWithShortWord(query: string | undefined): boolean {
+    const lastWord = query?.trim().split(/\s+/).at(-1) ?? ""
+    return lastWord.length > 0 && lastWord.length <= SHORT_WORD_MAX_LENGTH
+}
+
+/**
+ * Algolia's default (queryType=prefixLast) treats the last word of a query as
+ * a prefix. For a short word that buries the real matches: "ai" matches every
+ * record with "air", "aid" or "aids", all tied on relevance, so popularity
+ * decides and the AI charts lose. When a query ends with a short word, match
+ * whole words first and only fall back to prefix matching when that finds
+ * nothing ("gm"). Longer words keep prefix matching, as an unfinished one
+ * ("vaccin") can still find whole-word matches through typo tolerance and
+ * would never reach the fallback.
+ */
+export async function searchSingleForHitsWithWholeShortWords<T>(
+    liteSearchClient: LiteClient,
+    searchParams: SingleSearchRequest
+): Promise<SearchResponse<T>> {
+    if (searchParams.queryType || !endsWithShortWord(searchParams.query))
+        return searchSingleForHits<T>(liteSearchClient, searchParams)
+
+    const wholeWords = await searchSingleForHits<T>(liteSearchClient, {
+        ...searchParams,
+        queryType: "prefixNone",
+    })
+    // nbHits rather than hits, so that every page of a search uses the same
+    // matching as its first page.
+    if (wholeWords.nbHits) return wholeWords
+    return searchSingleForHits<T>(liteSearchClient, searchParams)
+}
+
 // Above this many index-wide hits, a single shared word is treated as too
 // common to be a distinctive match (see rationale below).
 const DISTINCTIVE_SINGLE_WORD_MAX_HITS = 100
@@ -47,7 +84,10 @@ export async function searchSingleForHitsWithClosestMatches<T>(
     liteSearchClient: LiteClient,
     searchParams: SingleSearchRequest
 ): Promise<SearchResponse<T> & { closestMatches?: boolean }> {
-    const primary = await searchSingleForHits<T>(liteSearchClient, searchParams)
+    const primary = await searchSingleForHitsWithWholeShortWords<T>(
+        liteSearchClient,
+        searchParams
+    )
     const isFirstPage = !searchParams.page && !searchParams.offset
     const hasQuery = Boolean(searchParams.query?.trim())
     if (primary.hits.length > 0 || !isFirstPage || !hasQuery) return primary

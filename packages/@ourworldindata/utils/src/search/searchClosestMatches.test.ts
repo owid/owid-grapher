@@ -1,5 +1,8 @@
 import { expect, it, describe, vi } from "vitest"
-import { searchSingleForHitsWithClosestMatches } from "./searchClosestMatches.js"
+import {
+    searchSingleForHitsWithClosestMatches,
+    searchSingleForHitsWithWholeShortWords,
+} from "./searchClosestMatches.js"
 
 // Used by both site/search/queries.ts and functions/api/search/searchApi.ts —
 // covering it here guarantees the "closest matches" fallback behaves
@@ -167,5 +170,65 @@ describe(searchSingleForHitsWithClosestMatches, () => {
             removeWordsIfNoResults: "allOptional",
             getRankingInfo: true,
         })
+    })
+})
+
+describe(searchSingleForHitsWithWholeShortWords, () => {
+    it("matches a short last word as a whole word, not a prefix", async () => {
+        const wholeWordsResponse = { hits: [{ objectID: "ai" }], nbHits: 1 }
+        const client = makeClient([wholeWordsResponse])
+
+        const result = await searchSingleForHitsWithWholeShortWords<MockHit>(
+            client as never,
+            { indexName: INDEX, query: "ai" }
+        )
+
+        expect(result).toBe(wholeWordsResponse)
+        expect(client.searchForHits).toHaveBeenCalledOnce()
+        expect(client.searchForHits.mock.calls[0][0][0].queryType).toBe(
+            "prefixNone"
+        )
+    })
+
+    it("falls back to prefix matching when the whole word matches nothing", async () => {
+        const prefixResponse = { hits: [{ objectID: "gmo" }], nbHits: 1 }
+        const client = makeClient([{ hits: [], nbHits: 0 }, prefixResponse])
+
+        const result = await searchSingleForHitsWithWholeShortWords<MockHit>(
+            client as never,
+            { indexName: INDEX, query: "gm" }
+        )
+
+        expect(result).toBe(prefixResponse)
+        expect(
+            client.searchForHits.mock.calls[1][0][0].queryType
+        ).toBeUndefined()
+    })
+
+    it("keeps whole-word matching on a page past the last hit", async () => {
+        const pastTheEnd = { hits: [], nbHits: 12 }
+        const client = makeClient([pastTheEnd])
+
+        const result = await searchSingleForHitsWithWholeShortWords<MockHit>(
+            client as never,
+            { indexName: INDEX, query: "ai", page: 5 }
+        )
+
+        expect(result).toBe(pastTheEnd)
+        expect(client.searchForHits).toHaveBeenCalledOnce()
+    })
+
+    it("leaves longer last words to Algolia's prefix matching", async () => {
+        const client = makeClient([{ hits: [], nbHits: 0 }])
+
+        await searchSingleForHitsWithWholeShortWords<MockHit>(client as never, {
+            indexName: INDEX,
+            query: "ai tax",
+        })
+
+        expect(client.searchForHits).toHaveBeenCalledOnce()
+        expect(
+            client.searchForHits.mock.calls[0][0][0].queryType
+        ).toBeUndefined()
     })
 })
