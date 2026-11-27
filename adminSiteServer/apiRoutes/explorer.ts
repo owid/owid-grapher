@@ -163,7 +163,7 @@ export async function handleDeleteExplorer(
     }
 
     if (explorer.isPublished) {
-        enqueueDeployChange(trx, user, `Unpublishing explorer ${slug}`)
+        enqueueDeployChange(user, `Unpublishing explorer ${slug}`)
     }
 
     return { success: true }

@@ -333,7 +333,6 @@ export async function putIndicatorChartConfig(
 
     if (allUpdatedConfigs.some(({ isPublished }) => isPublished)) {
         enqueueDeployChange(
-            trx,
             res.locals.user,
             `Updating ETL config for indicator ${variableId}`
         )
@@ -405,7 +404,6 @@ export async function deleteIndicatorChartConfig(
 
     if (allUpdatedConfigs.some(({ isPublished }) => isPublished)) {
         enqueueDeployChange(
-            trx,
             res.locals.user,
             `Updating ETL config for indicator ${variableId}`
         )

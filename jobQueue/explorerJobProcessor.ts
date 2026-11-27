@@ -220,7 +220,6 @@ export async function processExplorerViewsJob(
 
                 if (explorerWithUser) {
                     enqueueDeployChange(
-                        trx,
                         explorerWithUser,
                         `Publishing explorer ${slug}`
                     )

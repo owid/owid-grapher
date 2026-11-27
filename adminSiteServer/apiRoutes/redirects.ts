@@ -63,7 +63,6 @@ export async function handlePostNewSiteRedirect(
         [source, target]
     )
     enqueueDeployChange(
-        trx,
         res.locals.user,
         `Creating redirect id=${id} source=${source} target=${target}`
     )
@@ -82,7 +81,6 @@ export async function handleDeleteSiteRedirect(
     }
     await db.knexRaw(trx, `DELETE FROM redirects WHERE id=?`, [id])
     enqueueDeployChange(
-        trx,
         res.locals.user,
         `Deleting redirect id=${id} source=${redirect.source} target=${redirect.target}`
     )
@@ -167,7 +165,6 @@ export async function handleDeleteChartRedirect(
 
     await db.knexRaw(trx, `DELETE FROM chart_slug_redirects WHERE id=?`, [id])
     enqueueDeployChange(
-        trx,
         res.locals.user,
         `Deleting redirect from ${redirect.slug}`
     )

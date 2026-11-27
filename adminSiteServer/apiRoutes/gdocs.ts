@@ -356,7 +356,7 @@ async function indexAndBakeGdocIfNeccesary(
             if (isChronologicalPost) {
                 await indexIndividualGdocInChronological(nextJson, trx)
             }
-            enqueueDeployChange(trx, user, `${action} ${nextJson.slug}`)
+            enqueueDeployChange(user, `${action} ${nextJson.slug}`)
         })
         .with(GdocPublishingAction.Updating, async () => {
             if (shouldIndexInPages) {
@@ -368,7 +368,7 @@ async function indexAndBakeGdocIfNeccesary(
             if (isChronologicalPost) {
                 await indexIndividualGdocInChronological(nextJson, trx)
             }
-            enqueueDeployChange(trx, user, `${action} ${nextJson.slug}`)
+            enqueueDeployChange(user, `${action} ${nextJson.slug}`)
         })
         .with(GdocPublishingAction.Unpublishing, async () => {
             if (wasIndexedInPages) {
@@ -380,7 +380,7 @@ async function indexAndBakeGdocIfNeccesary(
             if (wasChronologicalPost) {
                 await removeIndividualGdocFromChronological(prevJson.id)
             }
-            enqueueDeployChange(trx, user, `${action} ${nextJson.slug}`)
+            enqueueDeployChange(user, `${action} ${nextJson.slug}`)
         })
         .exhaustive()
 }
@@ -593,7 +593,7 @@ export async function deleteGdoc(
                 [source, "/"]
             )
         }
-        enqueueDeployChange(trx, res.locals.user, `Deleting ${gdocSlug}`)
+        enqueueDeployChange(res.locals.user, `Deleting ${gdocSlug}`)
     }
     return {}
 }

@@ -217,11 +217,7 @@ export async function putImageHandler(
     // Extract text from the new image version asynchronously
     void extractAndStoreImageText(newImageId, newCloudflareId)
 
-    enqueueDeployChange(
-        trx,
-        res.locals.user,
-        `Updating image "${originalFilename}"`
-    )
+    enqueueDeployChange(res.locals.user, `Updating image "${originalFilename}"`)
 
     return {
         success: true,

@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+// Sets up Sentry, so the worker's errors (e.g. a failed deploy request) reach it
+import "../../serverUtils/instrument.js"
 import {
     processExplorerViewsJob,
     processOneExplorerViewsJob,

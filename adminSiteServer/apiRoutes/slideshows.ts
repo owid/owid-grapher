@@ -178,7 +178,7 @@ export async function createSlideshow(
         await rebuildSlideshowLinksAndImages(trx, id, config)
     }
 
-    enqueueDeployChange(trx, res.locals.user, `Creating slideshow ${slug}`)
+    enqueueDeployChange(res.locals.user, `Creating slideshow ${slug}`)
 
     return { success: true, slideshowId: id }
 }
@@ -224,7 +224,6 @@ export async function updateSlideshow(
     }
 
     enqueueDeployChange(
-        trx,
         res.locals.user,
         `Updating slideshow ${slug ?? existing.slug}`
     )
@@ -247,11 +246,7 @@ export async function deleteSlideshow(
     // Don't need to delete from slideshow_links or slideshow_x_images explicitly, as those tables have ON DELETE CASCADE
     await trx(SlideshowsTableName).where({ id }).delete()
 
-    enqueueDeployChange(
-        trx,
-        res.locals.user,
-        `Deleting slideshow ${existing.slug}`
-    )
+    enqueueDeployChange(res.locals.user, `Deleting slideshow ${existing.slug}`)
 
     return { success: true }
 }

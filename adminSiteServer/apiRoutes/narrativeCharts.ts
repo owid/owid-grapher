@@ -581,7 +581,6 @@ export async function updateNarrativeChart(
     )
     if (references.length > 0) {
         enqueueDeployChange(
-            trx,
             user,
             `Updating narrative chart ${existingRow.name}`
         )

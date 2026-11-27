@@ -11,7 +11,6 @@ import {
 import { IS_ARCHIVE } from "../settings/clientSettings.mjs"
 import { PROD_URL } from "../site/SiteConstants.js"
 import { registerExitHandler } from "./cleanup.js"
-import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
 import { createTagGraph, Url } from "@ourworldindata/utils"
 import {
     ImageMetadata,
@@ -160,29 +159,6 @@ export enum TransactionCloseMode {
     KeepOpen,
 }
 
-type AfterCommitCallback = () => Promise<void>
-
-const afterCommitCallbacks = new WeakMap<
-    Knex.Transaction,
-    AfterCommitCallback[]
->()
-
-/**
- * Run `callback` once the outermost transaction around `trx` has committed,
- * and never if it rolls back. Callbacks registered inside a nested
- * transaction (a savepoint) wait for the outermost one. The transaction's
- * caller awaits the callbacks; one that throws is logged and doesn't fail
- * the caller, since its changes are already committed.
- */
-export function runAfterCommit(
-    trx: KnexReadWriteTransaction,
-    callback: AfterCommitCallback
-): void {
-    const callbacks = afterCommitCallbacks.get(trx)
-    if (callbacks) callbacks.push(callback)
-    else afterCommitCallbacks.set(trx, [callback])
-}
-
 async function knexTransaction<T, KT>(
     transactionFn: (trx: KT) => Promise<T>,
     closeConnection: TransactionCloseMode,
@@ -191,25 +167,10 @@ async function knexTransaction<T, KT>(
 ): Promise<T> {
     try {
         const options = readonly ? { readOnly: true } : {}
-        let transaction: Knex.Transaction | undefined
-        const result = await knex.transaction(async (trx) => {
-            transaction = trx
-            return transactionFn(trx as KT)
-        }, options)
-        const callbacks = transaction && afterCommitCallbacks.get(transaction)
-        if (callbacks) {
-            if (knex.isTransaction) {
-                // A savepoint was released: its callbacks wait for the parent
-                for (const callback of callbacks)
-                    runAfterCommit(knex as KnexReadWriteTransaction, callback)
-            } else {
-                for (const callback of callbacks) {
-                    await callback().catch((error) =>
-                        logErrorAndMaybeCaptureInSentry(error)
-                    )
-                }
-            }
-        }
+        const result = await knex.transaction(
+            async (trx) => transactionFn(trx as KT),
+            options
+        )
         return result
     } finally {
         if (closeConnection === TransactionCloseMode.Close) {

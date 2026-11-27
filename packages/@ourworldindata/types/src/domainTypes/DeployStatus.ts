@@ -1,5 +1,5 @@
 /**
- * Committed admin edits request at most one content build per window, plus a
+ * Admin edits request at most one content build per window, plus a
  * trailing one for what the window held (enqueueDeployChange in
  * baker/DeployUtils.ts). An ETL push calls the admin API once per indicator or
  * chart, a few hundred times in minutes; this turns that into a handful of

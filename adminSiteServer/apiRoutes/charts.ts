@@ -660,7 +660,7 @@ export const saveGrapher = async (
             `UPDATE charts SET publishedAt=?, publishedByUserId=? WHERE id = ? `,
             [now, user.id, chartId]
         )
-        enqueueDeployChange(knex, user, `Publishing chart ${fullConfig.slug}`)
+        enqueueDeployChange(user, `Publishing chart ${fullConfig.slug}`)
     } else if (
         !fullConfig.isPublished &&
         existingConfig &&
@@ -676,9 +676,9 @@ export const saveGrapher = async (
             R2GrapherConfigDirectory.publishedGrapherBySlug,
             `${existingConfig.slug}.json`
         )
-        enqueueDeployChange(knex, user, `Unpublishing chart ${fullConfig.slug}`)
+        enqueueDeployChange(user, `Unpublishing chart ${fullConfig.slug}`)
     } else if (fullConfig.isPublished)
-        enqueueDeployChange(knex, user, `Updating chart ${fullConfig.slug}`)
+        enqueueDeployChange(user, `Updating chart ${fullConfig.slug}`)
 
     await enqueueExplorerRefreshJobsForDependencies(knex, {
         chartIds: [chartId],
@@ -1402,11 +1402,7 @@ async function upsertEtlConfigForChart(
     await refreshChartDimensionsAndR2(trx, chartId, row.configId, newFullConfig)
 
     if (newFullConfig.isPublished) {
-        enqueueDeployChange(
-            trx,
-            user,
-            `Updating ETL config for chart ${chartId}`
-        )
+        enqueueDeployChange(user, `Updating ETL config for chart ${chartId}`)
     }
 
     await enqueueExplorerRefreshJobsForDependencies(trx, {
@@ -1566,7 +1562,6 @@ export async function deleteChartsChartIdEtlConfig(
 
     if (newFullConfig.isPublished) {
         enqueueDeployChange(
-            trx,
             res.locals.user,
             `Clearing ETL config for chart ${chartId}`
         )
@@ -1632,11 +1627,7 @@ export async function deleteChart(
     }
 
     if (chart.isPublished) {
-        enqueueDeployChange(
-            trx,
-            res.locals.user,
-            `Deleting chart ${chart.slug}`
-        )
+        enqueueDeployChange(res.locals.user, `Deleting chart ${chart.slug}`)
         await deleteGrapherConfigFromR2(
             R2GrapherConfigDirectory.publishedGrapherBySlug,
             `${chart.slug}.json`

@@ -7,7 +7,6 @@ import {
 } from "../settings/serverSettings.js"
 import { WebAPIPlatformError, WebClient } from "@slack/web-api"
 import { DbPlainUser, DEPLOY_REQUEST_WINDOW_MS } from "@ourworldindata/utils"
-import { KnexReadWriteTransaction, runAfterCommit } from "../db/db.js"
 import { registerExitHandler } from "../db/cleanup.js"
 import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
 
@@ -19,36 +18,31 @@ interface DeployChange {
     message: string
 }
 
-const changesByTransaction = new WeakMap<
-    KnexReadWriteTransaction,
-    DeployChange[]
->()
-
 let heldChanges: DeployChange[] = []
 let windowTimer: ReturnType<typeof setTimeout> | undefined
 /** Requests sent without waiting, so shutdown can wait for them */
 const inFlight = new Set<Promise<void>>()
 
 /**
- * Deploy this edit once `trx` commits. All the changes a transaction enqueues
- * go out in one Buildkite build request, and nobody waits for the request or
- * the build. A rolled-back transaction requests nothing.
+ * Request a deploy for this edit. Nobody waits for the request or the build.
  *
- * The first committed edit after a quiet spell is requested right away. Edits
- * committed in the next DEPLOY_REQUEST_WINDOW_MS are held and go out together
- * when the window ends: a build requested earlier may already be baking, and
- * may have read their pages before they committed, so it can't stand in for
- * them. Held edits are sent on shutdown too (db/cleanup.ts), so only a hard
- * kill loses them, and then they go out with the next deploy.
+ * The first edit after a quiet spell is requested right away. Edits in the
+ * next DEPLOY_REQUEST_WINDOW_MS are held and go out together when the window
+ * ends: a build requested earlier may already be baking, and may have read
+ * their pages before they were saved, so it can't stand in for them. Held
+ * edits are sent on shutdown too (db/cleanup.ts), so only a hard kill loses
+ * them, and then they go out with the next deploy.
  *
- * A failed request is logged to Sentry and doesn't fail the edit, which then
- * goes out with the next deploy. (Changes enqueued in a savepoint wait for the
- * outermost commit, as a separate batch.)
+ * Callers enqueue from inside their transaction, before it commits. That's
+ * fine: a bake reads the database seconds after the request, once Buildkite
+ * has started it, and an edit that then rolls back costs one redundant bake.
+ *
+ * A failed request goes to Sentry and doesn't fail the edit, which then goes
+ * out with the next deploy.
  *
  * Does nothing unless BAKE_ON_CHANGE is set (it isn't in local dev).
  */
 export const enqueueDeployChange = (
-    trx: KnexReadWriteTransaction,
     user: DeployAuthor,
     message: string
 ): void => {
@@ -58,24 +52,12 @@ export const enqueueDeployChange = (
     }
 
     const change = toDeployChange(user, message)
-    const changes = changesByTransaction.get(trx)
-    if (changes) {
-        changes.push(change)
-        return
-    }
-    // The first change registers the one request; later ones join its list
-    const newChanges = [change]
-    changesByTransaction.set(trx, newChanges)
-    runAfterCommit(trx, async () => queueForDeploy(newChanges))
-}
-
-const queueForDeploy = (changes: DeployChange[]): void => {
     if (windowTimer) {
-        heldChanges.push(...changes)
+        heldChanges.push(change)
         return
     }
     startWindow()
-    send(changes)
+    send([change])
 }
 
 const startWindow = (): void => {
@@ -119,7 +101,13 @@ const sendLoggingErrors = async (changes: DeployChange[]): Promise<void> => {
     try {
         await requestContentDeploy(changes)
     } catch (error) {
-        await logErrorAndMaybeCaptureInSentry(error)
+        // One Sentry issue for every failed request, whatever Buildkite
+        // answered, so a single alert rule catches them all
+        await logErrorAndMaybeCaptureInSentry(error, {
+            level: "error",
+            tags: { deploy: "request-failed" },
+            fingerprint: ["deploy-request-failed"],
+        })
     }
 }
 

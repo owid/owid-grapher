@@ -446,7 +446,6 @@ export async function handlePutMultiDim(
             .first()) ?? {}
     if (publishedSlug) {
         enqueueDeployChange(
-            trx,
             res.locals.user,
             `Publishing multidimensional chart ${publishedSlug}`
         )
@@ -506,7 +505,6 @@ export async function handlePatchMultiDim(
     }
     if (action) {
         enqueueDeployChange(
-            trx,
             res.locals.user,
             `${action === "publish" ? "Publishing" : "Unpublishing"} multidimensional chart ${multiDim.slug}`
         )
@@ -749,7 +747,6 @@ export async function handlePostMultiDimRedirect(
         viewConfigId ?? null
     )
     enqueueDeployChange(
-        trx,
         res.locals.user,
         `Creating multi-dim redirect from '${source}' to '${targetDescription}'`
     )
@@ -970,7 +967,6 @@ export async function handleBulkCreateMultiDimRedirects(
 
     if (created > 0) {
         enqueueDeployChange(
-            trx,
             res.locals.user,
             `Bulk-creating ${created} multi-dim redirect(s) to ${[
                 ...targetSlugs,
@@ -1015,7 +1011,6 @@ export async function handleDeleteMultiDimRedirect(
         viewConfigId
     )
     enqueueDeployChange(
-        trx,
         res.locals.user,
         `Deleting multi-dim redirect from '${redirect.source}' to '${targetDescription}'`
     )

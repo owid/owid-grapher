@@ -450,7 +450,6 @@ export async function republishCharts(
     }
 
     enqueueDeployChange(
-        trx,
         _res.locals.user,
         `Republishing all charts in dataset ${dataset.name} (${dataset.id})`
     )

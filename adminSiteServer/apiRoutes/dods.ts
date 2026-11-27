@@ -112,7 +112,7 @@ export async function updateDod(
         const dod = await trx(DodsTableName).first().where({ id })
 
         await updateLinksFromInsertedDod(trx, id)
-        enqueueDeployChange(trx, res.locals.user, `Dod ${id} updated`)
+        enqueueDeployChange(res.locals.user, `Dod ${id} updated`)
 
         return { success: true, dod }
     } catch (error) {
@@ -139,7 +139,7 @@ export async function deleteDod(
 
         // dod links are deleted automatically by ON DELETE CASCADE
         await trx(DodsTableName).delete().where({ id })
-        enqueueDeployChange(trx, res.locals.user, `Dod ${id} deleted`)
+        enqueueDeployChange(res.locals.user, `Dod ${id} deleted`)
 
         return { success: true }
     } catch (error) {
@@ -179,7 +179,7 @@ export async function createDod(
 
         const id = result[0]
         await updateLinksFromInsertedDod(trx, id)
-        enqueueDeployChange(trx, res.locals.user, `Dod ${name} created`)
+        enqueueDeployChange(res.locals.user, `Dod ${name} created`)
 
         return { success: true, id }
     } catch (error) {
