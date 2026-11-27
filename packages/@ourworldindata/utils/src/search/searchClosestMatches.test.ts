@@ -88,11 +88,7 @@ describe(searchSingleForHitsWithClosestMatches, () => {
             // "world" alone matches hundreds of unrelated documents.
             nbHits: 5000,
         }
-        const client = makeClient([
-            primaryResponse, // "cup" as a whole word
-            primaryResponse, // "cup" as a prefix
-            relaxedResponse,
-        ])
+        const client = makeClient([primaryResponse, relaxedResponse])
 
         const result = await searchSingleForHitsWithClosestMatches<MockHit>(
             client as never,
@@ -227,7 +223,7 @@ describe(searchSingleForHitsWithWholeShortWords, () => {
 
         await searchSingleForHitsWithWholeShortWords<MockHit>(client as never, {
             indexName: INDEX,
-            query: "ai vaccin",
+            query: "ai tax",
         })
 
         expect(client.searchForHits).toHaveBeenCalledOnce()

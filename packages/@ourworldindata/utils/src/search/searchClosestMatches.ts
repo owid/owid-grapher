@@ -19,8 +19,9 @@ export async function searchSingleForHits<T>(
 }
 
 // Words this short are almost never the unfinished beginning of a longer
-// word in a submitted search, but as prefixes they match a lot.
-const SHORT_WORD_MAX_LENGTH = 3
+// word in a submitted search, but as prefixes they match a lot. Three-letter
+// words stay prefixes, so that "tax" still finds "taxation".
+const SHORT_WORD_MAX_LENGTH = 2
 
 export function endsWithShortWord(query: string | undefined): boolean {
     const lastWord = query?.trim().split(/\s+/).at(-1) ?? ""
