@@ -40,6 +40,13 @@ import {
 } from "./settings/NoDataAreaToggle"
 import { GRAPHER_SETTINGS_CLASS } from "../core/GrapherConstants"
 import { LONG_CHART_TYPE_LABEL } from "../chart/ChartTabs"
+import {
+    ControlsRowLayout,
+    measureIconOnlyMenuToggleWidth,
+    measureMenuToggleWidth,
+} from "./controlsRow/ControlsRowHelpers"
+
+const SETTINGS_LABEL = "Settings"
 
 const {
     LineChart,
@@ -102,6 +109,15 @@ export class SettingsMenu extends React.Component<SettingsMenuProps> {
     static shouldShow(manager: SettingsMenuManager): boolean {
         const test = new SettingsMenu({ manager })
         return test.showSettingsMenuToggle
+    }
+
+    static measureWidth(
+        manager: SettingsMenuManager,
+        settingsLabel: ControlsRowLayout["settingsLabel"]
+    ): number | undefined {
+        if (!SettingsMenu.shouldShow(manager)) return undefined
+        if (settingsLabel === "icon") return measureIconOnlyMenuToggleWidth()
+        return measureMenuToggleWidth(SETTINGS_LABEL)
     }
 
     @computed get chartType(): GrapherChartType {
@@ -330,7 +346,7 @@ export class SettingsMenu extends React.Component<SettingsMenuProps> {
                         aria-label="Chart settings"
                     >
                         <FontAwesomeIcon icon={faGear} />
-                        <span className="label">Settings</span>
+                        <span className="label">{SETTINGS_LABEL}</span>
                     </Button>
                     <Popover
                         className={GRAPHER_SETTINGS_CLASS}

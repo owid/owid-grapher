@@ -10,6 +10,8 @@ import {
 import { hasDataTableFilterChoice } from "../dataTable/DataTableHelpers"
 import { regionGroupLabels } from "../core/RegionGroups"
 
+const TABLE_FILTER_WIDTH_PX = 194 // keep in sync with the width in DataTableFilterDropdown.scss
+
 const FILTER_LABELS: Record<DataTableFilter, string> = {
     all: "All",
     selection: "Selection",
@@ -41,6 +43,15 @@ export class DataTableFilterDropdown extends React.Component<{
     static shouldShow(manager: DataTableFilterDropdownManager): boolean {
         const menu = new DataTableFilterDropdown({ manager })
         return menu.shouldShow
+    }
+
+    static measureWidth(
+        manager: DataTableFilterDropdownManager,
+        showTableFilter: boolean
+    ): number | undefined {
+        if (!showTableFilter || !DataTableFilterDropdown.shouldShow(manager))
+            return undefined
+        return TABLE_FILTER_WIDTH_PX
     }
 
     @computed private get manager(): DataTableFilterDropdownManager {

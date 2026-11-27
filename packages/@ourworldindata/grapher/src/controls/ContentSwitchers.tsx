@@ -15,6 +15,8 @@ import {
     Popover,
 } from "react-aria-components"
 import { GrapherTabIcon } from "@ourworldindata/components"
+import { Bounds } from "@ourworldindata/utils"
+import { ControlsRowLayout } from "./controlsRow/ControlsRowHelpers"
 
 export interface ContentSwitchersManager {
     availableTabs?: GrapherTabName[]
@@ -27,6 +29,16 @@ export interface ContentSwitchersManager {
 const MAX_VISIBLE_TABS = 4
 const MAX_VISIBLE_TABS_BEFORE_OVERFLOW = 3
 
+// Keep in sync with Tabs.scss and ContentSwitchers.scss
+const TAB_FONT_SIZE_PX = 13
+const TAB_LIST_PADDING_PX = 2
+const TAB_ICON_PX = 13
+const TAB_ICON_GAP_PX = 6
+const OVERFLOW_BUTTON_PADDING_PX = 8
+
+const BOLD_IN_PLACE_OF_MEDIUM = 700
+const OVERFLOW_LABEL_HAIR_SPACE_PX = 1
+
 function shouldShowContentSwitchers(manager: ContentSwitchersManager): boolean {
     return (manager.availableTabs ?? []).length > 1
 }
@@ -37,6 +49,19 @@ export class ContentSwitchers extends React.Component<{
 }> {
     static shouldShow(manager: ContentSwitchersManager): boolean {
         return shouldShowContentSwitchers(manager)
+    }
+
+    static measureWidth(
+        manager: ContentSwitchersManager,
+        tabsLayout: ControlsRowLayout["tabs"]
+    ): number {
+        const switchers = new ContentSwitchers({ manager })
+        if (!switchers.shouldShow) return 0
+        return measureTabGroupWidth(
+            switchers.visibleTabs.map((tab) => makeLabelForGrapherTab(tab)),
+            switchers.hiddenTabs.length,
+            tabsLayout
+        )
     }
 
     @computed private get manager(): ContentSwitchersManager {
@@ -177,4 +202,50 @@ function TabContent({ tab }: { tab: GrapherTabName }): React.ReactElement {
             <span className="label">{makeLabelForGrapherTab(tab)}</span>
         </span>
     )
+}
+
+function measureTabGroupWidth(
+    visibleTabLabels: string[],
+    hiddenTabCount: number,
+    tabsLayout: ControlsRowLayout["tabs"]
+): number {
+    const tabsWidth =
+        2 * TAB_LIST_PADDING_PX +
+        sumWidths(
+            visibleTabLabels.map((label) => measureTabWidth(label, tabsLayout))
+        )
+    if (hiddenTabCount === 0) return tabsWidth
+    return tabsWidth + measureOverflowButtonWidth(hiddenTabCount)
+}
+
+function measureTabWidth(
+    label: string,
+    { labelMode, paddingPx }: ControlsRowLayout["tabs"]
+): number {
+    if (labelMode === "icon") return 2 * paddingPx + TAB_ICON_PX
+    return (
+        2 * paddingPx +
+        TAB_ICON_PX +
+        TAB_ICON_GAP_PX +
+        measureTabTextWidth(label)
+    )
+}
+
+function measureOverflowButtonWidth(hiddenTabCount: number): number {
+    return (
+        2 * OVERFLOW_BUTTON_PADDING_PX +
+        measureTabTextWidth(`+${hiddenTabCount}`) +
+        OVERFLOW_LABEL_HAIR_SPACE_PX
+    )
+}
+
+function measureTabTextWidth(text: string): number {
+    return Bounds.forText(text, {
+        fontSize: TAB_FONT_SIZE_PX,
+        fontWeight: BOLD_IN_PLACE_OF_MEDIUM,
+    }).width
+}
+
+function sumWidths(widths: number[]): number {
+    return widths.reduce((total, width) => total + width, 0)
 }

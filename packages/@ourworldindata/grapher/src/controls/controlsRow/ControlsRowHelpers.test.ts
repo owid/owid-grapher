@@ -6,6 +6,7 @@ import {
     findControlsRowLayout,
     resolveEntityLabel,
 } from "./ControlsRowHelpers"
+import { listCompactionSteps } from "./ControlsRowTestHelpers"
 
 const FULL_LAYOUT: ControlsRowLayout = {
     tabs: { labelMode: "label", paddingPx: 16 },
@@ -19,35 +20,6 @@ const MOST_COMPACT_LAYOUT: ControlsRowLayout = {
     entityLabel: "actionOnly",
     settingsLabel: "icon",
     showTableFilter: false,
-}
-
-const collectLayouts = (): ControlsRowLayout[] => {
-    const layouts: ControlsRowLayout[] = []
-    const mostCompact = findControlsRowLayout((layout) => {
-        layouts.push(layout)
-        return 1
-    }, 0)
-    return [...layouts, mostCompact]
-}
-
-const flattenLayout = (
-    layout: ControlsRowLayout
-): Record<string, string | number | boolean> => ({
-    "tabs.labelMode": layout.tabs.labelMode,
-    "tabs.paddingPx": layout.tabs.paddingPx,
-    entityLabel: layout.entityLabel,
-    settingsLabel: layout.settingsLabel,
-    showTableFilter: layout.showTableFilter,
-})
-
-/** The fields each compaction step changes, as `field: newValue` */
-const listStepChanges = (): string[][] => {
-    const layouts = collectLayouts().map(flattenLayout)
-    return layouts.slice(1).map((layout, i) =>
-        Object.entries(layout)
-            .filter(([field, value]) => layouts[i][field] !== value)
-            .map(([field, value]) => `${field}: ${value}`)
-    )
 }
 
 describe(findControlsRowLayout, () => {
@@ -78,15 +50,17 @@ describe(findControlsRowLayout, () => {
     })
 
     it("compacts one control per step, in a fixed order", () => {
-        expect(listStepChanges()).toEqual([
-            ["tabs.paddingPx: 12"],
-            ["entityLabel: short"],
-            ["settingsLabel: icon"],
-            ["showTableFilter: false"],
-            ["tabs.labelMode: icon"],
-            ["entityLabel: actionOnly"],
-            ["tabs.paddingPx: 8"],
-        ])
+        expect(listCompactionSteps().map((step) => step.changedFields)).toEqual(
+            [
+                "tabs.paddingPx: 12",
+                "entityLabel: short",
+                "settingsLabel: icon",
+                "showTableFilter: false",
+                "tabs.labelMode: icon",
+                "entityLabel: actionOnly",
+                "tabs.paddingPx: 8",
+            ]
+        )
     })
 })
 

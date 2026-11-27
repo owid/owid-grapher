@@ -4,6 +4,7 @@ import { observer } from "mobx-react"
 import { MapConfig } from "../mapCharts/MapConfig"
 import { GlobeController } from "../mapCharts/GlobeController"
 import { MapRegionName } from "@ourworldindata/types"
+import { measureMenuToggleWidth } from "./controlsRow/ControlsRowHelpers"
 
 export interface MapZoomToSelectionButtonManager {
     mapConfig?: MapConfig
@@ -12,6 +13,9 @@ export interface MapZoomToSelectionButtonManager {
     isFaceted?: boolean
     isMapSelectionEnabled?: boolean
 }
+
+const GLOBE_ICON_SIZE_PX = 16
+const ZOOM_TO_SELECTION_LABEL = "Zoom to selection"
 
 interface MapZoomToSelectionButtonProps {
     manager: MapZoomToSelectionButtonManager
@@ -27,6 +31,16 @@ export class MapZoomToSelectionButton extends React.Component<MapZoomToSelection
     static shouldShow(manager: MapZoomToSelectionButtonManager): boolean {
         const menu = new MapZoomToSelectionButton({ manager })
         return menu.showMenu
+    }
+
+    static measureWidth(
+        manager: MapZoomToSelectionButtonManager
+    ): number | undefined {
+        if (!MapZoomToSelectionButton.shouldShow(manager)) return undefined
+        return measureMenuToggleWidth(
+            ZOOM_TO_SELECTION_LABEL,
+            GLOBE_ICON_SIZE_PX
+        )
     }
 
     @computed private get showMenu(): boolean {
@@ -60,8 +74,8 @@ export class MapZoomToSelectionButton extends React.Component<MapZoomToSelection
                 data-track-note="map_zoom_to_selection"
                 className="menu-toggle"
             >
-                <GlobeIcon size={16} />
-                <span className="label">Zoom to selection</span>
+                <GlobeIcon size={GLOBE_ICON_SIZE_PX} />
+                <span className="label">{ZOOM_TO_SELECTION_LABEL}</span>
             </button>
         ) : null
     }

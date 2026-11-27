@@ -7,6 +7,8 @@ import { Dropdown } from "./Dropdown"
 import { MAP_REGION_LABELS } from "../mapCharts/MapChartConstants"
 import { GlobeController } from "../mapCharts/GlobeController"
 
+const REGION_DROPDOWN_WIDTH_PX = 155 // keep in sync with the flex-basis in MapRegionDropdown.scss
+
 export interface MapRegionDropdownManager {
     mapConfig?: MapConfig
     globeController?: GlobeController
@@ -32,6 +34,11 @@ export class MapRegionDropdown extends React.Component<{
     static shouldShow(manager: MapRegionDropdownManager): boolean {
         const menu = new MapRegionDropdown({ manager })
         return menu.showMenu
+    }
+
+    static measureWidth(manager: MapRegionDropdownManager): number | undefined {
+        if (!MapRegionDropdown.shouldShow(manager)) return undefined
+        return REGION_DROPDOWN_WIDTH_PX
     }
 
     @computed private get manager(): MapRegionDropdownManager {

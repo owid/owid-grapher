@@ -29,6 +29,11 @@ import {
     MapZoomToSelectionButtonManager,
 } from "../MapZoomToSelectionButton"
 import { MapZoomDropdown, MapZoomDropdownManager } from "../MapZoomDropdown"
+import { ControlsRowLayout } from "./ControlsRowHelpers"
+
+// Keep in sync with CaptionedChart.scss and Controls.scss
+const ROW_SIDES_GAP_PX = 16
+const CONTROLS_GAP_PX = 8
 
 export interface ControlsRowManager
     extends
@@ -64,6 +69,16 @@ export class ControlsRow extends Component<ControlsRowProps> {
     static shouldShow(manager: ControlsRowManager): boolean {
         const test = new ControlsRow({ manager })
         return test.showControlsRow
+    }
+
+    static measureWidth(
+        manager: ControlsRowManager,
+        layout: ControlsRowLayout
+    ): number {
+        return measureControlsRowWidth(
+            ContentSwitchers.measureWidth(manager, layout.tabs),
+            measureControlWidths(manager, layout)
+        )
     }
 
     @computed private get manager(): ControlsRowManager {
@@ -166,4 +181,55 @@ export class ControlsRow extends Component<ControlsRowProps> {
             </nav>
         )
     }
+}
+
+function measureControlWidths(
+    manager: ControlsRowManager,
+    layout: ControlsRowLayout
+): (number | undefined)[] {
+    if (manager.isOnMapTab) {
+        if (manager.isMapSelectionEnabled)
+            return [
+                MapResetButton.measureWidth(manager, "resetZoom"),
+                MapZoomToSelectionButton.measureWidth(manager),
+                MapResetButton.measureWidth(manager, "resetView"),
+                MapRegionDropdown.measureWidth(manager),
+                EntitySelectionToggle.measureWidth(manager, layout.entityLabel),
+            ]
+
+        const resetZoomWidth = MapResetButton.measureWidth(manager, "resetZoom")
+        if (resetZoomWidth !== undefined) return [resetZoomWidth]
+        if (manager.isFaceted) return [MapRegionDropdown.measureWidth(manager)]
+        return [MapZoomDropdown.measureWidth(manager)]
+    }
+
+    if (manager.isOnTableTab)
+        return [
+            DataTableFilterDropdown.measureWidth(
+                manager,
+                layout.showTableFilter
+            ),
+            DataTableSearchField.measureWidth(manager),
+        ]
+
+    return [
+        EntitySelectionToggle.measureWidth(manager, layout.entityLabel),
+        SettingsMenu.measureWidth(manager, layout.settingsLabel),
+    ]
+}
+
+function measureControlsRowWidth(
+    tabGroupWidth: number,
+    controlWidths: (number | undefined)[]
+): number {
+    const shownControlWidths = controlWidths.filter(
+        (width) => width !== undefined
+    )
+    const gapsWidth =
+        Math.max(0, shownControlWidths.length - 1) * CONTROLS_GAP_PX
+    const controlsWidth = shownControlWidths.reduce(
+        (total, width) => total + width,
+        0
+    )
+    return tabGroupWidth + ROW_SIDES_GAP_PX + controlsWidth + gapsWidth
 }

@@ -11,6 +11,7 @@ import { GlobeController } from "../mapCharts/GlobeController"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faRotateLeft } from "@fortawesome/free-solid-svg-icons"
 import { match } from "ts-pattern"
+import { measureMenuToggleWidth } from "./controlsRow/ControlsRowHelpers"
 
 interface MapResetButtonProps {
     manager: MapResetButtonManager
@@ -43,6 +44,15 @@ export class MapResetButton extends React.Component<{
     ): boolean {
         const menu = new MapResetButton({ manager, action })
         return menu.showMenu
+    }
+
+    static measureWidth(
+        manager: MapResetButtonManager,
+        action: "resetView" | "resetZoom"
+    ): number | undefined {
+        const button = new MapResetButton({ manager, action })
+        if (!button.showMenu) return undefined
+        return measureMenuToggleWidth(button.label)
     }
 
     @computed private get showMenu(): boolean {

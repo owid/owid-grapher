@@ -9,6 +9,11 @@ import {
     DEFAULT_GRAPHER_ENTITY_TYPE,
     DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL,
 } from "../core/GrapherConstants"
+import {
+    EntityLabelMode,
+    measureMenuToggleWidth,
+    resolveEntityLabel,
+} from "./controlsRow/ControlsRowHelpers"
 
 export interface EntitySelectionManager {
     canHighlightEntities?: boolean
@@ -47,6 +52,15 @@ export class EntitySelectionToggle extends React.Component<{
     static shouldShow(manager: EntitySelectionManager): boolean {
         const toggle = new EntitySelectionToggle({ manager })
         return toggle.showToggle
+    }
+
+    static measureWidth(
+        manager: EntitySelectionManager,
+        entityLabel: EntityLabelMode
+    ): number | undefined {
+        const { showToggle, label } = new EntitySelectionToggle({ manager })
+        if (!showToggle || !label) return undefined
+        return measureMenuToggleWidth(resolveEntityLabel(entityLabel, label))
     }
 
     @computed get showToggle(): boolean {

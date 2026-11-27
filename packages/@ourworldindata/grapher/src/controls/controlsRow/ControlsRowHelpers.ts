@@ -1,3 +1,5 @@
+import { Bounds } from "@ourworldindata/utils"
+
 export type TabPaddingPx = 16 | 12 | 8
 
 export type EntityLabelMode =
@@ -19,6 +21,14 @@ export interface ControlsRowLayout {
 }
 
 export type ControlsRowStep = (layout: ControlsRowLayout) => ControlsRowLayout
+
+// Keep in sync with Controls.scss
+const MENU_TOGGLE_FONT_SIZE_PX = 13
+const MENU_TOGGLE_PADDING_PX = 7
+const MENU_TOGGLE_BORDER_PX = 1
+const MENU_TOGGLE_ICON_PX = 12
+const MENU_TOGGLE_ICON_MARGIN_PX = 5
+const MENU_TOGGLE_ICON_ONLY_MARGIN_PX = 2
 
 const FULL_LAYOUT: ControlsRowLayout = {
     tabs: { labelMode: "label", paddingPx: 16 },
@@ -47,6 +57,26 @@ export function findControlsRowLayout(
         layout = step(layout)
     }
     return layout
+}
+
+export function measureMenuToggleWidth(
+    label: string,
+    iconPx: number = MENU_TOGGLE_ICON_PX
+): number {
+    return (
+        2 * (MENU_TOGGLE_PADDING_PX + MENU_TOGGLE_BORDER_PX) +
+        iconPx +
+        MENU_TOGGLE_ICON_MARGIN_PX +
+        Bounds.forText(label, { fontSize: MENU_TOGGLE_FONT_SIZE_PX }).width
+    )
+}
+
+export function measureIconOnlyMenuToggleWidth(): number {
+    return (
+        2 * (MENU_TOGGLE_PADDING_PX + MENU_TOGGLE_BORDER_PX) +
+        MENU_TOGGLE_ICON_PX +
+        2 * MENU_TOGGLE_ICON_ONLY_MARGIN_PX
+    )
 }
 
 export function resolveEntityLabel(
