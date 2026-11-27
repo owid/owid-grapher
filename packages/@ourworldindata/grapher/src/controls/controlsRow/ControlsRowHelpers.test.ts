@@ -10,15 +10,17 @@ import {
 } from "./ControlsRowHelpers"
 import { listCompactionSteps } from "./ControlsRowTestHelpers"
 
+const TAB_COUNT = 4
+
 const FULL_LAYOUT: ControlsRowLayout = {
-    tabs: { labelMode: "label", paddingPx: 16 },
+    tabs: { labelMode: "label", paddingPx: 16, visibleTabCount: TAB_COUNT },
     entityLabel: "full",
     settingsLabel: "label",
     showTableFilter: true,
 }
 
 const MOST_COMPACT_LAYOUT: ControlsRowLayout = {
-    tabs: { labelMode: "icon", paddingPx: 8 },
+    tabs: { labelMode: "icon", paddingPx: 8, visibleTabCount: 3 },
     entityLabel: "actionOnly",
     settingsLabel: "icon",
     showTableFilter: false,
@@ -26,21 +28,26 @@ const MOST_COMPACT_LAYOUT: ControlsRowLayout = {
 
 describe(findControlsRowLayout, () => {
     it("returns the full layout when everything fits", () => {
-        expect(findControlsRowLayout(() => 1000, Infinity)).toEqual(FULL_LAYOUT)
+        expect(findControlsRowLayout(() => 1000, Infinity, TAB_COUNT)).toEqual(
+            FULL_LAYOUT
+        )
     })
 
     it("returns a layout whose width equals the maximum", () => {
-        expect(findControlsRowLayout(() => 1000, 1000)).toEqual(FULL_LAYOUT)
+        expect(findControlsRowLayout(() => 1000, 1000, TAB_COUNT)).toEqual(
+            FULL_LAYOUT
+        )
     })
 
     it("returns the first layout that fits, not a narrower one", () => {
         expect(
             findControlsRowLayout(
                 (layout) => (layout.settingsLabel === "icon" ? 500 : 501),
-                500
+                500,
+                TAB_COUNT
             )
         ).toEqual({
-            tabs: { labelMode: "label", paddingPx: 12 },
+            tabs: { labelMode: "label", paddingPx: 12, visibleTabCount: 4 },
             entityLabel: "short",
             settingsLabel: "icon",
             showTableFilter: true,
@@ -48,21 +55,39 @@ describe(findControlsRowLayout, () => {
     })
 
     it("returns the most compact layout when nothing fits", () => {
-        expect(findControlsRowLayout(() => 1, 0)).toEqual(MOST_COMPACT_LAYOUT)
+        expect(findControlsRowLayout(() => 1, 0, TAB_COUNT)).toEqual(
+            MOST_COMPACT_LAYOUT
+        )
     })
 
-    it("compacts one control per step, in a fixed order", () => {
-        expect(listCompactionSteps().map((step) => step.changedFields)).toEqual(
-            [
-                "tabs.paddingPx: 12",
-                "entityLabel: short",
-                "settingsLabel: icon",
-                "showTableFilter: false",
-                "tabs.labelMode: icon",
-                "entityLabel: actionOnly",
-                "tabs.paddingPx: 8",
-            ]
-        )
+    it("compacts in a fixed order", () => {
+        expect(
+            listCompactionSteps(TAB_COUNT).map((step) => step.changedFields)
+        ).toEqual([
+            "tabs.paddingPx: 12",
+            "entityLabel: short",
+            "settingsLabel: icon",
+            "showTableFilter: false",
+            "tabs.visibleTabCount: 3",
+            "tabs.labelMode: icon, tabs.visibleTabCount: 4",
+            "tabs.visibleTabCount: 3",
+            "entityLabel: actionOnly",
+            "tabs.paddingPx: 8",
+        ])
+    })
+
+    it.each([1, 2, 3])("hides no tab for a chart with %s tabs", (tabCount) => {
+        expect(
+            listCompactionSteps(tabCount).map((step) => step.changedFields)
+        ).toEqual([
+            "tabs.paddingPx: 12",
+            "entityLabel: short",
+            "settingsLabel: icon",
+            "showTableFilter: false",
+            "tabs.labelMode: icon",
+            "entityLabel: actionOnly",
+            "tabs.paddingPx: 8",
+        ])
     })
 })
 

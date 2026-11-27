@@ -46,7 +46,6 @@ function shouldShowContentSwitchers(manager: ContentSwitchersManager): boolean {
 interface ContentSwitchersProps {
     manager: ContentSwitchersManager
     layout: ControlsRowLayout["tabs"]
-    visibleTabCount: number
 }
 
 @observer
@@ -57,14 +56,9 @@ export class ContentSwitchers extends React.Component<ContentSwitchersProps> {
 
     static measureWidth(
         manager: ContentSwitchersManager,
-        tabsLayout: ControlsRowLayout["tabs"],
-        visibleTabCount: number
+        tabsLayout: ControlsRowLayout["tabs"]
     ): number {
-        const switchers = new ContentSwitchers({
-            manager,
-            layout: tabsLayout,
-            visibleTabCount,
-        })
+        const switchers = new ContentSwitchers({ manager, layout: tabsLayout })
         if (!switchers.shouldShow) return 0
         const { visible, hidden } = switchers.tabPartition
         return measureTabGroupWidth(
@@ -90,7 +84,7 @@ export class ContentSwitchers extends React.Component<ContentSwitchersProps> {
         return pickVisibleTabs(
             this.availableTabs,
             this.activeTab,
-            this.props.visibleTabCount
+            this.props.layout.visibleTabCount
         )
     }
 

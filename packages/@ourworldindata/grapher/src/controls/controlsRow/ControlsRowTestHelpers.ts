@@ -6,8 +6,8 @@ export interface CompactionStep {
     after: ControlsRowLayout
 }
 
-export function listCompactionSteps(): CompactionStep[] {
-    const layouts = listLayoutsInStepOrder()
+export function listCompactionSteps(tabCount: number): CompactionStep[] {
+    const layouts = listLayoutsInStepOrder(tabCount)
     return layouts.slice(1).map((after, i) => {
         const before = layouts[i]
         const changes = Object.entries(flattenLayout(after))
@@ -17,12 +17,16 @@ export function listCompactionSteps(): CompactionStep[] {
     })
 }
 
-function listLayoutsInStepOrder(): ControlsRowLayout[] {
+function listLayoutsInStepOrder(tabCount: number): ControlsRowLayout[] {
     const layouts: ControlsRowLayout[] = []
-    const mostCompact = findControlsRowLayout((layout) => {
-        layouts.push(layout)
-        return 1
-    }, 0)
+    const mostCompact = findControlsRowLayout(
+        (layout) => {
+            layouts.push(layout)
+            return 1
+        },
+        0,
+        tabCount
+    )
     return [...layouts, mostCompact]
 }
 
@@ -32,6 +36,7 @@ function flattenLayout(
     return {
         "tabs.labelMode": layout.tabs.labelMode,
         "tabs.paddingPx": layout.tabs.paddingPx,
+        "tabs.visibleTabCount": layout.tabs.visibleTabCount,
         entityLabel: layout.entityLabel,
         settingsLabel: layout.settingsLabel,
         showTableFilter: layout.showTableFilter,

@@ -16,8 +16,7 @@ const measureTabs = (
 ): number =>
     ContentSwitchers.measureWidth(
         LifeExpectancyGrapher({ chartTypes, hasMapTab: true, tab }),
-        { labelMode: "label", paddingPx: 16 },
-        3
+        { labelMode: "label", paddingPx: 16, visibleTabCount: 3 }
     )
 
 describe(ContentSwitchers.measureWidth, () => {
@@ -59,8 +58,7 @@ describe(ContentSwitchers.measureWidth, () => {
                     hasMapTab: false,
                     hasTableTab: false,
                 }),
-                { labelMode: "label", paddingPx: 16 },
-                1
+                { labelMode: "label", paddingPx: 16, visibleTabCount: 1 }
             )
         ).toBe(0)
     })

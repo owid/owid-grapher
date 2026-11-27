@@ -15,7 +15,11 @@ export interface EntityLabelParts {
 }
 
 export interface ControlsRowLayout {
-    tabs: { labelMode: "label" | "icon"; paddingPx: TabPaddingPx }
+    tabs: {
+        labelMode: "label" | "icon"
+        paddingPx: TabPaddingPx
+        visibleTabCount: number
+    }
     entityLabel: EntityLabelMode
     settingsLabel: "label" | "icon"
     showTableFilter: boolean
@@ -36,41 +40,17 @@ const MENU_TOGGLE_ICON_PX = 12
 const MENU_TOGGLE_ICON_MARGIN_PX = 5
 const MENU_TOGGLE_ICON_ONLY_MARGIN_PX = 2
 
-const MAX_VISIBLE_TABS = 4
-const MAX_VISIBLE_TABS_BEFORE_OVERFLOW = 3
-
-const FULL_LAYOUT: ControlsRowLayout = {
-    tabs: { labelMode: "label", paddingPx: 16 },
-    entityLabel: "full",
-    settingsLabel: "label",
-    showTableFilter: true,
-}
-
-const COMPACTION_STEPS: readonly ControlsRowStep[] = [
-    (layout) => ({ ...layout, tabs: { ...layout.tabs, paddingPx: 12 } }),
-    (layout) => ({ ...layout, entityLabel: "short" }),
-    (layout) => ({ ...layout, settingsLabel: "icon" }),
-    (layout) => ({ ...layout, showTableFilter: false }),
-    (layout) => ({ ...layout, tabs: { ...layout.tabs, labelMode: "icon" } }),
-    (layout) => ({ ...layout, entityLabel: "actionOnly" }),
-    (layout) => ({ ...layout, tabs: { ...layout.tabs, paddingPx: 8 } }),
-]
-
 export function findControlsRowLayout(
     measureWidth: (layout: ControlsRowLayout) => number,
-    maxWidth: number
+    maxWidth: number,
+    tabCount: number
 ): ControlsRowLayout {
-    let layout = FULL_LAYOUT
-    for (const step of COMPACTION_STEPS) {
+    let layout = makeFullLayout(tabCount)
+    for (const step of listCompactionSteps(tabCount)) {
         if (measureWidth(layout) <= maxWidth) return layout
         layout = step(layout)
     }
     return layout
-}
-
-export function countVisibleTabs(tabCount: number): number {
-    if (tabCount <= MAX_VISIBLE_TABS) return tabCount
-    return MAX_VISIBLE_TABS_BEFORE_OVERFLOW
 }
 
 export function pickVisibleTabs(
@@ -119,4 +99,71 @@ export function resolveEntityLabel(
         case "actionOnly":
             return action
     }
+}
+
+function makeFullLayout(tabCount: number): ControlsRowLayout {
+    return {
+        tabs: { labelMode: "label", paddingPx: 16, visibleTabCount: tabCount },
+        entityLabel: "full",
+        settingsLabel: "label",
+        showTableFilter: true,
+    }
+}
+
+function listCompactionSteps(tabCount: number): ControlsRowStep[] {
+    return [
+        setTabPadding(12),
+        setEntityLabel("short"),
+        showSettingsAsIcon,
+        hideTableFilter,
+        ...hideTabsOneByOne({ from: tabCount, downTo: 3 }),
+        switchTabsToIcons(tabCount),
+        ...hideTabsOneByOne({ from: tabCount, downTo: 3 }),
+        setEntityLabel("actionOnly"),
+        setTabPadding(8),
+    ]
+}
+
+function setTabPadding(paddingPx: TabPaddingPx): ControlsRowStep {
+    return (layout) => withTabs(layout, { paddingPx })
+}
+
+function setEntityLabel(entityLabel: EntityLabelMode): ControlsRowStep {
+    return (layout) => ({ ...layout, entityLabel })
+}
+
+function showSettingsAsIcon(layout: ControlsRowLayout): ControlsRowLayout {
+    return { ...layout, settingsLabel: "icon" }
+}
+
+function hideTableFilter(layout: ControlsRowLayout): ControlsRowLayout {
+    return { ...layout, showTableFilter: false }
+}
+
+function hideTabsOneByOne({
+    from,
+    downTo,
+}: {
+    from: number
+    downTo: number
+}): ControlsRowStep[] {
+    return Array.from({ length: Math.max(0, from - downTo) }, () => hideOneTab)
+}
+
+function hideOneTab(layout: ControlsRowLayout): ControlsRowLayout {
+    return withTabs(layout, {
+        visibleTabCount: layout.tabs.visibleTabCount - 1,
+    })
+}
+
+function switchTabsToIcons(tabCount: number): ControlsRowStep {
+    return (layout) =>
+        withTabs(layout, { labelMode: "icon", visibleTabCount: tabCount })
+}
+
+function withTabs(
+    layout: ControlsRowLayout,
+    tabs: Partial<ControlsRowLayout["tabs"]>
+): ControlsRowLayout {
+    return { ...layout, tabs: { ...layout.tabs, ...tabs } }
 }

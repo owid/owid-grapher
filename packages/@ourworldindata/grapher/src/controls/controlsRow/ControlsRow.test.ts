@@ -8,7 +8,11 @@ import {
 import { LifeExpectancyGrapher } from "../../testData/OwidTestData.sample"
 import { GrapherState } from "../../core/GrapherState"
 import { GrapherProgrammaticInterface } from "../../core/Grapher"
-import { ControlsRowLayout, countVisibleTabs } from "./ControlsRowHelpers"
+import {
+    ControlsRowLayout,
+    findControlsRowLayout,
+    pickVisibleTabs,
+} from "./ControlsRowHelpers"
 import { EntitySelectionToggle } from "../EntitySelectionToggle"
 import { SettingsMenu } from "../SettingsMenu"
 import { DataTableFilterDropdown } from "../DataTableFilterDropdown"
@@ -18,7 +22,7 @@ import { MapZoomDropdown } from "../MapZoomDropdown"
 import { MapResetButton } from "../MapResetButton"
 import { MapZoomToSelectionButton } from "../MapZoomToSelectionButton"
 import { ControlsRow } from "./ControlsRow"
-import { listCompactionSteps } from "./ControlsRowTestHelpers"
+import { CompactionStep, listCompactionSteps } from "./ControlsRowTestHelpers"
 import { ContentSwitchers } from "../ContentSwitchers"
 
 const makeFiveTabGrapher = (
@@ -42,13 +46,18 @@ const describeWidthChangeByStep = (
     grapherState: GrapherState
 ): Record<string, WidthChange> =>
     Object.fromEntries(
-        listCompactionSteps().map(({ changedFields, before, after }) => {
-            const widthChange =
-                ControlsRow.measureWidth(grapherState, after) -
-                ControlsRow.measureWidth(grapherState, before)
-            return [changedFields, describeWidthChange(widthChange)]
-        })
+        listCompactionSteps(grapherState.availableTabs.length)
+            .filter((step) => !isTabHidingStep(step))
+            .map(({ changedFields, before, after }) => {
+                const widthChange =
+                    ControlsRow.measureWidth(grapherState, after) -
+                    ControlsRow.measureWidth(grapherState, before)
+                return [changedFields, describeWidthChange(widthChange)]
+            })
     )
+
+const isTabHidingStep = ({ changedFields }: CompactionStep): boolean =>
+    changedFields.startsWith("tabs.visibleTabCount")
 
 type WidthChange = "narrower" | "unchanged" | "wider"
 
@@ -69,7 +78,7 @@ describe(ControlsRow.measureWidth, () => {
             "entityLabel: short": "narrower",
             "settingsLabel: icon": "narrower",
             "showTableFilter: false": "unchanged",
-            "tabs.labelMode: icon": "narrower",
+            "tabs.labelMode: icon, tabs.visibleTabCount: 5": "narrower",
             "entityLabel: actionOnly": "narrower",
             "tabs.paddingPx: 8": "narrower",
         })
@@ -85,7 +94,7 @@ describe(ControlsRow.measureWidth, () => {
             "entityLabel: short": "narrower",
             "settingsLabel: icon": "unchanged",
             "showTableFilter: false": "unchanged",
-            "tabs.labelMode: icon": "narrower",
+            "tabs.labelMode: icon, tabs.visibleTabCount: 5": "narrower",
             "entityLabel: actionOnly": "unchanged",
             "tabs.paddingPx: 8": "narrower",
         })
@@ -101,27 +110,45 @@ describe(ControlsRow.measureWidth, () => {
             "entityLabel: short": "unchanged",
             "settingsLabel: icon": "unchanged",
             "showTableFilter: false": "narrower",
-            "tabs.labelMode: icon": "narrower",
+            "tabs.labelMode: icon, tabs.visibleTabCount: 5": "narrower",
             "entityLabel: actionOnly": "unchanged",
             "tabs.paddingPx: 8": "narrower",
         })
     })
 
-    const FULL_LAYOUT: ControlsRowLayout = {
-        tabs: { labelMode: "label", paddingPx: 16 },
+    it("narrows the row with every tab hidden into the +N menu", () => {
+        const grapherState = makeFiveTabGrapher(
+            GRAPHER_TAB_CONFIG_OPTIONS.chart
+        )
+        const tabHidingSteps = listCompactionSteps(
+            grapherState.availableTabs.length
+        ).filter(isTabHidingStep)
+        expect(tabHidingSteps).toHaveLength(4)
+        for (const { before, after } of tabHidingSteps) {
+            expect(ControlsRow.measureWidth(grapherState, after)).toBeLessThan(
+                ControlsRow.measureWidth(grapherState, before)
+            )
+        }
+    })
+
+    const makeFullLayout = (grapherState: GrapherState): ControlsRowLayout => ({
+        tabs: {
+            labelMode: "label",
+            paddingPx: 16,
+            visibleTabCount: grapherState.availableTabs.length,
+        },
         entityLabel: "full",
         settingsLabel: "label",
         showTableFilter: true,
-    }
+    })
     const SIDES_GAP = 16
     const CONTROLS_GAP = 8
 
     const measureControlsSide = (grapherState: GrapherState): number =>
-        ControlsRow.measureWidth(grapherState, FULL_LAYOUT) -
+        ControlsRow.measureWidth(grapherState, makeFullLayout(grapherState)) -
         ContentSwitchers.measureWidth(
             grapherState,
-            FULL_LAYOUT.tabs,
-            countVisibleTabs(grapherState.availableTabs.length)
+            makeFullLayout(grapherState).tabs
         )
 
     it("is only the gap between its sides when it shows nothing", () => {
@@ -131,9 +158,9 @@ describe(ControlsRow.measureWidth, () => {
             hasTableTab: false,
             hideEntityControls: true,
         })
-        expect(ControlsRow.measureWidth(grapherState, FULL_LAYOUT)).toBe(
-            SIDES_GAP
-        )
+        expect(
+            ControlsRow.measureWidth(grapherState, makeFullLayout(grapherState))
+        ).toBe(SIDES_GAP)
     })
 
     it("counts the region dropdown on the map tab while a continent is shown", () => {
@@ -142,8 +169,8 @@ describe(ControlsRow.measureWidth, () => {
             map: { region: MapRegionName.World },
         })
         expect(
-            ControlsRow.measureWidth(continent, FULL_LAYOUT) -
-                ControlsRow.measureWidth(world, FULL_LAYOUT)
+            ControlsRow.measureWidth(continent, makeFullLayout(continent)) -
+                ControlsRow.measureWidth(world, makeFullLayout(world))
         ).toBe(155 + CONTROLS_GAP)
     })
 
@@ -235,5 +262,105 @@ describe("measuring a hidden control", () => {
         ],
     ])("measures nothing for the %s", (_, measureWidth) => {
         expect(measureWidth()).toBe(undefined)
+    })
+})
+
+describe("choosing how many tabs to show", () => {
+    const makeSevenTabGrapher = (): GrapherState =>
+        LifeExpectancyGrapher({
+            chartTypes: [
+                GRAPHER_CHART_TYPES.LineChart,
+                GRAPHER_CHART_TYPES.DiscreteBar,
+                GRAPHER_CHART_TYPES.Marimekko,
+                GRAPHER_CHART_TYPES.SlopeChart,
+                GRAPHER_CHART_TYPES.ScatterPlot,
+            ],
+            hasMapTab: true,
+            tab: GRAPHER_TAB_CONFIG_OPTIONS.chart,
+        })
+
+    const makeCompactLayout = (
+        labelMode: "label" | "icon",
+        visibleTabCount: number
+    ): ControlsRowLayout => ({
+        tabs: { labelMode, paddingPx: 12, visibleTabCount },
+        entityLabel: "short",
+        settingsLabel: "icon",
+        showTableFilter: false,
+    })
+
+    const findLayout = (
+        grapherState: GrapherState,
+        maxWidth: number
+    ): ControlsRowLayout =>
+        findControlsRowLayout(
+            (layout) => ControlsRow.measureWidth(grapherState, layout),
+            maxWidth,
+            grapherState.availableTabs.length
+        )
+
+    const SWEPT_WIDTHS_PX = Array.from({ length: 201 }, (_, i) => i * 5)
+
+    it("shows every tab and no +N menu when the full layout fits", () => {
+        const grapherState = makeSevenTabGrapher()
+        const fullLayout: ControlsRowLayout = {
+            tabs: { labelMode: "label", paddingPx: 16, visibleTabCount: 7 },
+            entityLabel: "full",
+            settingsLabel: "label",
+            showTableFilter: true,
+        }
+        const layout = findLayout(
+            grapherState,
+            ControlsRow.measureWidth(grapherState, fullLayout)
+        )
+        expect(layout).toEqual(fullLayout)
+        expect(
+            pickVisibleTabs(
+                grapherState.availableTabs,
+                grapherState.activeTab,
+                layout.tabs.visibleTabCount
+            ).hidden
+        ).toEqual([])
+    })
+
+    it("shows as many tabs as fit, and drops labels only when three labelled tabs don't fit", () => {
+        const grapherState = makeSevenTabGrapher()
+        const fits = (layout: ControlsRowLayout, maxWidth: number): boolean =>
+            ControlsRow.measureWidth(grapherState, layout) <= maxWidth
+
+        const shownLabelledCounts = new Set<number>()
+        let isIconModeShown = false
+        for (const maxWidth of SWEPT_WIDTHS_PX) {
+            const { labelMode, visibleTabCount } = findLayout(
+                grapherState,
+                maxWidth
+            ).tabs
+
+            if (visibleTabCount < 7)
+                expect(
+                    fits(
+                        makeCompactLayout(labelMode, visibleTabCount + 1),
+                        maxWidth
+                    )
+                ).toBe(false)
+
+            if (labelMode === "label") {
+                expect(visibleTabCount).toBeGreaterThanOrEqual(3)
+                shownLabelledCounts.add(visibleTabCount)
+            } else {
+                expect(fits(makeCompactLayout("label", 3), maxWidth)).toBe(
+                    false
+                )
+                isIconModeShown = true
+            }
+        }
+        expect([...shownLabelledCounts].toSorted()).toEqual([3, 4, 5, 6, 7])
+        expect(isIconModeShown).toBe(true)
+    })
+
+    it("shows more than three tabs of a seven-tab chart at 600px, where a fixed three tabs plus +N used to show", () => {
+        const grapherState = makeSevenTabGrapher()
+        const { tabs } = findLayout(grapherState, 600)
+        expect(tabs.visibleTabCount).toBeGreaterThan(3)
     })
 })
