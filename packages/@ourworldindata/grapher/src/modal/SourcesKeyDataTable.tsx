@@ -6,6 +6,7 @@ import {
     makeLastUpdated,
     makeNextUpdate,
     makeDateRange,
+    makeDateRangeLabel,
     makeUnit,
     makeUnitConversionFactor,
     makeLinks,
@@ -39,7 +40,9 @@ export const SourcesKeyDataTable = (props: SourcesKeyDataTableProps) => {
         nextUpdate
             ? { label: "Next expected update", content: nextUpdate }
             : null,
-        dateRange ? { label: "Date range", content: dateRange } : null,
+        dateRange
+            ? { label: makeDateRangeLabel(props), content: dateRange }
+            : null,
         unit ? { label: "Unit", content: unit } : null,
         unitConversionFactor
             ? {

@@ -8,8 +8,10 @@ import Image from "./gdocs/components/Image.js"
 
 export default function DataPageResearchAndWriting({
     relatedResearch,
+    showExcerpt = false,
 }: {
     relatedResearch: DataPageRelatedResearch[]
+    showExcerpt?: boolean
 }) {
     return (
         <div className="section-wrapper grid">
@@ -31,6 +33,11 @@ export default function DataPageResearchAndWriting({
                             <h3 className="related-article__title">
                                 {research.title}
                             </h3>
+                            {showExcerpt && research.excerpt && (
+                                <p className="related-article__excerpt">
+                                    {research.excerpt}
+                                </p>
+                            )}
                             <div className="related-article__authors body-3-medium-italic">
                                 {research.authors &&
                                     research.authors.length &&

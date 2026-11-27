@@ -7,8 +7,6 @@ import { SiteAnalytics } from "./SiteAnalytics.js"
 
 export const RELATED_DATA_CHARTS_ID = "explore-related-charts"
 
-const NUM_RELATED_CHARTS = 5
-
 const analytics = new SiteAnalytics()
 
 // The rich-data card is driven almost entirely by the chart's
@@ -43,13 +41,11 @@ export const RelatedDataCharts = ({
 }) => {
     if (charts.length === 0) return null
 
-    const visibleCharts = charts.slice(0, NUM_RELATED_CHARTS)
-
     return (
         <SiteQueryClientProvider>
             <section className={cx("related-data-charts", className)} id={id}>
                 <ul className="related-data-charts__list">
-                    {visibleCharts.map((chart, index) => {
+                    {charts.map((chart, index) => {
                         const hit = relatedChartToSearchChartHit(chart, index)
                         return (
                             <li
@@ -69,7 +65,8 @@ export const RelatedDataCharts = ({
                                                 index + 1,
                                                 chart.slug,
                                                 ...(vizType ? [vizType] : []),
-                                            ].join(":")
+                                            ].join(":"),
+                                            chart.tier
                                         )
                                     }
                                 />

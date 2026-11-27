@@ -1,6 +1,11 @@
 import { getCanonicalUrl } from "@ourworldindata/components"
 import { OwidGdocType } from "@ourworldindata/types"
-import { getAuthorTeamAnchorUrl, useLinkedAuthor } from "../utils.js"
+import {
+    getAuthorInitials,
+    getAuthorTeamAnchorUrl,
+    useImage,
+    useLinkedAuthor,
+} from "../utils.js"
 import Image from "./Image.js"
 import { IS_ARCHIVE } from "../../../settings/clientSettings.mjs"
 import { PROD_URL } from "../../SiteConstants.js"
@@ -11,16 +16,32 @@ export default function LinkedAuthor({
     className,
     name,
     includeImage,
+    showInitialsWithoutPhoto,
     role,
 }: {
     className?: string
     name: string
     includeImage?: boolean
+    /** With includeImage, show the author's initials when there's no photo */
+    showInitialsWithoutPhoto?: boolean
     role?: string
 }) {
     const author = useLinkedAuthor(name)
-    const image =
-        includeImage && author.featuredImage ? (
+    // Archived pages have no image metadata, so they get initials too
+    const photoMetadata = useImage(author.featuredImage ?? undefined)
+
+    let avatar: React.ReactElement | undefined
+    if (includeImage && showInitialsWithoutPhoto && !photoMetadata) {
+        avatar = (
+            <span className="linked-author-initials" aria-hidden="true">
+                <span className="linked-author-initials__letters">
+                    {getAuthorInitials(author.name)}
+                </span>
+            </span>
+        )
+    } else if (includeImage && author.featuredImage) {
+        // Without metadata, Image renders nothing, or an error in previews
+        avatar = (
             <Image
                 className="linked-author-image"
                 filename={author.featuredImage}
@@ -28,7 +49,8 @@ export default function LinkedAuthor({
                 containerType="author-byline"
                 shouldLightbox={false}
             />
-        ) : undefined
+        )
+    }
 
     const path = author.slug
         ? getCanonicalUrl(BASE_URL, {
@@ -39,7 +61,7 @@ export default function LinkedAuthor({
     return (
         <span>
             <a className={className} href={path}>
-                {image}
+                {avatar}
                 {author.name}
             </a>
             {role && ` (${role})`}

@@ -80,6 +80,7 @@ export {
     type PrimitiveType,
     DimensionProperty,
     type RelatedChart,
+    type RelatedChartTier,
     ToleranceStrategy,
     ScaleType,
     type Time,

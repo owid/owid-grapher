@@ -8,6 +8,7 @@ import {
     getAttributionWithProcessing,
     OwidColumnDef,
     getDateRange,
+    getDateRangeLabel,
     getIndicatorCitations,
     prepareSourcesForDisplay,
     formatDate,
@@ -112,8 +113,13 @@ export function* getKeyDataLines(
             markdownNewlineEnding
         )
 
-    const dateRange = def.timespan ? getDateRange(def.timespan) : undefined
-    if (dateRange) yield `Date range: ${dateRange}` + markdownNewlineEnding
+    const timespan = def.timespan
+    const dateRange = timespan ? getDateRange(timespan) : undefined
+    if (timespan && dateRange)
+        yield (
+            `${getDateRangeLabel(timespan)}: ${dateRange}` +
+                markdownNewlineEnding
+        )
 
     const unit = def.unit
     if (unit) yield `Unit: ${unit}` + markdownNewlineEnding

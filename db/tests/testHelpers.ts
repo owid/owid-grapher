@@ -5,6 +5,7 @@ import {
     ChartRevisionsTableName,
     ChartSlugRedirectsTableName,
     ChartsTableName,
+    ChartTagsTableName,
     DatasetsTableName,
     AdminApiKeysTableName,
     DbInsertChart,
@@ -27,6 +28,7 @@ import {
     PostsGdocsComponentsTableName,
     PostsGdocsLinksTableName,
     PostsGdocsTableName,
+    RelatedChartsTableName,
     SourcesTableName,
     StaticVizTableName,
     TagGraphTableName,
@@ -53,6 +55,8 @@ export const TABLES_IN_USE = [
     ExplorerVariablesTableName,
     ExplorersTableName,
     JobsTableName,
+    RelatedChartsTableName, // Must come before ChartsTableName due to foreign keys
+    ChartTagsTableName, // Must come before ChartsTableName and TagsTableName due to foreign keys
     ChartsTableName,
     OriginsVariablesTableName, // Must come before VariablesTableName and OriginsTableName due to foreign keys
     VariablesTableName, // Must come before SourcesTableName due to foreign key

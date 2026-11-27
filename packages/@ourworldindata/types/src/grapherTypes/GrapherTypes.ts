@@ -102,7 +102,15 @@ export interface RelatedChart extends BasicChartInformation {
     chartId: number
     keyChartLevel?: KeyChartLevel
     archiveContext?: ArchiveContext | undefined
+    /** Which fallback tier supplied the chart on a data page */
+    tier?: RelatedChartTier
 }
+
+export type RelatedChartTier =
+    | "coviews"
+    | "primary-topic"
+    | "other-topics"
+    | "site-wide"
 export enum DimensionProperty {
     y = "y",
     x = "x",

@@ -6,10 +6,12 @@ import LinkedAuthor from "./LinkedAuthor.js"
 export default function AvatarByline({
     authors,
     authorRoles,
+    showInitialsWithoutPhoto,
     className,
 }: {
     authors: string[]
     authorRoles?: Record<string, string>
+    showInitialsWithoutPhoto?: boolean
     /** Layout hooks the caller owns — margins, z-index — not type or colour. */
     className?: string
 }) {
@@ -23,6 +25,7 @@ export default function AvatarByline({
                     name={name}
                     role={authorRoles?.[name]}
                     includeImage={true}
+                    showInitialsWithoutPhoto={showInitialsWithoutPhoto}
                 />
             ))}
         </div>

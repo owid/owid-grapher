@@ -903,11 +903,21 @@ export async function getOwnersForVariables(
     )
 
     return rows
-        .map((row) => ({
-            datasetId: row.id,
-            datasetName: row.name,
-            owners: row.owners ? (JSON.parse(row.owners) as string[]) : [],
-        }))
+        .map((row) => {
+            // Free-form JSON: a non-list here would fail the bake of the
+            // dataset's pages
+            const parsed: unknown = row.owners ? JSON.parse(row.owners) : []
+            return {
+                datasetId: row.id,
+                datasetName: row.name,
+                owners: Array.isArray(parsed)
+                    ? parsed.filter(
+                          (owner): owner is string =>
+                              typeof owner === "string" && owner !== ""
+                      )
+                    : [],
+            }
+        })
         .filter((dataset) => dataset.owners.length > 0)
 }
 

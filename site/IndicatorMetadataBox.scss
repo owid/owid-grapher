@@ -1,18 +1,18 @@
 .indicator-metadata-box {
-    padding: 24px;
-    background-color: $blue-5;
+    --indicator-metadata-box-padding: 24px;
+    padding: var(--indicator-metadata-box-padding);
+    background-color: $gray-5;
     grid-template-columns: repeat(12, 1fr);
     grid-column-start: 2;
     grid-column-end: span 12;
-    // Compensate for neighbour element padding from V1 datapage
-    margin-top: -104px;
+    margin-top: 16px;
     margin-right: -6px;
     margin-bottom: 48px;
     @include sm-only {
-        margin-top: -56px;
         margin-right: -8px;
         margin-left: -8px;
-        margin-bottom: 32px;
+        margin-bottom: 16px;
+        --indicator-metadata-box-padding: 16px;
     }
 }
 
@@ -24,7 +24,7 @@
     }
 }
 
-.indicator-metadata-box .metadata-box-expander {
+.indicator-metadata-box .indicator-metadata-box__expander--has-preview {
     border-top: 1px solid $blue-20;
     margin-top: 16px;
 }
@@ -33,62 +33,370 @@
     margin-top: 16px;
 }
 
-.indicator-metadata-box .metadata-box-expander__summary {
-    @include body-2-semibold;
-    margin-left: -24px;
-    margin-bottom: -24px;
-    width: calc(100% + 48px);
-    padding: 16px;
-    @include note-13-medium;
-    color: $blue-50;
-    text-align: center;
-    transition: background-color 0.15s;
+.indicator-metadata-box .metadata-box-expander__prose {
+    p,
+    ul,
+    ol {
+        @include body-3-regular;
+    }
 
-    &:hover {
-        background-color: $blue-20;
+    li:last-child {
+        margin-bottom: 0;
     }
 }
 
+.indicator-metadata-box
+    .metadata-box-section:first-of-type
+    .metadata-box-section__title {
+    margin-top: 32px;
+}
+
+.indicator-metadata-box .metadata-box-section__title {
+    margin-bottom: 8px;
+}
+
+.indicator-metadata-box .indicator-metadata-box__description-key-title {
+    @include body-2-bold-tight;
+    color: $blue-90;
+    margin: 0 0 8px;
+}
+
+// Outranks the shared `align-self: start`, so the whole strip is clickable
+.indicator-metadata-box
+    .metadata-box-expander
+    details
+    .metadata-box-expander__summary {
+    align-self: stretch;
+}
+
+.indicator-metadata-box .metadata-box-expander__summary {
+    @include body-3-medium;
+    color: $blue-50;
+    padding: 12px var(--indicator-metadata-box-padding);
+    margin: 12px calc(-1 * var(--indicator-metadata-box-padding))
+        calc(-1 * var(--indicator-metadata-box-padding));
+
+    &:hover {
+        color: $blue-90;
+    }
+}
+
+.indicator-metadata-box .metadata-box-expander__prose,
+.indicator-metadata-box .indicator-metadata-box__producer-docs,
+.indicator-metadata-box .indicator-sources .source .description,
+.indicator-metadata-box .indicator-metadata-box__processing-notes {
+    li > ul,
+    li > ol {
+        margin: 8px 0 0;
+    }
+
+    li > ul {
+        list-style-type: disc;
+    }
+}
+
+.indicator-metadata-box .metadata-box-expander__chevron {
+    font-size: 0.75rem;
+    width: 12px;
+    margin-left: 4px;
+    top: 0;
+}
+
+.indicator-metadata-box__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 16px;
+}
+
 .indicator-metadata-box__title {
+    @include h3-bold;
     margin: 0;
     color: $blue-90;
-    max-width: calc(100% - 104px);
+
+    @include sm-only {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        column-gap: 8px;
+    }
 }
 
 .indicator-metadata-box__title-variant {
-    @include note-13-medium;
+    @include body-3-regular;
     margin-left: 8px;
     color: $blue-50;
+
+    @include sm-only {
+        margin-left: 0;
+        line-height: 1.2;
+    }
 }
 
-.indicator-metadata-box__reuse-notice {
+// The toggle button's hit area covers the whole title row
+.indicator-metadata-box__header {
+    position: relative;
+}
+
+.indicator-metadata-box .metadata-box-toggle-button::after {
+    content: "";
+    position: absolute;
+    inset: calc(-1 * var(--indicator-metadata-box-padding))
+        calc(-1 * var(--indicator-metadata-box-padding)) 0;
+}
+
+// On phones the label is for screen readers only (as .sr-only)
+@include sm-only {
+    .indicator-metadata-box .metadata-box-toggle-button > span {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+    }
+
+    .indicator-metadata-box__header {
+        gap: 0;
+    }
+
+    // With the label hidden, focus rings the row
+    .indicator-metadata-box .metadata-box-toggle-button:focus-visible {
+        outline: none;
+
+        &::after {
+            outline: 2px solid $blue-60;
+            outline-offset: -2px;
+        }
+    }
+}
+
+// Until the box opens, phones preview only the first key point
+@include sm-only {
+    .indicator-metadata-box
+        .metadata-box-expander:has(
+            > .metadata-box-expander__details:not([open])
+        )
+        .metadata-box-expander__preview {
+        > .indicator-metadata-box__description-key-title + * ~ * {
+            display: none;
+        }
+
+        > .indicator-metadata-box__description-key-title + :is(ul, ol) > li {
+            &:nth-child(n + 2),
+            &:first-child > :is(ul, ol) {
+                display: none;
+            }
+
+            &:first-child {
+                margin-bottom: 0;
+            }
+        }
+    }
+}
+
+.indicator-metadata-box .metadata-box-key-data {
+    margin-top: 8px;
+    gap: 8px 24px;
+}
+
+.indicator-metadata-box
+    .indicator-metadata-box__data-details
+    .metadata-box-key-data {
+    margin-top: 0;
+}
+
+.indicator-metadata-box .metadata-box-key-data__key,
+.indicator-metadata-box .metadata-box-key-data__value {
+    @include body-3-regular;
+}
+
+.indicator-metadata-box .avatar-byline {
+    @include body-3-regular;
+    gap: 4px 8px;
+}
+
+.indicator-metadata-box .avatar-byline__author {
+    gap: 6px;
+}
+
+.indicator-metadata-box .linked-author-image {
+    flex-shrink: 0;
+}
+
+.indicator-metadata-box .metadata-box-key-data__row--full-width p + p {
+    margin-top: 8px;
+}
+
+@include sm-up {
+    .indicator-metadata-box .metadata-box-key-data {
+        align-items: baseline;
+    }
+
+    .indicator-metadata-box
+        .metadata-box-key-data__row:not(
+            .metadata-box-key-data__row--full-width
+        ) {
+        display: block;
+
+        > .metadata-box-key-data__key {
+            display: inline;
+            margin-right: 4px;
+        }
+
+        > .metadata-box-key-data__value {
+            display: inline;
+        }
+    }
+
+    // Aligns the label with the 24px photos
+    .indicator-metadata-box
+        .metadata-box-key-data__row.indicator-metadata-box__managed-by {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+
+        > .metadata-box-key-data__key {
+            margin-right: 0;
+            line-height: 24px;
+        }
+    }
+}
+
+.indicator-metadata-box .indicator-metadata-box__reuse-notice {
     margin-top: 32px;
+    margin-bottom: 0;
     @include note-13-medium;
+    color: $blue-60;
     a {
-        @include owid-link-90;
+        @include owid-link-60;
+    }
+    > p {
+        margin: 16px 0 0;
     }
     > p:first-child {
         margin-top: 0;
     }
-    > p:last-child {
-        margin-bottom: 16px;
+}
+
+.indicator-metadata-box details.ExpandableToggle {
+    > .ExpandableToggle__container .ExpandableToggle__button {
+        --button: #{$blue-60};
+    }
+
+    &[open] > .ExpandableToggle__container .ExpandableToggle__button {
+        --title: #{$blue-90};
+        --button: #{$blue-90};
+        padding-bottom: 0;
+    }
+
+    &[open] > .ExpandableToggle__content {
+        padding: 1.5em 16px 24px;
     }
 }
 
-// Restore list indentation lost to the global `ul, ol { padding: 0 }` reset
-// (e.g. /grapher/co2-emissions-transport, "Documentation from data sources").
-.indicator-metadata-box__producer-docs {
+.indicator-metadata-box details.ExpandableToggle,
+.indicator-metadata-box .indicator-sources div.NonExpandable {
+    border-top: none;
+    border-bottom: 1px solid var(--border);
+
+    // Outranks the shared rule that drops the border between neighbours. Kept
+    // separate so browsers without :has() still apply the rule above.
+    &:has(+ .ExpandableToggle, + .NonExpandable) {
+        border-bottom: 1px solid var(--border);
+    }
+}
+
+.indicator-metadata-box
+    details.ExpandableToggle
+    .ExpandableToggle__button
+    .ExpandableToggle__title {
+    line-height: calc(22 / 16);
+    text-wrap: balance;
+}
+
+.indicator-metadata-box .ExpandableToggle__content a {
+    @include owid-link-60;
+}
+
+.indicator-metadata-box .indicator-sources .source .description {
+    margin-bottom: 24px;
+}
+
+.indicator-metadata-box .indicator-sources div.NonExpandable {
+    padding: 16px;
+
+    .NonExpandable__title {
+        margin-bottom: 21px;
+        text-wrap: balance;
+    }
+}
+
+// Headings in FAQ answers (e.g. share-of-population-in-extreme-poverty), which
+// include the processing notes, and in the other markdown from the ETL
+.indicator-metadata-box .metadata-box-section--faqs .ExpandableToggle__content,
+.indicator-metadata-box .indicator-metadata-box__producer-docs,
+.indicator-metadata-box .indicator-sources .source .description {
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        @include body-3-bold;
+        color: $blue-90;
+        margin: 1.5em 0 0;
+    }
+}
+
+// The toggle's padding already spaces an answer that opens with a heading
+.indicator-metadata-box .metadata-box-section--faqs .ExpandableToggle__content {
+    :is(h1, h2, h3, h4, h5, h6):first-child {
+        margin-top: 0;
+    }
+}
+
+.indicator-metadata-box .indicator-sources .source-key-data-blocks {
+    grid-template-columns: minmax(0, 1fr);
+
+    .source-key-data--span-2 {
+        grid-column: auto;
+    }
+}
+
+.indicator-metadata-box .indicator-metadata-box__producer-docs,
+.indicator-metadata-box .indicator-sources .source .description,
+.indicator-metadata-box .indicator-metadata-box__processing-notes {
+    // The content's first-child reset can't reach through this wrapper
+    > :first-child {
+        margin-top: 0;
+    }
+
+    > :last-child {
+        margin-bottom: 0;
+    }
+
+    p {
+        margin: 0 0 1.5em;
+    }
+
+    // Restores the indent the global `ul, ol { padding: 0 }` reset removes
+    // (e.g. co2-emissions-transport)
     ul,
     ol {
         padding-left: 1.5em;
-        margin: 1em 0;
+        margin: 0 0 1.5em;
+    }
 
-        li {
-            margin-bottom: 1em;
+    li {
+        margin: 0 0 8px;
 
-            &:last-child {
-                margin-bottom: 0;
-            }
+        &:last-child {
+            margin-bottom: 0;
         }
+    }
+
+    // Loose markdown lists wrap items in a paragraph (e.g. population-density)
+    li > p {
+        margin: 0;
     }
 }

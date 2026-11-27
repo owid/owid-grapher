@@ -1511,6 +1511,45 @@ export async function getMinimalAuthorsByNames(
     )
 }
 
+export interface TeamPagePhoto {
+    name: string
+    image: string
+    updatedAt: Date
+}
+
+export async function getTeamPagePhotos(
+    knex: db.KnexReadonlyTransaction
+): Promise<TeamPagePhoto[]> {
+    const teamPage = await db.knexRawFirst<{
+        body: string | null
+        updatedAt: Date
+    }>(
+        knex,
+        `-- sql
+            SELECT
+                content->'$.body' AS body,
+                COALESCE(NULLIF(updatedAt, '1970-01-01'), createdAt) updatedAt
+            FROM posts_gdocs
+            WHERE type = :type AND slug = 'team' AND published = 1`,
+        { type: OwidGdocType.AboutPage }
+    )
+    if (!teamPage?.body) return []
+
+    const photos: TeamPagePhoto[] = []
+    const body: OwidEnrichedGdocBlock[] = JSON.parse(teamPage.body)
+    for (const block of body) {
+        traverseEnrichedBlock(block, (node) => {
+            if (node.type === "person" && node.image)
+                photos.push({
+                    name: node.name,
+                    image: node.image,
+                    updatedAt: teamPage.updatedAt,
+                })
+        })
+    }
+    return photos
+}
+
 export async function makeGrapherLinkedChart(
     knex: db.KnexReadonlyTransaction,
     config: GrapherInterface,

@@ -1,3 +1,5 @@
+import { DataPageDataV2 } from "@ourworldindata/types"
+
 interface MarkdownBlock {
     type: "heading" | "listItem" | "paragraph"
     lines: string[]
@@ -141,4 +143,19 @@ function splitBlocksAt(
 export function splitDescriptionKey(markdown: string): DescriptionKeySplit {
     const blocks = parseMarkdownBlocks(markdown)
     return splitBlocksAt(blocks, findPreviewEnd(blocks))
+}
+
+export function getProducerDocsLabel(
+    datapageData: Pick<DataPageDataV2, "attributionShort" | "origins">
+): string {
+    if (datapageData.attributionShort) return datapageData.attributionShort
+    const origins = datapageData.origins.filter((origin) => origin.producer)
+    const [producer, ...otherProducers] = new Set(
+        origins.map((origin) => origin.producer)
+    )
+    if (!producer || otherProducers.length > 0) return "Principal data source"
+    const shortNames = new Set(origins.map((origin) => origin.attributionShort))
+    const [shortName] = shortNames
+    if (shortNames.size === 1 && shortName) return shortName
+    return producer
 }

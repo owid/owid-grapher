@@ -7,7 +7,6 @@ import {
     excludeUndefined,
     mergeGrapherConfigs,
     Url,
-    isDataPageMetadataRedesignActive,
 } from "@ourworldindata/utils"
 import fs from "fs-extra"
 import {
@@ -44,10 +43,11 @@ import {
 } from "../db/model/Variable.js"
 import {
     fetchAndParseFaqs,
+    getLinkedAuthorsForOwners,
     getPrimaryTopic,
     resolveFaqsForVariable,
 } from "./DatapageHelpers.js"
-import { getMinimalAuthorsByNames } from "../db/model/Gdoc/GdocBase.js"
+import { getTeamPagePhotos, TeamPagePhoto } from "../db/model/Gdoc/GdocBase.js"
 import { getDatapageDataV2 } from "../site/dataPage.js"
 import { getAllImages } from "../db/model/Image.js"
 import { parseAndMigrateChartConfig } from "../db/model/ChartConfigs.js"
@@ -55,10 +55,7 @@ import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
 
 import { deleteOldGraphers } from "./GrapherBakingUtils.js"
 import { knexRaw } from "../db/db.js"
-import {
-    getRelatedChartsForVariable,
-    getRelatedChartsForChart,
-} from "../db/model/Chart.js"
+import { getRelatedChartCards } from "../db/model/RelatedChartCards.js"
 import { getAllMultiDimDataPageSlugs } from "../db/model/MultiDimDataPage.js"
 import pMap from "p-map"
 import { stringify } from "safe-stable-stringify"
@@ -72,10 +69,12 @@ const renderDatapageIfApplicable = async (
     {
         imageMetadataDictionary,
         archiveContextDictionary,
+        teamPagePhotos,
         forceDatapage,
     }: {
         imageMetadataDictionary?: Record<string, DbEnrichedImage>
         archiveContextDictionary?: Record<number, ArchiveContext | undefined>
+        teamPagePhotos?: TeamPagePhoto[]
         forceDatapage?: boolean
     } = {}
 ) => {
@@ -103,6 +102,7 @@ const renderDatapageIfApplicable = async (
             pageGrapher: grapher,
             imageMetadataDictionary,
             archiveContextDictionary,
+            teamPagePhotos,
         },
         knex
     )
@@ -117,14 +117,17 @@ export const renderDataPageOrGrapherPage = async (
     {
         imageMetadataDictionary,
         archiveContextDictionary,
+        teamPagePhotos,
     }: {
         imageMetadataDictionary?: Record<string, DbEnrichedImage>
         archiveContextDictionary?: Record<number, ArchiveContext | undefined>
+        teamPagePhotos?: TeamPagePhoto[]
     } = {}
 ): Promise<string> => {
     const datapage = await renderDatapageIfApplicable(grapher, false, knex, {
         imageMetadataDictionary,
         archiveContextDictionary,
+        teamPagePhotos,
     })
     if (datapage) return datapage
     return renderGrapherPage(grapher, knex, {
@@ -144,6 +147,7 @@ export async function renderDataPageV2(
         pageGrapher,
         imageMetadataDictionary = {},
         archiveContextDictionary,
+        teamPagePhotos,
     }: {
         variableId: number
         variableMetadata: OwidVariableWithSource
@@ -152,6 +156,7 @@ export async function renderDataPageV2(
         pageGrapher?: GrapherInterface
         imageMetadataDictionary?: Record<string, ImageMetadata>
         archiveContextDictionary?: Record<number, ArchiveContext | undefined>
+        teamPagePhotos?: TeamPagePhoto[]
     },
     knex: db.KnexReadonlyTransaction
 ) {
@@ -206,10 +211,6 @@ export async function renderDataPageV2(
     const distribution = await getVariableDistribution(knex, variableIds)
     const datapageData = getDatapageDataV2(variableMetadata, grapher)
 
-    const datapageMetadataExperimentActive = grapher.slug
-        ? isDataPageMetadataRedesignActive(`/grapher/${grapher.slug}`)
-        : false
-
     datapageData.primaryTopic = await getPrimaryTopic(
         knex,
         datapageData.topicTagsLinks
@@ -217,64 +218,48 @@ export async function renderDataPageV2(
 
     let imageMetadata: Record<string, ImageMetadata> = {}
 
-    if (datapageMetadataExperimentActive) {
-        // Only show owners for the y-plotted variable(s). The x-dimension is
-        // usually GDP per capita or population (scatterplots/Marimekkos), and
-        // since we only surface the first dataset's owners, including it risks
-        // showing the owners of the wrong dataset.
-        const ownerVariableIds = _.uniq(
-            _.compact(
-                grapher.dimensions
-                    .filter(({ property }) => property === DimensionProperty.y)
-                    .map(({ variableId }) => variableId)
-            )
+    // y-indicators only: the x is usually GDP or population, and only the first
+    // dataset's owners are shown
+    const ownerVariableIds = _.uniq(
+        _.compact(
+            grapher.dimensions
+                .filter(({ property }) => property === DimensionProperty.y)
+                .map(({ variableId }) => variableId)
         )
-        datapageData.owners = await getOwnersForVariables(
-            knex,
-            ownerVariableIds
-        )
+    )
+    datapageData.owners = await getOwnersForVariables(knex, ownerVariableIds)
 
-        const ownerNames = _.uniq(
-            (datapageData.owners ?? []).flatMap((dataset) => dataset.owners)
-        )
-        datapageData.linkedAuthors = await getMinimalAuthorsByNames(
-            knex,
-            ownerNames
-        )
-    }
-
+    const ownerNames = _.uniq(
+        datapageData.owners.flatMap((dataset) => dataset.owners)
+    )
     const archiveContext =
         grapher.id !== undefined
             ? archiveContextDictionary?.[grapher.id]
             : undefined
 
+    datapageData.linkedAuthors = await getLinkedAuthorsForOwners(
+        knex,
+        ownerNames,
+        {
+            teamPagePhotos,
+            // Archive pages leave photos out
+            skipTeamPagePhotos: archiveContext?.type === "archive-page",
+        }
+    )
+
     // If we're baking to an archival page, then we want to skip a bunch of sections
     // where the links would break
     if (archiveContext?.type !== "archive-page") {
-        // Get the charts this variable is being used in (aka "related charts")
-        // and exclude the current chart to avoid duplicates
-        const allCharts = await getRelatedChartsForVariable(
-            knex,
-            variableId,
-            grapher && "id" in grapher ? [grapher.id as number] : [],
-            true
-        )
-        datapageData.allCharts = allCharts.map((chart) => ({
-            ...chart,
-            archiveContext: archiveContextDictionary?.[chart.chartId],
-        }))
-
-        if (datapageMetadataExperimentActive && grapher.id !== undefined) {
-            const relatedChartsByCoview = await getRelatedChartsForChart(
+        if (grapher.id !== undefined) {
+            const relatedCharts = await getRelatedChartCards(
                 knex,
-                grapher.id
+                grapher.id,
+                datapageData.topicTagsLinks ?? []
             )
-            datapageData.relatedChartsByCoview = relatedChartsByCoview.map(
-                (chart) => ({
-                    ...chart,
-                    archiveContext: archiveContextDictionary?.[chart.chartId],
-                })
-            )
+            datapageData.relatedCharts = relatedCharts.map((chart) => ({
+                ...chart,
+                archiveContext: archiveContextDictionary?.[chart.chartId],
+            }))
         }
 
         datapageData.relatedResearch =
@@ -284,11 +269,16 @@ export async function renderDataPageV2(
             .map((r) => r.imageUrl)
             .filter((f): f is string => !!f)
 
+        // Archived pages have no image assets, so managers show initials
+        const linkedAuthorFilenames = (datapageData.linkedAuthors ?? [])
+            .map((author) => author.featuredImage)
+            .filter((f): f is string => !!f)
+
         imageMetadata = {
             ...imageMetadata,
             ..._.pick(
                 imageMetadataDictionary,
-                _.uniq(relatedResearchFilenames)
+                _.uniq([...relatedResearchFilenames, ...linkedAuthorFilenames])
             ),
         }
     }
@@ -429,6 +419,7 @@ const bakeGrapherPage = async (
         await renderDataPageOrGrapherPage(grapher, knex, {
             imageMetadataDictionary: args.imageMetadataDictionary,
             archiveContextDictionary: args.archiveContextDictionary,
+            teamPagePhotos: args.teamPagePhotos,
         })
     )
 }
@@ -440,6 +431,7 @@ export interface BakeSingleGrapherChartArguments {
     slug: string
     imageMetadataDictionary: Record<string, DbEnrichedImage>
     archiveContextDictionary: Record<number, ArchiveContext | undefined>
+    teamPagePhotos: TeamPagePhoto[]
 }
 
 export const bakeSingleGrapherChart = async (
@@ -495,6 +487,7 @@ export const bakeAllChangedGrapherPagesAndDeleteRemovedGraphers = async (
             )
             const archiveContextDictionary =
                 await getLatestArchivedChartPageVersionsIfEnabled(knex)
+            const teamPagePhotos = await getTeamPagePhotos(knex)
 
             const jobs: BakeSingleGrapherChartArguments[] = chartsToBake.map(
                 (row) => ({
@@ -504,6 +497,7 @@ export const bakeAllChangedGrapherPagesAndDeleteRemovedGraphers = async (
                     slug: row.slug,
                     imageMetadataDictionary,
                     archiveContextDictionary,
+                    teamPagePhotos,
                 })
             )
             return { chartsToBake, jobs }

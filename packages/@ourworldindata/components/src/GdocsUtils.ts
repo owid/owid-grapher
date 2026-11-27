@@ -2,6 +2,7 @@ import {
     OwidGdoc,
     ContentGraphLinkType,
     OwidGdocType,
+    EnrichedBlockHeading,
 } from "@ourworldindata/types"
 import {
     spansToUnformattedPlainText,
@@ -70,6 +71,15 @@ export function getUrlTarget(urlString: string): string {
 
 export function convertHeadingTextToId(headingText: Span[]): string {
     return urlSlug(spansToUnformattedPlainText(headingText))
+}
+
+/** Supertitles only appear on h2 and h3, which prefix them to the id */
+export function getHeadingId(block: EnrichedBlockHeading): string {
+    if (block.supertitle && (block.level === 2 || block.level === 3))
+        return urlSlug(
+            `${spansToUnformattedPlainText(block.supertitle)}-${spansToUnformattedPlainText(block.text)}`
+        )
+    return convertHeadingTextToId(block.text)
 }
 
 export const getBakePath = (

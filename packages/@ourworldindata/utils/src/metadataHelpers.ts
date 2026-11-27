@@ -397,45 +397,42 @@ export const formatSourceDate = (
     return parsedDate.format(format)
 }
 
+/** The years of "1990-2020" or "2023" (BCE years negative), else null */
+const parseTimespan = (
+    timespan: string
+): { firstYear: number; lastYear: number } | null => {
+    const match = timespan.match(
+        /^\s*(?<first>-?\d+)\s*(?:(?:-|–)\s*(?<last>-?\d+)\s*)?$/
+    )
+    const first = match?.groups?.first
+    if (!first) return null
+    const last = match?.groups?.last ?? first
+    return { firstYear: parseInt(first, 10), lastYear: parseInt(last, 10) }
+}
+
+const isSingleYearTimespan = (timespan: string): boolean => {
+    const years = parseTimespan(timespan)
+    return !!years && years.firstYear === years.lastYear
+}
+
+export const getDateRangeLabel = (timespan: string): string =>
+    isSingleYearTimespan(timespan) ? "Year" : "Date range"
+
+const formatYear = (year: number, withEra = false): string =>
+    year < 0 ? `${Math.abs(year)} BCE` : withEra ? `${year} CE` : `${year}`
+
 export const getDateRange = (timespan: string): string | null => {
-    // This regex matches:
-    //   Beginning of string
-    //   Ignore whitespace
-    //   a named group called start that matches:
-    //     hyphen aka minus
-    //     1 or more digits
-    //   Ignore whitespace
-    //   hyphen aka minus OR en dash
-    //   Ignore whitespace
-    //   a named group called end that matches:
-    //     hyphen aka minus
-    //     1 or more digits
-    //   Ignore whitespace
-    //   End of string
-    const timespanRegex = /^\s*(?<start>(-)?\d+)\s*(-|–)\s*(?<end>(-)?\d+)\s*$/
-    const match = timespan.match(timespanRegex)
-    if (match) {
-        const firstYearString = match.groups?.start
-        const lastYearString = match.groups?.end
-        if (!firstYearString || !lastYearString) return null
+    const years = parseTimespan(timespan)
+    if (!years) return null
+    const { firstYear, lastYear } = years
 
-        const firstYear = parseInt(firstYearString, 10)
-        const lastYear = parseInt(lastYearString, 10)
-        let formattedFirstYear
+    if (firstYear === lastYear) return formatYear(firstYear)
 
-        // if start year is before year 0, add BCE to the end
-        if (firstYear < 0) formattedFirstYear = `${Math.abs(firstYear)} BCE`
-        else formattedFirstYear = firstYear
-
-        // if end year is before year 0, add BCE to the end or, if start year is after year 0, add CE to the end
-        let formattedLastYear
-        if (lastYear < 0) formattedLastYear = `${Math.abs(lastYear)} BCE`
-        else if (firstYear < 0) formattedLastYear = `${lastYear} CE`
-        else formattedLastYear = lastYear
-
-        if (lastYear < 0 || firstYear < 0)
-            return `${formattedFirstYear} – ${formattedLastYear}`
-        else return `${formattedFirstYear}–${formattedLastYear}`
-    }
-    return null
+    // "500 BCE – 2000 CE"
+    const spansEras = firstYear < 0 || lastYear < 0
+    const formattedRange = [
+        formatYear(firstYear),
+        formatYear(lastYear, firstYear < 0),
+    ]
+    return formattedRange.join(spansEras ? " – " : "–")
 }

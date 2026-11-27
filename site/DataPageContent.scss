@@ -77,6 +77,15 @@
         }
     }
 
+    // On data pages the metadata box follows the chart directly
+    .chart-key-info--chart-only {
+        padding-bottom: 0;
+
+        .GrapherWithFallback {
+            margin-bottom: 0;
+        }
+    }
+
     .full-width--border {
         border-bottom: 1px solid $blue-20;
     }
@@ -202,23 +211,19 @@
         color: $blue-90;
     }
 
+    .related-article__excerpt {
+        @include body-3-medium;
+        color: $blue-90;
+        margin: 4px 0 0;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 3;
+        line-clamp: 3;
+        overflow: hidden;
+    }
+
     .related-article__authors {
         color: $blue-50;
-    }
-
-    .section-wrapper__related-charts {
-        .related-charts {
-            margin-bottom: 0;
-        }
-
-        figure[data-grapher-src],
-        figure.grapher-component {
-            height: $grapher-height;
-        }
-    }
-
-    .related-charts__title {
-        @include datapage-section-title;
     }
 
     .wp-code-snippet {

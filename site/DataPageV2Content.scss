@@ -24,3 +24,14 @@
 .datapage-v2__related-charts-heading {
     color: $blue-90;
 }
+
+// On phones, the same 40px gap as above Related research and writing
+@include sm-only {
+    .indicator-metadata-box + .datapage-v2__related-charts-heading {
+        margin-top: 24px;
+    }
+}
+
+.DataPageContent .datapage-v2__download-section {
+    background-color: $gray-5;
+}
