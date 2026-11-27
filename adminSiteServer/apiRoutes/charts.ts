@@ -1627,11 +1627,12 @@ export async function deleteChart(
     }
 
     if (chart.isPublished) {
-        enqueueDeployChange(res.locals.user, `Deleting chart ${chart.slug}`)
         await deleteGrapherConfigFromR2(
             R2GrapherConfigDirectory.publishedGrapherBySlug,
             `${chart.slug}.json`
         )
+        // Last, so the transaction commits right after the request
+        enqueueDeployChange(res.locals.user, `Deleting chart ${chart.slug}`)
     }
 
     return { success: true }
