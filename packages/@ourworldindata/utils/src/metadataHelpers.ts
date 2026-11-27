@@ -331,9 +331,9 @@ const getCitationLong = ({
 }
 
 /**
- * The producers of several indicators' origins, each named once. An origin
- * can name several producers at once ("A; B"), which would otherwise repeat
- * the ones another indicator's origin names singly.
+ * The producers of the origins, each named once. An origin can name several
+ * at once ("A; B"), which would otherwise repeat the ones another origin
+ * names singly.
  */
 const getDistinctProducers = (origins: OwidOrigin[]): string[] =>
     _.uniq(
@@ -433,9 +433,7 @@ export const getIndicatorCitations = ({
     datapage: citationUrl
         ? getCitationDatapage({
               title: pageCitation?.title ?? indicatorTitle.title,
-              producers: pageCitation?.origins
-                  ? getDistinctProducers(pageCitation.origins)
-                  : _.uniq(origins.map((origin) => `${origin.producer}`)),
+              producers: getDistinctProducers(pageCitation?.origins ?? origins),
               source,
               primaryTopic,
               citationUrl,
