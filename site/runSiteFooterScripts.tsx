@@ -40,6 +40,11 @@ import { NewsletterSubscriptionContext } from "./newsletter.js"
 import { SUBSCRIBE_PAGE_FORM_CONTAINER_ID } from "@ourworldindata/types"
 import UserSurvey from "./gdocs/components/UserSurvey.js"
 import {
+    DATASET_PAGE_CONTENT_ROOT_ID,
+    DATASET_PAGE_PROPS_KEY,
+    DatasetPageContent,
+} from "./datasetPage/DatasetPageContent.js"
+import {
     SlideshowPresentation,
     _OWID_SLIDESHOW_PROPS,
 } from "./slideshows/SlideshowPresentation.js"
@@ -68,6 +73,14 @@ function hydrateSubscribePage() {
                 context={NewsletterSubscriptionContext.SubscribePage}
             />
         )
+    }
+}
+
+function hydrateDatasetPage() {
+    const container = document.getElementById(DATASET_PAGE_CONTENT_ROOT_ID)
+    const props = window[DATASET_PAGE_PROPS_KEY]
+    if (container && props) {
+        hydrateRoot(container, <DatasetPageContent {...props} />)
     }
 }
 
@@ -278,6 +291,7 @@ export const runSiteFooterScriptsForArchive = (args: SiteFooterScriptsArgs) => {
         case SiteFooterContext.searchPage:
         case SiteFooterContext.subscribePage:
         case SiteFooterContext.slideshowPage:
+        case SiteFooterContext.datasetPage:
         case undefined:
             console.error(
                 `runSiteFooterScriptsForArchive: context ${context} not supported`
@@ -318,6 +332,12 @@ export const runSiteFooterScripts = async (
             runCookiePreferencesManager()
             runUserSurveyWidget()
             void runDetailsOnDemand()
+            break
+        case SiteFooterContext.datasetPage:
+            hydrateDatasetPage()
+            runSiteNavigation({ hideDonationFlag, isPreviewing })
+            runSiteTools()
+            runCookiePreferencesManager()
             break
         case SiteFooterContext.explorerIndexPage:
             hydrateExplorerIndex()

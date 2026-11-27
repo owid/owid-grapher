@@ -206,6 +206,7 @@ export const GRAPHER_CONFIG_R2_BUCKET_PATH: string | undefined =
     serverSettings.GRAPHER_CONFIG_R2_BUCKET_PATH
 
 export const DATA_API_URL: string = clientSettings.DATA_API_URL
+export const DATASET_PAGES_URL: string = clientSettings.DATASET_PAGES_URL
 export const CATALOG_URL: string = clientSettings.CATALOG_URL
 
 export const FEATURE_FLAGS = clientSettings.FEATURE_FLAGS

@@ -20,6 +20,7 @@ import {
     renderGdocTombstone,
     renderExplorerIndexPage,
     renderSubscribePage,
+    renderDatasetPage,
     renderGdoc,
     renderSlideshowPage,
 } from "../baker/siteRenderers.js"
@@ -359,6 +360,21 @@ mockSiteRouter.get("/thank-you", async (req, res) =>
 
 mockSiteRouter.get("/subscribe", async (req, res) =>
     res.send(await renderSubscribePage())
+)
+
+// Prototype of a page for a whole dataset, e.g. /datasets/energy/owid_energy
+getPlainRouteWithROTransaction(
+    mockSiteRouter,
+    "/datasets/:namespace/:shortName",
+    async (req, res, trx) => {
+        const page = await renderDatasetPage(
+            trx,
+            req.params.namespace,
+            req.params.shortName
+        )
+        if (!page) throw new JsonError("No such dataset", 404)
+        res.send(page)
+    }
 )
 
 getPlainRouteWithROTransaction(
