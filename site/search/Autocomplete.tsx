@@ -50,7 +50,7 @@ import { SiteAnalytics } from "../SiteAnalytics.js"
 import * as Sentry from "@sentry/react"
 import { match } from "ts-pattern"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
-import { buildSynonymMap } from "./synonymUtils.js"
+import { getSynonymMap } from "./synonymUtils.js"
 import { SearchFilterPill } from "./SearchFilterPill.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faLineChart, faSearch } from "@fortawesome/free-solid-svg-icons"
@@ -526,7 +526,7 @@ export function Autocomplete({
     })
     const { allTopics } = useTagGraphTopics(topicTagGraph)
 
-    const synonymMap = useMemo(() => buildSynonymMap(), [])
+    const synonymMap = getSynonymMap()
     const recentSearchesPlugin = useMemo(() => buildRecentSearchesPlugin(), [])
     const debouncedResolveSources = useMemo(
         () =>

@@ -10,14 +10,15 @@ import {
     getRelativeMouse,
     roundForSvg,
 } from "@ourworldindata/utils"
-import { ChartLabelMode, SideWidths, Time } from "@ourworldindata/types"
+import { SideWidths, Time } from "@ourworldindata/types"
 import { ChartInterface } from "../chart/ChartInterface"
 import { LineChartState } from "./LineChartState"
 import { LineChartProps } from "./LineChart.js"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import {
     CATEGORICAL_LEGEND_STYLE,
-    LINE_STYLE,
+    THUMBNAIL_LINE_STYLE,
+    THUMBNAIL_NAME_LABEL_MAX_WIDTH_SHARE,
     LINE_CHART_CLASS_NAME,
     LineChartManager,
     LineChartSeries,
@@ -38,7 +39,10 @@ import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { Lines } from "./Lines"
 import {
     findClosestTimeAtMouse,
+    getSeriesLabelText,
     getYAxisConfigDefaults,
+    SeriesLabelText,
+    SeriesLabelTextBySide,
     toPlacedLineChartSeries,
     toRenderLineChartSeries,
 } from "./LineChartHelpers"
@@ -59,6 +63,7 @@ import {
     isTargetOutsideElement,
     scaleFontSize,
 } from "../chart/ChartUtils"
+import { getAxisTextOverrides } from "../chart/VisibleChartLabels"
 import { TooltipState } from "../tooltip/Tooltip"
 import { LineChartTooltip } from "./LineChartTooltip"
 import { LineChartActiveTimeMarkers } from "./LineChartActiveTimeMarkers"
@@ -115,7 +120,14 @@ export class LineChartThumbnail
     @computed private get xAxisConfig(): AxisConfig {
         const { xAxisConfig } = this.manager
         const custom = { labelPadding: 0, tickPadding: 2 }
-        return new AxisConfig({ ...custom, ...xAxisConfig }, this)
+        return new AxisConfig(
+            {
+                ...custom,
+                ...xAxisConfig,
+                ...getAxisTextOverrides(this.manager.labelMode),
+            },
+            this
+        )
     }
 
     @computed private get horizontalAxisPart(): HorizontalAxis {
@@ -279,7 +291,8 @@ export class LineChartThumbnail
 
     @computed
     private get endLabelCandidateSeries(): readonly LineChartSeries[] {
-        if (!this.manager.showSeriesLabels) return []
+        if (!this.manager.showSeriesLabels || !this.seriesLabelText.end)
+            return []
 
         let labelCandidateSeries = this.chartState.series
 
@@ -287,12 +300,6 @@ export class LineChartThumbnail
         if (this.hasProjectedSeries)
             labelCandidateSeries = labelCandidateSeries.filter(
                 (series) => series.isProjection
-            )
-
-        // If any series is focused, only show the labels for the focused ones
-        if (this.chartState.isFocusModeActive)
-            labelCandidateSeries = labelCandidateSeries.filter(
-                (series) => series.focus.active
             )
 
         // Keep one series per name, the one with the most recent data
@@ -329,7 +336,10 @@ export class LineChartThumbnail
                 if (!endPoint) return undefined
 
                 const value = endPoint.y
-                const label = this.formatLabel(value)
+                const label =
+                    this.seriesLabelText.end === "name"
+                        ? series.displayName
+                        : this.formatLabel(value)
 
                 const color = this.chartState.hasColorScale
                     ? darkenColorForLine(
@@ -355,7 +365,8 @@ export class LineChartThumbnail
     }: {
         dualAxis: DualAxis
     }): AnchoredLabelsState | undefined {
-        if (!this.manager.showSeriesLabels) return undefined
+        if (!this.manager.showSeriesLabels || !this.seriesLabelText.end)
+            return undefined
 
         const series = this.endLabelsSeries.map((series) => {
             const endPoint = this.endPointBySeriesName.get(series.seriesName)
@@ -370,6 +381,7 @@ export class LineChartThumbnail
 
         return new AnchoredLabelsState(series, {
             ...this.labelFontSettings,
+            maxWidth: this.labelsMaxWidth(this.seriesLabelText.end),
             textAnchor: "start",
             xRange: dualAxis.innerBounds.xRange(),
             yRanges: {
@@ -391,7 +403,8 @@ export class LineChartThumbnail
 
     @computed
     private get startLabelCandidateSeries(): readonly LineChartSeries[] {
-        if (!this.manager.showSeriesLabels) return []
+        if (!this.manager.showSeriesLabels || !this.seriesLabelText.start)
+            return []
 
         let labelCandidateSeries = this.chartState.series
 
@@ -399,12 +412,6 @@ export class LineChartThumbnail
         if (this.hasProjectedSeries)
             labelCandidateSeries = labelCandidateSeries.filter(
                 (series) => !series.isProjection
-            )
-
-        // If any series is focused, only show the labels for the focused ones
-        if (this.chartState.isFocusModeActive)
-            labelCandidateSeries = labelCandidateSeries.filter(
-                (series) => series.focus.active
             )
 
         // Keep one series per name, the one with the earliest data
@@ -424,14 +431,14 @@ export class LineChartThumbnail
         )
     }
 
-    @computed private get shouldShowValueLabelsOnly(): boolean {
-        return this.manager.labelMode === ChartLabelMode.Values
+    @computed private get seriesLabelText(): SeriesLabelTextBySide {
+        return getSeriesLabelText(this.manager.labelMode)
     }
 
-    @computed private get startLabelsMaxWidth(): number | undefined {
-        return this.shouldShowValueLabelsOnly
-            ? undefined
-            : 0.25 * this.bounds.width
+    private labelsMaxWidth(text?: SeriesLabelText): number {
+        return text === "name"
+            ? THUMBNAIL_NAME_LABEL_MAX_WIDTH_SHARE * this.bounds.width
+            : Infinity
     }
 
     @computed private get startLabelsSeries(): Omit<
@@ -449,9 +456,10 @@ export class LineChartThumbnail
                 if (!startPoint) return undefined
 
                 const value = startPoint.y
-                const label = this.shouldShowValueLabelsOnly
-                    ? this.formatLabel(value)
-                    : series.displayName
+                const label =
+                    this.seriesLabelText.start === "name"
+                        ? series.displayName
+                        : this.formatLabel(value)
 
                 const color = this.chartState.hasColorScale
                     ? darkenColorForLine(
@@ -479,7 +487,11 @@ export class LineChartThumbnail
         dualAxis: DualAxis
         visibleEndLabels: Set<SeriesName>
     }): AnchoredLabelsState | undefined {
-        if (!this.manager.showSeriesLabels || this.manager.hideStartValueLabel)
+        if (
+            !this.manager.showSeriesLabels ||
+            !this.seriesLabelText.start ||
+            this.manager.hideStartValueLabel
+        )
             return undefined
 
         // In relative mode, the start label is trivially 0%,
@@ -503,7 +515,7 @@ export class LineChartThumbnail
 
         return new AnchoredLabelsState(series, {
             ...this.labelFontSettings,
-            maxWidth: this.startLabelsMaxWidth,
+            maxWidth: this.labelsMaxWidth(this.seriesLabelText.start),
             textAnchor: "end",
             xRange: dualAxis.innerBounds.xRange(),
             labelPadding: this.labelPadding,
@@ -750,6 +762,7 @@ export class LineChartThumbnail
                     lineStrokeWidth={1.5}
                     lineOutlineWidth={0}
                     isStatic={this.manager.isStatic}
+                    styleByEmphasis={THUMBNAIL_LINE_STYLE}
                 />
                 {this.visibleStartPoints.map((point, index) => (
                     <Dot key={index} point={point} radius={this.dotRadius} />
@@ -841,7 +854,7 @@ function Dot({
             cy={roundForSvg(point.y)}
             r={roundForSvg(radius)}
             fill={point.color}
-            opacity={LINE_STYLE[point.emphasis].opacity}
+            opacity={THUMBNAIL_LINE_STYLE[point.emphasis].opacity}
         />
     )
 }

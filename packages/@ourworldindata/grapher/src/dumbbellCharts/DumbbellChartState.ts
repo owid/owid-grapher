@@ -39,6 +39,7 @@ import {
     SortKeyFn,
     sortByColumnValue,
 } from "../chart/ChartUtils"
+import { getVisibleLabels } from "../chart/VisibleChartLabels"
 import { selectEntityAnnotation } from "../annotations/EntityAnnotations"
 
 export class DumbbellChartState implements ChartState {
@@ -146,6 +147,8 @@ export class DumbbellChartState implements ChartState {
     }
 
     @computed get valueLabelMode(): DumbbellValueLabelMode {
+        if (!getVisibleLabels(this.manager.labelMode).values)
+            return DumbbellValueLabelMode.None
         return (
             this.manager.dumbbell?.valueLabelMode ??
             DUMBBELL_CHART_CONFIG_DEFAULTS.valueLabelMode

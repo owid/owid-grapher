@@ -8,8 +8,11 @@ import { DualAxis } from "../axis/Axis"
 import { Bounds, roundForSvg } from "@ourworldindata/utils"
 import { Halo } from "@ourworldindata/components"
 
+const LABEL_LEFT_PADDING = 2
+
 interface MarimekkoInternalLabelsProps {
     series: PlacedMarimekkoSeries[]
+    focusedEntityNames?: ReadonlySet<string>
     dualAxis: DualAxis
     fontSize: number
     labelPadding: number
@@ -19,6 +22,7 @@ interface PlacedInternalLabel {
     bounds: Bounds
     label: string
     color: string
+    fontWeight: number
 }
 
 @observer
@@ -40,16 +44,22 @@ export class MarimekkoInternalLabels extends React.Component<MarimekkoInternalLa
             .map((series) => {
                 if (series.yPoint === undefined) return undefined
 
-                const x = series.barX
+                const x = series.barX + LABEL_LEFT_PADDING
                 const y =
                     series.barY - series.barHeight - this.props.labelPadding
 
                 const label = series.shortEntityName ?? series.entityName
+                const fontWeight = this.props.focusedEntityNames?.has(
+                    series.entityName
+                )
+                    ? 700
+                    : 400
                 const bounds = Bounds.forText(label, {
                     fontSize: this.props.fontSize,
+                    fontWeight,
                 }).set({ x, y })
 
-                return { bounds, label, color: series.color }
+                return { bounds, label, color: series.color, fontWeight }
             })
             .filter((label) => label !== undefined)
     }
@@ -88,18 +98,21 @@ export class MarimekkoInternalLabels extends React.Component<MarimekkoInternalLa
 
         return (
             <g>
-                {this.visibleLabels.map(({ label, bounds, color }) => (
-                    <Halo key={label} id={label} outlineWidth={2}>
-                        <text
-                            x={roundForSvg(bounds.x)}
-                            y={roundForSvg(bounds.y)}
-                            fontSize={this.props.fontSize}
-                            fill={color}
-                        >
-                            {label}
-                        </text>
-                    </Halo>
-                ))}
+                {this.visibleLabels.map(
+                    ({ label, bounds, color, fontWeight }) => (
+                        <Halo key={label} id={label} outlineWidth={2}>
+                            <text
+                                x={roundForSvg(bounds.x)}
+                                y={roundForSvg(bounds.y)}
+                                fontSize={this.props.fontSize}
+                                fontWeight={fontWeight}
+                                fill={color}
+                            >
+                                {label}
+                            </text>
+                        </Halo>
+                    )
+                )}
             </g>
         )
     }

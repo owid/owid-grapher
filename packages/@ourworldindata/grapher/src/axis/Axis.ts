@@ -662,13 +662,14 @@ abstract class AbstractAxis {
                 this.axisManager?.detailsOrderedByReference,
         }
 
-        const axisLabel = makeAxisLabel({
+        const { mainLabel, unit: labelUnit } = makeAxisLabel({
             label: this.label,
             displayUnit: this.formatColumn?.displayUnit,
         })
+        const unit = this.config.hideLabelUnit ? undefined : labelUnit
 
         const mainLabelFragment = {
-            text: axisLabel.mainLabel,
+            text: mainLabel,
             fontWeight: 700,
             markdown: true,
         }
@@ -677,10 +678,10 @@ abstract class AbstractAxis {
             ? "log axis"
             : "plotted on a logarithmic axis"
 
-        if (axisLabel.unit) {
+        if (unit) {
             const secondaryText = this.isLogScale
-                ? `(${axisLabel.unit}; ${logScaleNotice})`
-                : `(${axisLabel.unit})`
+                ? `(${unit}; ${logScaleNotice})`
+                : `(${unit})`
             return new TextWrapGroup({
                 fragments: [mainLabelFragment, { text: secondaryText }],
                 ...textWrapProps,
@@ -695,7 +696,7 @@ abstract class AbstractAxis {
         }
 
         return new MarkdownTextWrap({
-            text: axisLabel.mainLabel,
+            text: mainLabel,
             fontWeight: 700,
             ...textWrapProps,
         })
@@ -840,6 +841,8 @@ export class HorizontalAxis extends AbstractAxis {
      * whether there are labels don't pay for the layout computation.
      */
     @computed private get hasTickLabels(): boolean {
+        if (this.config.hideTickLabels) return false
+
         // A sub-yearly time axis picks its ticks before the generic
         // pipeline below gets a say
         const interval = this.timeTickInterval
@@ -967,6 +970,7 @@ export class VerticalAxis extends AbstractAxis {
         } = this
 
         if (hideAxis) return 0
+        if (this.config.hideTickLabels) return minSize
 
         const maxTickWidth = _.max(this.tickLabels.map((tick) => tick.width))
         const paddedTickWidth = maxTickWidth ? maxTickWidth + tickPadding : 0

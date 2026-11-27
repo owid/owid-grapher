@@ -42,6 +42,7 @@ import {
     InapplicablePattern,
 } from "./MapComponents"
 import { NoDataPattern } from "../chart/ChartUtils"
+import { getVisibleLabels } from "../chart/VisibleChartLabels"
 import { Patterns, makePatternId } from "../core/GrapherConstants"
 import {
     detectNearbyFeature,
@@ -257,6 +258,7 @@ export class ChoroplethMap extends React.Component<{
 
     @computed private get shouldShowAnnotations(): boolean {
         return !!(
+            getVisibleLabels(this.manager.labelMode).values &&
             this.manager.mapColumn.hasNumberFormatting &&
             !this.mapConfig.tooltipUseCustomLabels
         )

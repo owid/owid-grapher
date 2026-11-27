@@ -1,5 +1,4 @@
 import React from "react"
-import * as _ from "lodash-es"
 import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { ChartInterface } from "../chart/ChartInterface"
@@ -11,7 +10,7 @@ import {
     RenderMarimekkoSeries,
 } from "./MarimekkoChartConstants"
 import { Bounds } from "@ourworldindata/utils"
-import { ChartLabelMode } from "@ourworldindata/types"
+import { EntityName } from "@ourworldindata/types"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { AxisConfig } from "../axis/AxisConfig"
 import {
@@ -19,6 +18,7 @@ import {
     DEFAULT_GRAPHER_BOUNDS,
 } from "../core/GrapherConstants"
 import { scaleFontSize } from "../chart/ChartUtils"
+import { getVisibleLabels } from "../chart/VisibleChartLabels"
 import { MarimekkoBars } from "./MarimekkoBars"
 import { DualAxisComponent } from "../axis/AxisViews"
 import {
@@ -54,14 +54,8 @@ export class MarimekkoChartThumbnail
     }
 
     @computed get innerBounds(): Bounds {
-        return (
-            this.bounds
-                // Allow internal labels to eat into the thumbnail padding
-                .padTop(this.labelHeight ? this.labelHeight - 6 : 0)
-                // Add some bottom padding since the y-axis tick labels are
-                // center-aligned and eat into the thumbnail padding
-                .padBottom(this.shouldShowVerticalAxis ? 6 : 0)
-        )
+        // Allow internal labels to eat into the thumbnail padding
+        return this.bounds.padTop(this.labelHeight ? this.labelHeight - 6 : 0)
     }
 
     @computed get fontSize(): number {
@@ -76,16 +70,9 @@ export class MarimekkoChartThumbnail
         return this.shouldShowLabels ? this.labelFontSize + LABEL_PADDING : 0
     }
 
-    @computed private get shouldShowVerticalAxis(): boolean {
-        return this.manager.labelMode === ChartLabelMode.Values
-    }
-
     @computed private get yAxisConfig(): AxisConfig {
         const { yAxisConfig } = this.manager
-        const custom = {
-            hideGridlines: true,
-            hideAxis: !this.shouldShowVerticalAxis,
-        }
+        const custom = { hideAxis: true, hideGridlines: true }
         return new AxisConfig({ ...yAxisConfig, ...custom }, this)
     }
 
@@ -129,7 +116,9 @@ export class MarimekkoChartThumbnail
     }
 
     @computed private get renderSeries(): RenderMarimekkoSeries[] {
-        return toRenderMarimekkoSeries(this.placedSeries)
+        return toRenderMarimekkoSeries(this.placedSeries, {
+            focusArray: this.chartState.focusArray,
+        })
     }
 
     @computed private get placedSeriesByEntityName(): Map<
@@ -141,13 +130,27 @@ export class MarimekkoChartThumbnail
         )
     }
 
+    @computed private get labelledEntityNames(): EntityName[] {
+        const { selectionArray, focusArray } = this.chartState
+        return focusArray.hasFocusedSeries
+            ? focusArray.seriesNames
+            : selectionArray.selectedEntityNames
+    }
+
     @computed private get shouldShowLabels(): boolean {
-        return this.chartState.isFocusModeActive
+        return (
+            getVisibleLabels(this.manager.labelMode).rowLabelNames &&
+            this.labelledEntityNames.length > 0
+        )
+    }
+
+    @computed private get shouldShowNoDataLabel(): boolean {
+        return getVisibleLabels(this.manager.labelMode).values
     }
 
     @computed private get labelledSeries(): PlacedMarimekkoSeries[] {
         if (!this.shouldShowLabels) return []
-        return this.chartState.focusArray.seriesNames
+        return this.labelledEntityNames
             .map((entityName) => this.placedSeriesByEntityName.get(entityName))
             .filter((series) => series !== undefined)
     }
@@ -171,9 +174,13 @@ export class MarimekkoChartThumbnail
                     fontSize={this.fontSize}
                     patternIdSuffix={this.manager.patternIdSuffix}
                     isFocusModeActive={this.chartState.isFocusModeActive}
+                    showNoDataLabel={this.shouldShowNoDataLabel}
                 />
                 <MarimekkoInternalLabels
                     series={this.labelledSeries}
+                    focusedEntityNames={
+                        this.chartState.focusArray.seriesNameSet
+                    }
                     dualAxis={this.dualAxis}
                     fontSize={this.labelFontSize}
                     labelPadding={LABEL_PADDING}

@@ -1436,7 +1436,6 @@ export function extractGdocPageData(gdoc: OwidGdoc) {
         "linkedIndicators",
         "linkedCallouts",
         "imageMetadata",
-        "relatedCharts",
     ])
 
     const commonProps = {
@@ -1482,6 +1481,12 @@ export function extractGdocPageData(gdoc: OwidGdoc) {
             return {
                 ...commonProps,
                 ...R.pick(featuredVizGdoc, ["bespokeMetadata"]),
+            }
+        })
+        .when(checkIsGdocPost, (postGdoc) => {
+            return {
+                ...commonProps,
+                ...R.pick(postGdoc, ["allChartsBlockResults"]),
             }
         })
         .otherwise(() => commonProps)
@@ -2060,7 +2065,7 @@ export function sentenceCaseIfNotTopicPage(
 }
 
 const topicPageTitleHeadings = {
-    keyCharts: "Key Charts",
+    allCharts: "All Charts",
     featuredData: "Featured Data",
     dataInsights: "Data Insights",
     researchAndWriting: RESEARCH_AND_WRITING_DEFAULT_HEADING,
@@ -2111,7 +2116,7 @@ export function generateToc(
 
             if (child.type === "all-charts") {
                 toc.push({
-                    title: getTopicPageHeading("keyCharts", gdocType),
+                    title: getTopicPageHeading("allCharts", gdocType),
                     slug: ALL_CHARTS_ID,
                     isSubheading: false,
                 })

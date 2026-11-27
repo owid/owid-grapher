@@ -146,7 +146,6 @@ function ArticleBlockInternal({
 
             return (
                 <AllCharts
-                    {...block}
                     id="all-charts"
                     className={getLayout("all-charts", containerType)}
                 />

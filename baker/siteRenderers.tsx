@@ -81,6 +81,7 @@ import {
 } from "../db/model/Post.js"
 import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
+import { fetchAllChartsBlockResults } from "./allChartsBlockResults.js"
 import {
     getAndLoadGdocBySlug,
     getAndLoadGdocById,
@@ -155,6 +156,10 @@ export const renderGdocsPageBySlug = async (
     }
 
     await gdoc.loadState(knex)
+
+    if (gdoc instanceof GdocPost) {
+        gdoc.allChartsBlockResults = await fetchAllChartsBlockResults(gdoc)
+    }
 
     const archivedVersions = await getLatestArchivedPostPageVersionsIfEnabled(
         knex,
@@ -372,7 +377,6 @@ ${dataInsights
                     imageMetadata: _.get(post, "imageMetadata", {}),
                     linkedCharts: _.get(post, "linkedCharts", {}),
                     linkedIndicators: _.get(post, "linkedIndicators", {}),
-                    relatedCharts: _.get(post, "relatedCharts", []),
                     latestDataInsights: _.get(post, "latestDataInsights", []),
                     homepageMetadata: _.get(post, "homepageMetadata", {}),
                     latestWorkLinks: _.get(post, "latestWorkLinks", []),

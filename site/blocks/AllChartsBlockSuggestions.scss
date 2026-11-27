@@ -1,0 +1,69 @@
+.all-charts-block-suggestions {
+    @include note-12-medium;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    min-height: 16px;
+    margin: 0 0 16px;
+    color: $blue-90;
+
+    .all-charts-block-suggestions__skeleton {
+        align-self: center;
+        width: 50%;
+        height: 16px;
+        background: $gray-10;
+    }
+
+    .all-charts-block-suggestions__label {
+        @include h6-black-caps;
+        flex: none;
+        color: $blue-60;
+    }
+
+    .all-charts-block-suggestions__list {
+        flex: 1 1 0;
+        min-width: 0;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .all-charts-block-suggestions__item {
+        display: inline;
+        white-space: nowrap;
+
+        &:not(:last-child)::after {
+            content: ", ";
+            white-space: normal;
+        }
+
+        @include sm-only {
+            &:nth-child(n + 4) {
+                display: none;
+            }
+
+            &:nth-child(3)::after {
+                content: none;
+            }
+        }
+    }
+
+    .all-charts-block-suggestions__button {
+        padding: 0;
+        border: 0;
+        background: none;
+        color: inherit;
+        font: inherit;
+        text-decoration: underline;
+        cursor: pointer;
+
+        &:hover {
+            text-decoration: none;
+        }
+
+        &:focus-visible {
+            outline: 2px solid $blue-50;
+            outline-offset: 2px;
+        }
+    }
+}

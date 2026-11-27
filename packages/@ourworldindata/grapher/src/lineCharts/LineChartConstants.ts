@@ -12,7 +12,10 @@ import { Bounds, Color, PointVector } from "@ourworldindata/utils"
 import { InteractionState } from "../interaction/InteractionState"
 import { Emphasis } from "../interaction/Emphasis"
 import { LegendStyleConfig } from "../legend/LegendStyleConfig"
-import { GRAPHER_OPACITY_MUTED } from "../core/GrapherConstants"
+import {
+    GRAPHER_OPACITY_MUTED,
+    GRAPHER_THUMBNAIL_OPACITY_MUTED,
+} from "../core/GrapherConstants"
 import {
     AnnotationMarker,
     EntityAnnotation,
@@ -77,6 +80,17 @@ export const LINE_STYLE: Record<Emphasis, LineStyleConfig> = {
         showOutline: false,
     },
 }
+
+export const THUMBNAIL_LINE_STYLE: Record<Emphasis, LineStyleConfig> = {
+    ...LINE_STYLE,
+    [Emphasis.Muted]: {
+        ...LINE_STYLE[Emphasis.Muted],
+        opacity: GRAPHER_THUMBNAIL_OPACITY_MUTED,
+    },
+}
+
+/** Widest a name label in a line or slope thumbnail gets, as a share of the chart width */
+export const THUMBNAIL_NAME_LABEL_MAX_WIDTH_SHARE = 0.25
 
 // Legend
 export const LEGEND_PADDING = 25

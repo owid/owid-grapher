@@ -6,6 +6,9 @@ import {
     TagGraphRoot,
     SearchState,
     SearchChartHit,
+    type AllChartsBlockHit,
+    type AllChartsBlockResultsPage,
+    ChartRecordType,
     StackedArticleHit,
     TopicPageHit,
     FilterType,
@@ -29,6 +32,8 @@ import {
     DATA_CATALOG_ATTRIBUTES,
     formatDisjunctiveFacetFilters,
     getFeaturedVizFilters,
+    createCountryFilter,
+    createTopicFilter,
 } from "./searchUtils.js"
 import {
     buildChartsFacetFilters,
@@ -39,6 +44,7 @@ import {
     MAX_FACET_VALUES,
 } from "@ourworldindata/utils"
 import { RichDataComponentVariant } from "./SearchChartHitRichDataTypes.js"
+import { type AllChartsBlockQuery } from "./searchState.js"
 
 function makeStateForKey(state: SearchState) {
     return R.pick(state, ["query", "filters", "requireAllCountries"])
@@ -72,6 +78,13 @@ export const searchQueryKeys = {
             "featured-viz",
             getFeaturedVizFiltersForState(state),
         ] as const,
+} as const
+
+export const allChartsBlockQueryKeys = {
+    charts: (topics: string[], query: AllChartsBlockQuery) =>
+        [CHARTS_INDEX, "all-charts-block", { topics, ...query }] as const,
+    topicVocabulary: () => ["topic-vocabulary"] as const,
+    userCountry: () => ["user-country"] as const,
 } as const
 
 export const latestPagesQueryKey = {
@@ -576,4 +589,62 @@ export async function queryWritingTopics(
             totalCount: (articles.nbHits ?? 0) + (topicPages.nbHits ?? 0),
         }
     })
+}
+
+export async function queryAllChartsBlock(
+    liteSearchClient: LiteClient,
+    topics: string[],
+    { textQuery, countries }: AllChartsBlockQuery,
+    page: number
+): Promise<AllChartsBlockResultsPage> {
+    const facetFilters = [
+        ...buildChartsFacetFilters({
+            query: textQuery,
+            filters: [
+                ...topics.map(createTopicFilter),
+                ...countries.map(createCountryFilter),
+            ],
+            requireAllCountries: true,
+        }),
+        [
+            `type:${ChartRecordType.Chart}`,
+            `type:${ChartRecordType.MultiDimView}`,
+        ],
+    ]
+
+    const searchParams = {
+        indexName: CHARTS_INDEX,
+        query: textQuery,
+        facetFilters,
+        attributesToRetrieve: [
+            "title",
+            "slug",
+            "variantName",
+            "type",
+            "queryParams",
+            "availableTabs",
+            "source",
+            "isDataExplorer",
+        ],
+        attributesToHighlight: [],
+        attributesToSnippet: [],
+        hitsPerPage: 20,
+        page,
+    }
+
+    const response = await searchSingleForHits<AllChartsBlockHit>(
+        liteSearchClient,
+        searchParams
+    )
+    const searchedQuery = [textQuery, ...countries]
+        .filter((term) => term !== "")
+        .join(" ")
+    return {
+        hits: response.hits,
+        nbHits: response.nbHits ?? response.hits.length,
+        page: response.page ?? page,
+        nbPages: response.nbPages ?? 1,
+        query: searchedQuery,
+        countries,
+    }
 }

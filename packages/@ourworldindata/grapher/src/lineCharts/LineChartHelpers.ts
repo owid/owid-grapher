@@ -11,6 +11,7 @@ import { scaleLinear } from "d3-scale"
 import {
     AxisAlign,
     AxisConfigInterface,
+    ChartLabelMode,
     EntityName,
     ScaleType,
     SeriesName,
@@ -43,6 +44,14 @@ import {
     RangeAnnotation,
 } from "../annotations/EntityAnnotations"
 import { SeriesLabelAnnotation } from "../seriesLabel/SeriesLabelState"
+import { getVisibleLabels } from "../chart/VisibleChartLabels"
+
+export type SeriesLabelText = "name" | "value"
+
+export interface SeriesLabelTextBySide {
+    start?: SeriesLabelText
+    end?: SeriesLabelText
+}
 
 export interface GetSeriesNameArgs {
     entityName: EntityName
@@ -460,4 +469,13 @@ function isSameMarker(a: AnnotationMarker, b: AnnotationMarker): boolean {
         a.startTime === b.startTime &&
         a.endTime === b.endTime
     )
+}
+
+/** What the start and end labels of a line or slope thumbnail show */
+export function getSeriesLabelText(
+    labelMode?: ChartLabelMode
+): SeriesLabelTextBySide {
+    const { values, endLabelNames } = getVisibleLabels(labelMode)
+    if (values) return { start: endLabelNames ? "name" : "value", end: "value" }
+    return { end: endLabelNames ? "name" : undefined }
 }

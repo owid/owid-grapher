@@ -3,6 +3,7 @@ import * as _ from "lodash-es"
 import { InitialAnchoredLabelSeries } from "../anchoredLabels/AnchoredLabelsTypes.js"
 import { AnchoredLabelsState } from "../anchoredLabels/AnchoredLabelsState.js"
 import { FontSettings } from "../core/GrapherConstants.js"
+import { Emphasis } from "../interaction/Emphasis.js"
 import {
     SeriesName,
     sortNumeric,
@@ -18,7 +19,7 @@ import {
     StackedPointPositionType,
     StackedSeries,
     PlacedStackedBarSeries,
-    MIN_LABELED_BAND_HEIGHT_PX,
+    MIN_LABELED_BAND_HEIGHT_EM,
 } from "./StackedConstants"
 import { DualAxis } from "../axis/Axis"
 import { Time } from "@ourworldindata/types"
@@ -287,6 +288,7 @@ export function makeStackedAnchoredLabelsState(
     const series = toInitialAnchoredLabelSeries(labelsSeries, {
         seriesByName,
         dualAxis,
+        fontSize: fontSettings.fontSize,
         compare,
     })
     return new AnchoredLabelsState(series, {
@@ -299,18 +301,21 @@ export function makeStackedAnchoredLabelsState(
 }
 
 /**
- * Labels of series whose last band is tall enough to label, anchored at the
- * chart's right edge. When no band is, the top-ranked series keeps its label.
+ * Labels of highlighted series and of series whose last band is tall enough to
+ * label, anchored at the chart's right edge. When there are none, the
+ * top-ranked series keeps its label.
  */
 function toInitialAnchoredLabelSeries(
     labelsSeries: readonly Omit<InitialAnchoredLabelSeries, "position">[],
     {
         seriesByName,
         dualAxis,
+        fontSize,
         compare,
     }: {
         seriesByName: Map<SeriesName, StackedSeries<number>>
         dualAxis: DualAxis
+        fontSize: number
         compare: (
             a: InitialAnchoredLabelSeries,
             b: InitialAnchoredLabelSeries
@@ -325,27 +330,20 @@ function toInitialAnchoredLabelSeries(
         },
     }))
 
-    const seriesWithTallBand = anchoredSeries.filter((series) => {
+    const minBandHeightPx = MIN_LABELED_BAND_HEIGHT_EM * fontSize
+    const seriesToLabel = anchoredSeries.filter((series) => {
+        if (series.emphasis === Emphasis.Highlighted) return true
         const stackedSeries = seriesByName.get(series.seriesName)
         return (
             !!stackedSeries &&
-            isLastBandTallEnoughToLabel(stackedSeries, dualAxis)
+            measureLastBandHeightPx(stackedSeries, dualAxis) >= minBandHeightPx
         )
     })
-    if (seriesWithTallBand.length > 0 || anchoredSeries.length === 0)
-        return seriesWithTallBand
+    if (seriesToLabel.length > 0 || anchoredSeries.length === 0)
+        return seriesToLabel
 
     const topRankedSeries = anchoredSeries.toSorted(compare)[0]
     return [topRankedSeries]
-}
-
-function isLastBandTallEnoughToLabel(
-    series: StackedSeries<number>,
-    dualAxis: DualAxis
-): boolean {
-    return (
-        measureLastBandHeightPx(series, dualAxis) >= MIN_LABELED_BAND_HEIGHT_PX
-    )
 }
 
 function makeStackedLabelComparator(

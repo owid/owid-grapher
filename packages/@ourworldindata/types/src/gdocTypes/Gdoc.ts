@@ -1,10 +1,10 @@
 import {
     GrapherChartOrMapType,
     GrapherTabConfigOption,
-    RelatedChart,
 } from "../grapherTypes/GrapherTypes.js"
 import { BespokeMetadata } from "../domainTypes/BespokeMetadata.js"
 import { BreadcrumbItem } from "../domainTypes/Site.js"
+import { BakedAllChartsBlockResults } from "../domainTypes/Search.js"
 import { TocHeadingWithSupertitle } from "../domainTypes/Toc.js"
 import { ImageMetadata } from "./Image.js"
 import {
@@ -152,7 +152,6 @@ export interface OwidGdocBaseInterface {
     linkedIndicators?: Record<number, LinkedIndicator>
     linkedCallouts?: LinkedCallouts
     imageMetadata?: Record<string, ImageMetadata>
-    relatedCharts?: RelatedChart[]
     tags?: MinimalTag[] | null
     errors?: OwidGdocErrorMessage[]
     breadcrumbs?: BreadcrumbItem[] | null
@@ -161,6 +160,7 @@ export interface OwidGdocBaseInterface {
 
 export interface OwidGdocPostInterface extends OwidGdocBaseInterface {
     content: OwidGdocPostContent
+    allChartsBlockResults?: BakedAllChartsBlockResults
 }
 
 // Used for linkedDocuments attachments, instead of attaching the entire gdoc model

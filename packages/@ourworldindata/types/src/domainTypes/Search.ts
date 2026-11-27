@@ -82,6 +82,7 @@ export interface ChartRecord {
     chartConfigId?: string
     slug: string
     queryParams?: string
+    isDataExplorer?: boolean
     title: string
     containerTitle?: string
     subtitle: string | undefined
@@ -156,7 +157,7 @@ interface BaseSearchChartHit {
     _snippetResult?: Record<string, SnippetResultOption>
 }
 
-type SearchChartViewHit = BaseSearchChartHit & {
+export type SearchChartViewHit = BaseSearchChartHit & {
     type: ChartRecordType.Chart
 }
 
@@ -166,10 +167,28 @@ type SearchExplorerViewHit = BaseSearchChartHit & {
     queryParams: string
 }
 
-type SearchMultiDimViewHit = BaseSearchChartHit & {
+export type SearchMultiDimViewHit = BaseSearchChartHit & {
     type: ChartRecordType.MultiDimView
     queryParams: string
     chartConfigId: string
+    isDataExplorer?: boolean
+}
+
+export type AllChartsBlockHit = SearchChartViewHit | SearchMultiDimViewHit
+
+export interface AllChartsBlockResultsPage {
+    hits: AllChartsBlockHit[]
+    nbHits: number
+    page: number
+    nbPages: number
+    query: string
+    countries: string[]
+}
+
+/** First page of the all-charts block's default results, fetched at bake time */
+export interface BakedAllChartsBlockResults {
+    page: AllChartsBlockResultsPage
+    fetchedAtMs: number
 }
 
 /**

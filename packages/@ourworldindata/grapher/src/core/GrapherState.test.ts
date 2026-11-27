@@ -20,6 +20,7 @@ import {
     GrapherTabName,
     MultipleOwidVariableDataDimensionsMap,
     CoreValueType,
+    PeerCountryStrategy,
 } from "@ourworldindata/types"
 import {
     TimeBoundValue,
@@ -125,6 +126,24 @@ describe("hideDownloadButton", () => {
     it("respects the explicit hideDownloadButton config", () => {
         const grapher = new GrapherState({ hideDownloadButton: true })
         expect(grapher.hideDownloadButton).toBe(true)
+    })
+})
+
+describe("showLegend under each label mode", () => {
+    it.each([ChartLabelMode.Values, ChartLabelMode.Names, ChartLabelMode.None])(
+        "is false for %s",
+        (labelMode) => {
+            const grapher = new GrapherState({})
+            grapher.labelMode = labelMode
+            expect(grapher.showLegend).toBe(false)
+        }
+    )
+
+    it("follows hideLegend for All", () => {
+        const grapher = new GrapherState({})
+        expect(grapher.showLegend).toBe(true)
+        grapher.hideLegend = true
+        expect(grapher.showLegend).toBe(false)
     })
 })
 
@@ -3207,4 +3226,61 @@ describe("showLegend", () => {
             new GrapherState({ labelMode: ChartLabelMode.Values }).showLegend
         ).toBe(false)
     })
+})
+
+describe("removeInvalidFocusedSeriesNames", () => {
+    const table = SynthesizeGDPTable({ entityNames: ["France", "Spain"] })
+
+    it("drops a focused entity when the series are indicators", () => {
+        const grapher = new GrapherState({
+            table,
+            ySlugs: `${SampleColumnSlugs.GDP} ${SampleColumnSlugs.Population}`,
+            selectedEntityNames: ["France"],
+            focusedSeriesNames: ["France"],
+        })
+
+        grapher.removeInvalidFocusedSeriesNames()
+
+        expect(grapher.focusArray.seriesNames).toEqual([])
+    })
+
+    it("keeps focused series that are plotted and drops the rest", () => {
+        const grapher = new GrapherState({
+            table,
+            ySlugs: SampleColumnSlugs.GDP,
+            selectedEntityNames: ["France", "Spain"],
+            focusedSeriesNames: ["France", "Canada"],
+        })
+
+        grapher.removeInvalidFocusedSeriesNames()
+
+        expect(grapher.focusArray.seriesNames).toEqual(["France"])
+    })
+
+    it("leaves focus alone before the data is ready", () => {
+        const grapher = new GrapherState({
+            table,
+            ySlugs: SampleColumnSlugs.GDP,
+            selectedEntityNames: ["France"],
+            focusedSeriesNames: ["Canada"],
+        })
+        grapher.isDataReady = false
+
+        grapher.removeInvalidFocusedSeriesNames()
+
+        expect(grapher.focusArray.seriesNames).toEqual(["Canada"])
+    })
+})
+
+it("clears the peer params along with the other query params", () => {
+    const grapher = new GrapherState({})
+    grapher.populateFromQueryParams({
+        peerCountries: PeerCountryStrategy.DefaultSelection,
+        peerCount: "6",
+    })
+
+    grapher.clearQueryParams()
+
+    expect(grapher.peerCountryStrategy).toBeUndefined()
+    expect(grapher.peerCount).toBeUndefined()
 })

@@ -6,6 +6,7 @@ import { DualAxis } from "../axis/Axis"
 import { ColorScaleBin } from "../color/ColorScaleBin"
 import { resolveEmphasis } from "../interaction/Emphasis"
 import { FocusArray } from "../focus/FocusArray"
+import { InteractionState } from "../interaction/InteractionState"
 import {
     getHoverStateForSeries,
     getShortNameForEntity,
@@ -71,9 +72,11 @@ export function toRenderMarimekkoSeries(
     {
         hoveredEntityName,
         hoveredColorBin,
+        focusArray,
     }: {
         hoveredEntityName?: EntityName
         hoveredColorBin?: ColorScaleBin
+        focusArray?: FocusArray
     } = {}
 ): RenderMarimekkoSeries[] {
     const hoveredSeriesNames = hoveredEntityName
@@ -96,8 +99,10 @@ export function toRenderMarimekkoSeries(
             hoveredSeriesNames,
             isHoverModeActive,
         })
-        // A hovered legend bin decides membership on its own, so a selected bar outside it fades like any other
-        const focus = hoveredColorBin ? undefined : series.focus
+        const focus = getFocusStateForSeries(series, {
+            hoveredColorBin,
+            focusArray,
+        })
         return { ...series, emphasis: resolveEmphasis({ hover, focus }) }
     })
 
@@ -432,4 +437,19 @@ function splitIntoEqualDomainSizeChunks(
     chunks.push(currentChunk)
 
     return chunks.filter((chunk) => chunk.length > 0)
+}
+
+function getFocusStateForSeries(
+    series: PlacedMarimekkoSeries,
+    {
+        hoveredColorBin,
+        focusArray,
+    }: { hoveredColorBin?: ColorScaleBin; focusArray?: FocusArray }
+): InteractionState | undefined {
+    if (hoveredColorBin) return undefined
+    if (!focusArray) return series.focus
+    return new InteractionState(
+        focusArray.has(series.entityName),
+        focusArray.hasFocusedSeries
+    )
 }
