@@ -147,7 +147,7 @@ require.headless:
 # freshly created worktree. up-worktree.sh sources it once it is there.
 up.worktree: require.worktree setup.worktree wait.yarn-install node_modules
 	@make validate.env
-	@./devTools/docker/up-worktree.sh
+	@SCRIPT_SHELL=$(SCRIPT_SHELL) ./devTools/docker/up-worktree.sh
 
 setup.worktree:
 	@./devTools/docker/setup-worktree-env.sh

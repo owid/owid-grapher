@@ -28,6 +28,10 @@ export BESPOKE_PORT="${BESPOKE_PORT:?is missing from .env, run make setup.worktr
 # never wait on an interactive prompt when corepack fetches yarn
 export COREPACK_ENABLE_DOWNLOAD_PROMPT="${COREPACK_ENABLE_DOWNLOAD_PROMPT:-0}"
 SESSION="${TMUX_SESSION_NAME:-grapher-$(basename "$PWD")}"
+# tmux runs a single-string command through its default-shell, which may not be
+# POSIX-like (nushell); passing the shell and its arguments separately makes tmux
+# exec them directly instead
+SCRIPT_SHELL="${SCRIPT_SHELL:-${OWID_SCRIPT_SHELL:-/bin/sh}}"
 
 mkdir -p logs
 
@@ -58,13 +62,13 @@ done < <({
 # Cloudflare credentials, and the site works without it
 echo "==> Starting the admin server, vite and the functions server in the detached '$SESSION' tmux session"
 tmux new-session -d -s "$SESSION" "${session_env[@]}" -c "$PWD" -n admin \
-        "devTools/docker/wait-for-mysql.sh && yarn startAdminDevServer 2>&1 | tee logs/admin-server.log" \; \
+        "$SCRIPT_SHELL" -c "devTools/docker/wait-for-mysql.sh && yarn startAdminDevServer 2>&1 | tee logs/admin-server.log" \; \
         set remain-on-exit on \; \
     new-window -c "$PWD" -n vite \
-        "yarn startSiteFront 2>&1 | tee logs/vite.log" \; \
+        "$SCRIPT_SHELL" -c "yarn startSiteFront 2>&1 | tee logs/vite.log" \; \
         set remain-on-exit on \; \
     new-window -c "$PWD" -n functions \
-        "yarn startLocalCloudflareFunctions 2>&1 | tee logs/functions.log" \; \
+        "$SCRIPT_SHELL" -c "yarn startLocalCloudflareFunctions 2>&1 | tee logs/functions.log" \; \
         set remain-on-exit on \; \
         set -w @optional 1 \; \
     bind R respawn-pane -k \; \
