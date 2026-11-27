@@ -3,6 +3,7 @@ import cx from "clsx"
 import { faCheck, faChain } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { copyToClipboard } from "@ourworldindata/utils"
+import type { TrackNote } from "@ourworldindata/types"
 import { BAKED_BASE_URL } from "../../../settings/clientSettings.mjs"
 
 /** Copies a page's canonical URL to the clipboard. `path` is site-relative
@@ -15,7 +16,7 @@ export default function CopyLinkButton({
     variant,
 }: {
     path: string
-    trackNote: string
+    trackNote: TrackNote
     className?: string
     variant?: "text"
 }) {

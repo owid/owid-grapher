@@ -7,6 +7,7 @@ import {
     MapRegionName,
     TimeBound,
 } from "@ourworldindata/utils"
+import type { TrackNote } from "@ourworldindata/types"
 import { GlobeController } from "../mapCharts/GlobeController"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faRotateLeft } from "@fortawesome/free-solid-svg-icons"
@@ -82,8 +83,9 @@ export class MapResetButton extends React.Component<{
             .exhaustive()
     }
 
-    @computed private get trackNote(): string {
+    @computed private get trackNote(): TrackNote {
         return match(this.props.action)
+            .returnType<TrackNote>()
             .with("resetView", () => "map_reset_view")
             .with("resetZoom", () => "map_reset_zoom")
             .exhaustive()

@@ -170,14 +170,12 @@ interface SortDropdownOption {
     slug: string
     label: string
     formattedTime?: string
-    trackNote?: string // unused
 }
 
 interface FilterDropdownOption {
     value: EntityFilter
     label: string
     count: number
-    trackNote?: string // unused
 }
 
 const regionNamesSet = new Set(regions.map((region) => region.name))

@@ -3,6 +3,7 @@ import * as React from "react"
 import cx from "clsx"
 import { ExpandableToggle } from "../ExpandableToggle/ExpandableToggle.js"
 import { DisplaySource, formatSourceDate } from "@ourworldindata/utils"
+import type { TrackNote } from "@ourworldindata/types"
 import { SimpleMarkdownText } from "../SimpleMarkdownText.js"
 import { CodeSnippet } from "../CodeSnippet/CodeSnippet.js"
 import { REUSE_THIS_WORK_SECTION_ID } from "../SharedDataPageConstants.js"
@@ -20,8 +21,8 @@ export interface IndicatorSourcesProps {
         index: number,
         isOpen: boolean
     ) => void
-    retrievedFromTrackNote?: string
-    descriptionTrackNote?: string
+    retrievedFromTrackNote?: TrackNote
+    descriptionTrackNote?: TrackNote
     dodTrackNote?: string
     /** Open links in a new tab, e.g. when rendered inside an iframe whose
      *  host page can't be navigated away from. */
@@ -94,8 +95,8 @@ const SourceContent = (props: {
     source: DisplaySource
     isEmbeddedInADataPage: boolean
     hideReuseThisWorkText?: boolean
-    retrievedFromTrackNote?: string
-    descriptionTrackNote?: string
+    retrievedFromTrackNote?: TrackNote
+    descriptionTrackNote?: TrackNote
     dodTrackNote?: string
     openLinksInNewTab?: boolean
 }) => {

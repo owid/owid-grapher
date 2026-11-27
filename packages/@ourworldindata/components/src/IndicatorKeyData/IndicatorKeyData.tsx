@@ -6,6 +6,7 @@ import {
     getDateRange,
     openLinkInNewTabAttrs,
 } from "@ourworldindata/utils"
+import type { TrackNote } from "@ourworldindata/types"
 import { DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID } from "../SharedDataPageConstants.js"
 import { SimpleMarkdownText } from "../SimpleMarkdownText.js"
 
@@ -98,7 +99,7 @@ export const makeLinks = ({
     openLinksInNewTab,
 }: {
     link?: string
-    trackNote?: string
+    trackNote?: TrackNote
     /** Open links in a new tab, e.g. when rendered inside an iframe. */
     openLinksInNewTab?: boolean
 }): React.ReactNode => {

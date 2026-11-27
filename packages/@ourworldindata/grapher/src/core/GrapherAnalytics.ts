@@ -6,6 +6,9 @@ import {
     type GrapherInteractionEvent,
     type GrapherAnalyticsContext,
     type GAEvent,
+    type KeyboardShortcutAction,
+    type SiteClickAction,
+    type TrackNote,
 } from "@ourworldindata/types"
 
 const DEBUG = false
@@ -132,7 +135,7 @@ export class GrapherAnalytics {
     }
 
     logGrapherClick(
-        action: string = "unknown-action",
+        action: TrackNote,
         ctx: {
             label?: string
             grapherUrl?: string
@@ -154,7 +157,7 @@ export class GrapherAnalytics {
         })
     }
 
-    logSiteClick(action: string = "unknown-action", label?: string): void {
+    logSiteClick(action: TrackNote | SiteClickAction, label?: string): void {
         this.logToGA({
             event: EventCategory.SiteClick,
             eventAction: action,
@@ -173,7 +176,7 @@ export class GrapherAnalytics {
         })
     }
 
-    logKeyboardShortcut(shortcut: string, combo: string): void {
+    logKeyboardShortcut(shortcut: KeyboardShortcutAction, combo: string): void {
         this.logToGA({
             event: EventCategory.KeyboardShortcut,
             eventAction: shortcut,

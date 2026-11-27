@@ -1,6 +1,7 @@
 import cx from "clsx"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { IconDefinition, faArrowRight } from "@fortawesome/free-solid-svg-icons"
+import type { TrackNote } from "@ourworldindata/types"
 
 type ButtonCommonProps = {
     text?: string
@@ -18,7 +19,7 @@ type ButtonCommonProps = {
     /** Set to null to hide the icon */
     icon?: IconDefinition | null
     iconPosition?: "left" | "right"
-    dataTrackNote?: string
+    dataTrackNote?: TrackNote
     disabled?: boolean
     ariaLabel?: string
 }
