@@ -9,7 +9,13 @@
  */
 
 import { ColumnSlug } from "@ourworldindata/utils"
-import { CoreValueType, OwidColumnDef } from "@ourworldindata/types"
+import {
+    CoreValueType,
+    OwidColumnDef,
+    OwidEntityIdColumnDef,
+    OwidTableSlugs,
+    TimeInterval,
+} from "@ourworldindata/types"
 import { ErrorValueTypes, OwidTable } from "@ourworldindata/core-table"
 
 export interface FrameColumn {
@@ -25,10 +31,32 @@ export interface Frame {
     uniqueKey?: string
 }
 
+/**
+ * A 3-column frame representing a single indicator: `(entityId, time, value)`.
+ * Having a fixed shape lets `fullJoin` access the key and value columns
+ * directly without generic slug lookups.
+ */
+export interface IndicatorFrame {
+    entityIds: CoreValueType[]
+    times: number[]
+    timeDef: OwidColumnDef
+    valueColumn: FrameColumn
+    interval: TimeInterval
+}
+
 export type PairKey = readonly [ColumnSlug, ColumnSlug]
 export type JoinKey = readonly [ColumnSlug] | PairKey
 
 export const EMPTY_FRAME: Frame = { columns: [], numRows: 0 }
+
+export const indicatorFrameToFrame = (indicator: IndicatorFrame): Frame => ({
+    columns: [
+        { def: OwidEntityIdColumnDef, values: indicator.entityIds },
+        { def: indicator.timeDef, values: indicator.times },
+        indicator.valueColumn,
+    ],
+    numRows: indicator.entityIds.length,
+})
 
 export const findColumn = (
     frame: Frame,
@@ -43,91 +71,91 @@ export const frameToTable = (frame: Frame): OwidTable =>
     )
 
 // ---------------------------------------------------------------------------
-// Full outer join (frames sharing the same 2-column primary key)
+// Full outer join (3-column IndicatorFrames sharing the same time bucket)
 // ---------------------------------------------------------------------------
 
 /**
- * Full outer join of frames that all share the given 2-column `key`.
+ * Full outer join of 3-column `IndicatorFrame`s on `(time, entityId)`.
  *
- * Columns present in every frame (the key columns) appear once in the result, taken from the first
- * frame that introduces each key; we assume they agree across frames. All other
- * columns are kept from their originating frame, with
- * `ErrorValueTypes.NoMatchingValueAfterJoin` where a frame has no row for a key.
+ * Output columns are `[entityId, time, ...values]`, with
+ * `ErrorValueTypes.NoMatchingValueAfterJoin` where an indicator has no row for
+ * a `(time, entityId)` key.
  */
-export const fullJoin = (frames: Frame[], key: PairKey): Frame => {
-    if (frames.length === 0) return EMPTY_FRAME
-    if (frames.length === 1) return frames[0]
+export const fullJoin = (indicators: IndicatorFrame[]): Frame => {
+    if (indicators.length === 0) return EMPTY_FRAME
+    if (indicators.length === 1) return indicatorFrameToFrame(indicators[0])
 
-    const uniqueKey = key.join(",")
-    const [firstFrame] = frames
-    const sharedSlugs = getSharedColumnSlugs(frames)
-    const sharedSlugSet = new Set(sharedSlugs)
+    const [first] = indicators
+    const uniqueKey = `${first.timeDef.slug},${OwidTableSlugs.EntityId}`
 
-    // Fast path: for multi-indicator charts, we often have the case where all indicators
-    // come from the same dataset, and all frames have the same keys in the exact same order.
-    // In this case, we call the frames "aligned" and can just concatenate them together.
-    if (haveIdenticalKeys(frames, key) && isUniqueOnKey(firstFrame, key))
-        return joinAlignedFrames(frames, sharedSlugs, sharedSlugSet, uniqueKey)
+    // Fast path: for multi-indicator charts, indicators often come from the
+    // same dataset and share the exact same unique keys in the same order.
+    // Reuse all column arrays directly without copying.
+    if (
+        haveIdenticalKeys(indicators) &&
+        areKeysUniqueByRun(first.times, first.entityIds)
+    )
+        return joinAlignedFrames(indicators, uniqueKey)
 
-    // Create pointers to each unique key, so that we can quickly join them
-    const { rowsByFrame, ownerFrame, ownerRow } = enumerateKeys(frames, key)
-    const numOutRows = ownerFrame.length
+    // Pass 1: collect every distinct (time, entityId) key in indicator order
+    const { outEntityIds, outTimes, outRowsByIndicator, firstOwnsAllRows } =
+        collectUniqueKeys(indicators)
+    const numOutRows = outTimes.length
 
-    // Fast path: If every key appears in frame 0, and they are also unique, then
-    // frame 0's column arrays can be reused as-is, and we can effectively perform
-    // a left join on frame 0.
-    const firstFrameOwnsAllRows =
-        numOutRows === firstFrame.numRows &&
-        (numOutRows === 0 || ownerFrame[numOutRows - 1] === 0)
+    // Pass 2: align each indicator's value column to the output row order
+    const valueColumns: FrameColumn[] = indicators.map(
+        ({ valueColumn }, index) => {
+            // Fast path: if every key appeared uniquely in indicator 0, its
+            // value array is already in output order and can be reused as-is.
+            if (index === 0 && firstOwnsAllRows)
+                return {
+                    def: { ...valueColumn.def },
+                    values: valueColumn.values,
+                }
 
-    const outColumns: FrameColumn[] = sharedSlugs.map((slug) => {
-        const firstColumn = findColumn(firstFrame, slug)!
-        const def = { ...firstColumn.def }
-        if (firstFrameOwnsAllRows) return { def, values: firstColumn.values }
-
-        const sources = frames.map((frame) => findColumn(frame, slug)!.values)
-        const values: CoreValueType[] = []
-        for (let outRow = 0; outRow < numOutRows; outRow++)
-            values.push(sources[ownerFrame[outRow]][ownerRow[outRow]])
-        return { def, values }
-    })
-
-    frames.forEach((frame, frameIndex) => {
-        for (const column of frame.columns) {
-            if (sharedSlugSet.has(column.def.slug)) continue
-            const values =
-                frameIndex === 0 && firstFrameOwnsAllRows
-                    ? column.values
-                    : gatherColumnValues(column.values, rowsByFrame[frameIndex])
-            outColumns.push({ def: { ...column.def }, values })
+            const firstRowPerOutRow = invertToFirstRowPerKey(
+                outRowsByIndicator[index],
+                numOutRows
+            )
+            return {
+                def: { ...valueColumn.def },
+                values: gatherColumnValues(
+                    valueColumn.values,
+                    firstRowPerOutRow
+                ),
+            }
         }
-    })
+    )
 
-    return { columns: outColumns, numRows: numOutRows, uniqueKey }
+    return {
+        columns: [
+            { def: OwidEntityIdColumnDef, values: outEntityIds },
+            { def: { ...first.timeDef }, values: outTimes },
+            ...valueColumns,
+        ],
+        numRows: numOutRows,
+        uniqueKey,
+    }
 }
 
-/** Zero-copy join when all frames already share identical unique keys in the same order */
+/** Zero-copy join when all indicators share identical unique keys in the same order */
 const joinAlignedFrames = (
-    frames: Frame[],
-    sharedSlugs: ColumnSlug[],
-    sharedSlugSet: Set<ColumnSlug>,
+    indicators: IndicatorFrame[],
     uniqueKey: string
 ): Frame => {
-    const [firstFrame] = frames
-    const outColumns: FrameColumn[] = sharedSlugs.map((slug) => {
-        const column = findColumn(firstFrame, slug)!
-        return { def: { ...column.def }, values: column.values }
-    })
-    for (const frame of frames) {
-        for (const column of frame.columns) {
-            if (!sharedSlugSet.has(column.def.slug))
-                outColumns.push({
-                    def: { ...column.def },
-                    values: column.values,
-                })
-        }
+    const [first] = indicators
+    return {
+        columns: [
+            { def: OwidEntityIdColumnDef, values: first.entityIds },
+            { def: { ...first.timeDef }, values: first.times },
+            ...indicators.map(({ valueColumn }) => ({
+                def: { ...valueColumn.def },
+                values: valueColumn.values,
+            })),
+        ],
+        numRows: first.entityIds.length,
+        uniqueKey,
     }
-    return { columns: outColumns, numRows: firstFrame.numRows, uniqueKey }
 }
 
 // ---------------------------------------------------------------------------
@@ -267,41 +295,37 @@ const logDuplicateJoinKey = (): void => {
 // Key alignment, uniqueness & enumeration
 // ---------------------------------------------------------------------------
 
-/** Whether every frame has the key columns with the same values in the same order */
-const haveIdenticalKeys = (frames: Frame[], key: PairKey): boolean => {
-    const firstColumns = getPairKeyColumns(frames[0], key)
-    if (!firstColumns) return false
-    const { numRows } = frames[0]
-    for (let frameIndex = 1; frameIndex < frames.length; frameIndex++) {
-        if (frames[frameIndex].numRows !== numRows) return false
-        const columns = getPairKeyColumns(frames[frameIndex], key)
-        if (!columns) return false
-        for (let col = 0; col < 2; col++) {
-            const first = firstColumns[col]
-            const other = columns[col]
-            if (first === other) continue
+/** Whether every indicator has the same `(time, entityId)` keys in the same order */
+const haveIdenticalKeys = (indicators: IndicatorFrame[]): boolean => {
+    const [first] = indicators
+    const numRows = first.entityIds.length
+    for (let i = 1; i < indicators.length; i++) {
+        const other = indicators[i]
+        if (other.entityIds.length !== numRows) return false
+        if (other.times !== first.times) {
             for (let row = 0; row < numRows; row++)
-                if (other[row] !== first[row]) return false
+                if (other.times[row] !== first.times[row]) return false
+        }
+        if (other.entityIds !== first.entityIds) {
+            for (let row = 0; row < numRows; row++)
+                if (other.entityIds[row] !== first.entityIds[row]) return false
         }
     }
     return true
 }
 
 /**
- * Cheap check that no two rows of `frame` share a `(time, entity)` key.
- * Succeeds if the frame came out of a join on this key, or if each entity's
- * rows form a single contiguous run with strictly increasing times (the usual
- * layout of our data).
- * Returns false when it cannot prove uniqueness cheaply. Returning false thus
- * doesn't necessarily mean that it's _not_ unique on key.
+ * Cheap check that no two rows share a `(time, entity)` key: succeeds if each
+ * entity's rows form a single contiguous run with strictly increasing times
+ * (the usual layout of our data). Returning false only means uniqueness wasn't
+ * proven cheaply, not that duplicates definitely exist.
  */
-const isUniqueOnKey = (frame: Frame, key: PairKey): boolean => {
-    if (frame.uniqueKey === key.join(",")) return true
-    const columns = getPairKeyColumns(frame, key)
-    if (!columns) return false
-    const [times, entities] = columns
+const areKeysUniqueByRun = (
+    times: readonly CoreValueType[],
+    entities: readonly CoreValueType[]
+): boolean => {
     const seenEntities = new Set<number>()
-    for (let row = 0; row < frame.numRows; row++) {
+    for (let row = 0; row < entities.length; row++) {
         const time = times[row]
         const entity = entities[row]
         if (typeof time !== "number" || typeof entity !== "number") return false
@@ -317,54 +341,54 @@ const isUniqueOnKey = (frame: Frame, key: PairKey): boolean => {
     return true
 }
 
-const enumerateKeys = (
-    frames: Frame[],
-    key: PairKey
-): { rowsByFrame: Int32Array[]; ownerFrame: number[]; ownerRow: number[] } => {
-    const { outRowsByFrame, ownerFrame, ownerRow } = assignOutputRows(
-        frames,
-        key
-    )
-    const numOutRows = ownerFrame.length
-    const rowsByFrame = outRowsByFrame.map((outRows) =>
-        invertToFirstRowPerKey(outRows, numOutRows)
-    )
-    return { rowsByFrame, ownerFrame, ownerRow }
+const isUniqueOnKey = (frame: Frame, key: PairKey): boolean => {
+    if (frame.uniqueKey === key.join(",")) return true
+    const columns = getPairKeyColumns(frame, key)
+    if (!columns) return false
+    return areKeysUniqueByRun(columns[0], columns[1])
 }
 
-/** Assigns each unique key an output row index in frame order */
-const assignOutputRows = (
-    frames: Frame[],
-    key: PairKey
+/**
+ * Collects all distinct `(time, entityId)` keys across `indicators` in order
+ * and maps each indicator's input rows to their output row index.
+ */
+const collectUniqueKeys = (
+    indicators: IndicatorFrame[]
 ): {
-    outRowsByFrame: Int32Array[]
-    ownerFrame: number[]
-    ownerRow: number[]
+    outEntityIds: CoreValueType[]
+    outTimes: number[]
+    outRowsByIndicator: Int32Array[]
+    firstOwnsAllRows: boolean
 } => {
     const outIndex = new PairMap<number>()
-    const ownerFrame: number[] = []
-    const ownerRow: number[] = []
+    const outEntityIds: CoreValueType[] = []
+    const outTimes: number[] = []
+    let firstHadUniqueKeys = false
 
-    const outRowsByFrame = frames.map((frame, frameIndex) => {
-        const columns = getPairKeyColumns(frame, key)
-        if (!columns)
-            throw new Error(`Frame ${frameIndex} is missing join key columns`)
-        const [firstKey, secondKey] = columns
-        const outRows = new Int32Array(frame.numRows)
-        for (let row = 0; row < frame.numRows; row++) {
-            let outRow = outIndex.get(firstKey[row], secondKey[row])
+    const outRowsByIndicator = indicators.map((indicator, indicatorIndex) => {
+        const { times, entityIds } = indicator
+        const numRows = entityIds.length
+        const outRows = new Int32Array(numRows)
+        for (let row = 0; row < numRows; row++) {
+            const time = times[row]
+            const entityId = entityIds[row]
+            let outRow = outIndex.get(time, entityId)
             if (outRow === undefined) {
-                outRow = ownerFrame.length
-                outIndex.set(firstKey[row], secondKey[row], outRow)
-                ownerFrame.push(frameIndex)
-                ownerRow.push(row)
+                outRow = outTimes.length
+                outIndex.set(time, entityId, outRow)
+                outTimes.push(time)
+                outEntityIds.push(entityId)
             }
             outRows[row] = outRow
         }
+        if (indicatorIndex === 0)
+            firstHadUniqueKeys = outTimes.length === numRows
         return outRows
     })
 
-    return { outRowsByFrame, ownerFrame, ownerRow }
+    const firstOwnsAllRows =
+        firstHadUniqueKeys && outTimes.length === indicators[0].entityIds.length
+    return { outEntityIds, outTimes, outRowsByIndicator, firstOwnsAllRows }
 }
 
 /**

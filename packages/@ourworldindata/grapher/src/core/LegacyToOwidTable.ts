@@ -35,7 +35,6 @@ import {
     makeOriginalTimeSlugFromColumnSlug,
 } from "@ourworldindata/core-table"
 import {
-    ColumnSlug,
     EPOCH_DATE,
     MultipleOwidVariableDataDimensionsMap,
     OwidVariableDataMetadataDimensions,
@@ -59,20 +58,14 @@ import {
     EMPTY_FRAME,
     Frame,
     FrameColumn,
+    IndicatorFrame,
     findColumn,
     frameToTable,
     fullJoin,
+    indicatorFrameToFrame,
     leftJoinWithFallbacks,
 } from "./FrameJoin.js"
 import { columnDefFromOwidVariable } from "./indicatorColumnDef.js"
-
-// A frame, with some indicator metadata attached
-interface IndicatorFrame {
-    frame: Frame
-    interval: TimeInterval
-    timeColumnSlug: OwidTableSlugs.Day | OwidTableSlugs.Year
-    valueColumnSlug: ColumnSlug
-}
 
 // Indicators grouped by their interval, and whether they have a targetTime set
 interface IndicatorBuckets {
@@ -168,15 +161,12 @@ const joinIndicatorBuckets = ({
     let primaryTimeSlug: OwidTableSlugs.Day | OwidTableSlugs.Year
 
     if (dayFrames.length > 0) {
-        const joinedByDay = fullJoin(
-            dayFrames.map((v) => v.frame),
-            [OwidTableSlugs.Day, OwidTableSlugs.EntityId]
-        )
+        const joinedByDay = fullJoin(dayFrames)
         joined =
             yearFrames.length > 0
                 ? leftJoinWithFallbacks(
                       withYearDerivedFromDay(joinedByDay),
-                      yearFrames.map((v) => v.frame),
+                      yearFrames.map(indicatorFrameToFrame),
                       [OwidTableSlugs.Day, OwidTableSlugs.EntityId],
                       [
                           [OwidTableSlugs.Year, OwidTableSlugs.EntityId],
@@ -186,10 +176,7 @@ const joinIndicatorBuckets = ({
                 : joinedByDay
         primaryTimeSlug = OwidTableSlugs.Day
     } else if (yearFrames.length > 0) {
-        joined = fullJoin(
-            yearFrames.map((v) => v.frame),
-            [OwidTableSlugs.Year, OwidTableSlugs.EntityId]
-        )
+        joined = fullJoin(yearFrames)
         primaryTimeSlug = OwidTableSlugs.Year
     } else {
         joined = EMPTY_FRAME
@@ -287,7 +274,6 @@ const buildIndicatorFrame = (
     const { metadata, data } = variable
     const interval = getTimeInterval(metadata.display)
     const timeDef = TIME_COLUMN_DEF_BY_INTERVAL[interval]
-    const timeColumnSlug = timeDef.slug
     const valueColumn = buildValueColumn(metadata, dimension, data.values ?? [])
 
     const entityIds = data.entities ?? []
@@ -296,23 +282,11 @@ const buildIndicatorFrame = (
     for (let i = 0; i < numRows; i++) parsedIds[i] = parseNumber(entityIds[i])
 
     return {
+        entityIds: parsedIds,
+        times: timeValuesFromOwidVariable(metadata, data.years ?? []),
+        timeDef,
+        valueColumn,
         interval,
-        timeColumnSlug,
-        valueColumnSlug: valueColumn.def.slug,
-        frame: {
-            columns: [
-                { def: OwidEntityIdColumnDef, values: parsedIds },
-                {
-                    def: timeDef,
-                    values: timeValuesFromOwidVariable(
-                        metadata,
-                        data.years ?? []
-                    ),
-                },
-                valueColumn,
-            ],
-            numRows,
-        },
     }
 }
 
@@ -357,19 +331,17 @@ const buildValueColumn = (
  * that the frame can be joined on entity alone.
  */
 const pinToTargetTime = (
-    variableFrame: IndicatorFrame,
+    indicatorFrame: IndicatorFrame,
     targetTime: Time
 ): Frame => {
-    const { frame, timeColumnSlug, valueColumnSlug } = variableFrame
-    const entityIdColumn = findColumn(frame, OwidTableSlugs.EntityId)!
-    const timeColumn = findColumn(frame, timeColumnSlug)!
-    const valueColumn = findColumn(frame, valueColumnSlug)!
+    const { entityIds, times, timeDef, valueColumn } = indicatorFrame
+    const valueColumnSlug = valueColumn.def.slug
 
     const tolerance =
         valueColumn.def.display?.tolerance ?? valueColumn.def.tolerance ?? 0
     const keptRows = findRowsMatchingTargetTime(
-        entityIdColumn.values,
-        timeColumn.values as number[],
+        entityIds,
+        times,
         targetTime,
         tolerance
     )
@@ -378,15 +350,11 @@ const pinToTargetTime = (
 
     return {
         columns: [
-            ...frame.columns
-                .filter((column) => column !== timeColumn)
-                .map((column) => ({
-                    def: column.def,
-                    values: take(column.values),
-                })),
+            { def: OwidEntityIdColumnDef, values: take(entityIds) },
+            { def: valueColumn.def, values: take(valueColumn.values) },
             {
                 def: {
-                    ...timeColumn.def,
+                    ...timeDef,
                     slug: makeOriginalTimeSlugFromColumnSlug(valueColumnSlug),
                     display: { includeInTable: false },
                     derivedFrom: {
@@ -394,7 +362,7 @@ const pinToTargetTime = (
                         relationship: "originalTime",
                     },
                 },
-                values: take(timeColumn.values),
+                values: take(times),
             },
         ],
         numRows: keptRows.length,
