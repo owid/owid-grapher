@@ -1,0 +1,91 @@
+// The chart card every variant draws its chart with (IncomeDistributionFrame.tsx)
+
+.income-distribution-captioned-chart__chart-area {
+    position: relative;
+    width: 100%;
+    height: 480px;
+}
+
+.income-distribution--narrow .income-distribution-captioned-chart__chart-area {
+    height: 370px;
+}
+
+.income-distribution-captioned-chart .chart-footer {
+    margin-top: 12px;
+}
+
+.income-distribution__no-data {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 0 16px;
+    text-align: center;
+    color: $light-text;
+}
+
+// Over the plot's top-right corner, keeping the chart's right plot margin
+// (MARGIN in core/chartGeometry.ts): the "Edit countries" button and,
+// below it, the overlay legend. Without the button the legend sits below the
+// poverty line's label, with room for a two-line one (the international
+// line's, or one with a hint under it). The chart keeps its labels clear of
+// both. The top and the gap are mirrored by OVERLAY_TOP and OVERLAY_GAP in
+// IncomeDistributionFrame.tsx.
+.income-distribution-captioned-chart__overlays {
+    position: absolute;
+    top: 38px;
+    right: 16px;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+    pointer-events: none;
+}
+
+// Over the plot's top-left corner: whatever a variant puts there, e.g. a
+// walkthrough slide's aside. The chart's labels keep clear of it.
+.income-distribution-captioned-chart__plot-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.income-distribution-captioned-chart__plot-overlay > *,
+.income-distribution-captioned-chart__overlays > * {
+    pointer-events: auto;
+}
+
+.income-distribution-captioned-chart__overlays--with-button {
+    top: 0;
+}
+
+// Narrow charts only: under the header, the legend on the left and the
+// "Edit countries" button on the right
+.income-distribution-captioned-chart__toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 16px;
+    min-height: 32px;
+    margin-bottom: 8px;
+}
+
+// The colour swatches share the row with the button; the share bars get a
+// row of their own, with the button wrapping below them
+.income-distribution-captioned-chart__toolbar
+    > .income-distribution-legend--swatches {
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+.income-distribution-captioned-chart__toolbar
+    > .income-distribution-legend--shares {
+    flex: 1 1 100%;
+}
+
+.income-distribution-captioned-chart__edit-countries {
+    margin-left: auto;
+}

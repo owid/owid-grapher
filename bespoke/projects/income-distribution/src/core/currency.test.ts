@@ -1,0 +1,154 @@
+import { describe, expect, it } from "vitest"
+
+import { INTERNATIONAL_DOLLAR } from "./constants.js"
+import {
+    combinedFactor,
+    currencyKey,
+    formatCurrencyLabel,
+    formatIncome,
+    isCurrencyWrittenAsCode,
+    resolveCurrency,
+    roundIncomeAsDisplayed,
+} from "./currency.js"
+import type { Currency } from "./types.js"
+
+const EURO: Currency = {
+    code: "EUR",
+    name: "Euro",
+    factor: 0.5,
+    countryName: "Germany",
+    countryCode: "DEU",
+}
+
+/** A conversion of 1, so the formatted amounts are the daily int-$ ones */
+const atPar = (code: string): Currency => ({ code, name: code, factor: 1 })
+
+describe(combinedFactor, () => {
+    it("combines the exchange factor with the time interval", () => {
+        expect(combinedFactor(EURO, "daily")).toBe(0.5)
+        expect(combinedFactor(EURO, "yearly")).toBe(0.5 * 365)
+        expect(combinedFactor(INTERNATIONAL_DOLLAR, "monthly")).toBeCloseTo(
+            365 / 12
+        )
+    })
+})
+
+// The symbols and spacing are en-US ICU's (narrow symbols for SEK, PLN and the
+// like), as the formatter asks for; another locale's data would differ
+describe(formatIncome, () => {
+    const intDollars = (value: number, short?: boolean): string =>
+        formatIncome(value, INTERNATIONAL_DOLLAR, "daily", { short })
+
+    it("shows international dollars with two significant figures", () => {
+        expect(intDollars(3)).toBe("$3.00")
+        expect(intDollars(3.2)).toBe("$3.20")
+        expect(intDollars(0.25)).toBe("$0.25")
+        expect(intDollars(15.4)).toBe("$15")
+        expect(intDollars(954)).toBe("$950")
+        expect(intDollars(1234)).toBe("$1.2k")
+        expect(intDollars(15_300_000)).toBe("$15M")
+    })
+
+    it("drops the cents of whole amounts in short labels", () => {
+        expect(intDollars(3, true)).toBe("$3")
+        expect(intDollars(3.2, true)).toBe("$3.20")
+    })
+
+    it("rounds before picking a unit, so 999.7 is 1k", () => {
+        expect(intDollars(999.7)).toBe("$1k")
+    })
+
+    it("converts to the currency and interval", () => {
+        // $10 a day at 0.5 EUR per int-$ is 5 EUR a day, 1825 EUR a year
+        expect(formatIncome(10, EURO, "daily")).toBe("€5.00")
+        expect(formatIncome(10, EURO, "yearly")).toBe("€1.8k")
+    })
+
+    it("uses each currency's symbol and lower-case k", () => {
+        expect(formatIncome(950, atPar("EUR"), "daily")).toBe("€950")
+        expect(formatIncome(10_000, atPar("INR"), "daily")).toBe("₹10k")
+        expect(formatIncome(1_500_000, atPar("JPY"), "daily")).toBe("¥1.5M")
+        // Narrow symbols for currencies en-US only knows by code (Intl puts a
+        // no-break space after a symbol that is letters)
+        expect(formatIncome(1000, atPar("SEK"), "daily")).toBe("kr\u00a01k")
+        expect(formatIncome(1000, atPar("PLN"), "daily")).toBe("zł\u00a01k")
+        expect(formatIncome(1000, atPar("NGN"), "daily")).toBe("₦1k")
+        // Without a narrow symbol either, the code, with its own K intact
+        expect(formatIncome(1000, atPar("CHF"), "daily")).toBe("CHF\u00a01k")
+        // Not "$", which is the international dollar's sign in this chart
+        expect(formatIncome(1000, atPar("USD"), "daily")).toBe("US$1k")
+        expect(formatIncome(3.2, atPar("USD"), "daily")).toBe("US$3.20")
+    })
+
+    it("can leave out a code, for axis ticks whose first label names it", () => {
+        const bare = { short: true, dropCode: true }
+        expect(formatIncome(1000, atPar("CHF"), "daily", bare)).toBe("1k")
+        expect(formatIncome(1234, atPar("not-a-code"), "daily", bare)).toBe(
+            "1.2k"
+        )
+        // Symbols stay
+        expect(formatIncome(1000, atPar("SEK"), "daily", bare)).toBe(
+            "kr\u00a01k"
+        )
+        expect(formatIncome(950, atPar("EUR"), "daily", bare)).toBe("€950")
+    })
+
+    it("knows which currencies are written as their code", () => {
+        expect(isCurrencyWrittenAsCode(atPar("CHF"))).toBe(true)
+        expect(isCurrencyWrittenAsCode(atPar("not-a-code"))).toBe(true)
+        expect(isCurrencyWrittenAsCode(atPar("SEK"))).toBe(false)
+        expect(isCurrencyWrittenAsCode(EURO)).toBe(false)
+        expect(isCurrencyWrittenAsCode(INTERNATIONAL_DOLLAR)).toBe(false)
+    })
+
+    it("falls back to the code for a currency Intl rejects", () => {
+        expect(formatIncome(1234, atPar("not-a-code"), "daily")).toBe(
+            "not-a-code 1.2k"
+        )
+    })
+})
+
+describe(formatCurrencyLabel, () => {
+    it("names the international dollar and real currencies by country", () => {
+        expect(formatCurrencyLabel(INTERNATIONAL_DOLLAR)).toBe(
+            "International-$"
+        )
+        expect(formatCurrencyLabel(EURO)).toBe("Euro (Germany)")
+    })
+})
+
+describe(resolveCurrency, () => {
+    it("round-trips a currency through its key", () => {
+        expect(resolveCurrency(currencyKey(EURO), [EURO])).toBe(EURO)
+        expect(currencyKey(INTERNATIONAL_DOLLAR)).toBe(
+            INTERNATIONAL_DOLLAR.code
+        )
+    })
+
+    it("falls back to the international dollar for unknown keys or a missing list", () => {
+        expect(resolveCurrency("XYZ", [EURO])).toBe(INTERNATIONAL_DOLLAR)
+        expect(resolveCurrency("DEU", undefined)).toBe(INTERNATIONAL_DOLLAR)
+    })
+})
+
+describe(roundIncomeAsDisplayed, () => {
+    it("returns the daily int-$ value behind the two significant figures shown", () => {
+        expect(
+            roundIncomeAsDisplayed(12.37, INTERNATIONAL_DOLLAR, "daily")
+        ).toBe(12)
+        expect(
+            roundIncomeAsDisplayed(3.246, INTERNATIONAL_DOLLAR, "daily")
+        ).toBeCloseTo(3.2)
+    })
+
+    it("rounds in the chart's units, then converts back", () => {
+        // $3.00 a day is $91.25 a month, shown as $91
+        const monthly = roundIncomeAsDisplayed(
+            3,
+            INTERNATIONAL_DOLLAR,
+            "monthly"
+        )
+        expect(monthly * (365 / 12)).toBeCloseTo(91)
+        expect(monthly).toBeCloseTo(91 / (365 / 12))
+    })
+})

@@ -1,0 +1,178 @@
+// The walkthroughs' cards left of a wide chart (WalkthroughRail.tsx)
+.income-distribution-tutorial-rail {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.income-distribution-tutorial-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    padding: 7px;
+    border: 1px solid transparent;
+    background: none;
+    color: $blue-90;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition:
+        background-color 150ms,
+        border-color 150ms;
+
+    &:hover {
+        border-color: $blue-20;
+        background: $blue-5;
+    }
+
+    &:focus-visible {
+        @include income-distribution-focus-ring;
+    }
+}
+
+.income-distribution-tutorial-card--active,
+.income-distribution-tutorial-card--active:hover {
+    border-color: $blue-20;
+    background: $blue-20;
+}
+
+// A watched walkthrough fades back, as in the design, until pointed at
+.income-distribution-tutorial-card--watched {
+    opacity: 0.5;
+    transition: opacity 150ms;
+
+    &:hover,
+    &:focus-visible {
+        opacity: 1;
+    }
+}
+
+.income-distribution-tutorial-card__thumbnail {
+    position: relative;
+    display: block;
+    width: 100%;
+    aspect-ratio: 177 / 99;
+    overflow: hidden;
+    background: $blue-20;
+}
+
+.income-distribution-tutorial-thumbnail {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+// Shown on hover: play, or stop while it plays
+.income-distribution-tutorial-card__play {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: $blue-90;
+    color: $white;
+    font-size: 18px;
+    opacity: 0;
+    transform: translate(-50%, -50%);
+    transition: opacity 150ms;
+
+    svg {
+        width: 18px;
+        height: 18px;
+    }
+}
+
+.income-distribution-tutorial-card:hover
+    .income-distribution-tutorial-card__play,
+.income-distribution-tutorial-card:focus-visible
+    .income-distribution-tutorial-card__play {
+    opacity: 1;
+}
+
+.income-distribution-tutorial-card__body {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.income-distribution-tutorial-card__category {
+    color: $blue-50;
+}
+
+.income-distribution-tutorial-card__title {
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.income-distribution-tutorial-card__status {
+    font-size: 14px;
+    line-height: 1.2;
+}
+
+// Narrow charts: the walkthroughs as pills after "Configure the data", in a
+// row that scrolls sideways
+.income-distribution-tutorial-pills {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    overflow-x: auto;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
+
+    .income-distribution-configure-button {
+        flex-shrink: 0;
+        margin-bottom: 0;
+        white-space: nowrap;
+    }
+}
+
+// The leading button stays put while the pills scroll under it; its padding
+// covers the gap to the first pill
+.income-distribution-tutorial-pills__leading {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    flex-shrink: 0;
+    margin-right: -8px;
+    padding-right: 8px;
+    background: $white;
+}
+
+.income-distribution-tutorial-pill {
+    @include income-distribution-pill-button;
+
+    flex-shrink: 0;
+    border: 1px solid $blue-60;
+    background: $white;
+    color: $blue-60;
+    white-space: nowrap;
+
+    &:hover {
+        background: $blue-5;
+    }
+
+    &:focus-visible {
+        @include income-distribution-focus-ring;
+    }
+}
+
+.income-distribution-tutorial-pill--active,
+.income-distribution-tutorial-pill--active:hover {
+    border-color: $blue-70;
+    background: $blue-70;
+    color: $white;
+}
+
+.income-distribution-tutorial-pill__icon {
+    width: 12px;
+    height: 14px;
+}

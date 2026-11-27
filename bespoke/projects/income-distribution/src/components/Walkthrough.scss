@@ -1,0 +1,357 @@
+// The parts of a playing walkthrough (Walkthrough.tsx): the slide header
+// in place of the chart header, the slide navigation in place of the footer
+
+.income-distribution-tutorial-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: $gray-70;
+    font: 900 10px/1.2 $sans-serif-font-stack;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.income-distribution-tutorial-label__icon {
+    width: 8px;
+    height: 10px;
+}
+
+.income-distribution-tutorial-slide-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+// Every slide's header in one cell, so the cell is as tall as the
+// tallest; only the current one shows
+.income-distribution-tutorial-slide-header__pages {
+    display: grid;
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: 680px;
+}
+
+.income-distribution-tutorial-slide-header__page {
+    grid-area: 1 / 1;
+    min-width: 0;
+}
+
+.income-distribution-tutorial-slide-header__page--hidden {
+    visibility: hidden;
+}
+
+.income-distribution-tutorial-slide-header__text {
+    margin: 4px 0 0;
+    color: $gray-90;
+    font-size: 18px;
+    line-height: 24px;
+
+    strong {
+        font-weight: 700;
+    }
+}
+
+.income-distribution-tutorial-slide-header__second-line {
+    margin: 2px 0 0;
+    color: $gray-70;
+    font-size: 16px;
+    line-height: 22px;
+}
+
+// Narrow charts only, where there's no room for it over the plot
+.income-distribution-tutorial-slide-header__aside {
+    margin: 8px 0 0;
+    color: $gray-70;
+    font-size: 14px;
+    line-height: 19px;
+}
+
+.income-distribution-tutorial-slide-header__controls {
+    margin-top: 12px;
+
+    .income-distribution-controls__units {
+        width: 220px;
+    }
+}
+
+.income-distribution--narrow {
+    // The text gets a fixed height, so the chart and the buttons sit where
+    // the whole of both fits on a phone screen; a slide with more text than
+    // that runs on over the top of the plot, on a translucent background
+    .income-distribution-tutorial-slide-header__pages {
+        // Each page only as tall as its text, so the background stops there
+        align-items: start;
+        height: 200px;
+    }
+
+    .income-distribution-tutorial-slide-header__page {
+        position: relative;
+        z-index: 4;
+        padding-bottom: 8px;
+        background: rgba($white, 0.85);
+    }
+
+    // The × floats in the corner, so the control below the text can take the
+    // header's full width, where its labels have room on small screens; the
+    // view's options split it by their labels' widths
+    .income-distribution-tutorial-slide-header {
+        position: relative;
+    }
+
+    .income-distribution-tutorial-slide-header__pages {
+        max-width: none;
+        padding-right: 48px;
+    }
+
+    .income-distribution-tutorial-slide-header__close {
+        position: absolute;
+        top: 0;
+        right: 0;
+    }
+
+    .income-distribution-tutorial-slide-header__controls {
+        width: auto;
+        margin-right: -48px;
+
+        .switcher__button {
+            padding: 0 8px;
+        }
+
+        .income-distribution-controls__units {
+            width: 100%;
+        }
+
+        .income-distribution-controls__view .switcher__item {
+            flex: 1 1 auto;
+        }
+    }
+
+    .income-distribution-tutorial-slide-header__text {
+        font-size: 17px;
+        line-height: 23px;
+    }
+
+    .income-distribution-tutorial-slide-header__second-line {
+        font-size: 15px;
+        line-height: 20px;
+    }
+
+    .income-distribution-tutorial-slide-header__close {
+        width: 32px;
+        height: 32px;
+    }
+}
+
+// The previous and next buttons, and the × closing the walkthrough
+.income-distribution-tutorial-round-button {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: $blue-60;
+    color: $white;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 150ms;
+
+    &:hover {
+        background: $blue-70;
+    }
+
+    &:disabled {
+        background: $blue-60;
+        opacity: 0.4;
+        cursor: default;
+    }
+
+    &:focus-visible {
+        @include income-distribution-focus-ring;
+    }
+}
+
+.income-distribution-tutorial-round-button--outline {
+    border: 1px solid $blue-40;
+    background: $white;
+    color: $blue-40;
+
+    &:hover {
+        background: $blue-5;
+        color: $blue-60;
+    }
+}
+
+// The way on: a soft halo around it
+.income-distribution-tutorial-round-button--next {
+    box-shadow: 0 0 0 8px $blue-20;
+}
+
+// On the last slide it closes the walkthrough instead: grey, like the exit
+// button in front of the pills
+.income-distribution-tutorial-round-button--close,
+.income-distribution-tutorial-round-button--close:hover {
+    background: $gray-80;
+    box-shadow: 0 0 0 8px $gray-20;
+}
+
+.income-distribution-tutorial-round-button--close:hover {
+    background: $gray-90;
+}
+
+// After a while without interaction, the halo breathes to draw the eye on;
+// it settles as soon as the button is pointed at
+@keyframes income-distribution-tutorial-nudge {
+    0%,
+    100% {
+        box-shadow: 0 0 0 8px $blue-20;
+    }
+
+    50% {
+        box-shadow: 0 0 0 14px rgba($blue-20, 0.35);
+    }
+}
+
+.income-distribution-tutorial-round-button--nudge {
+    animation: income-distribution-tutorial-nudge 1.6s ease-in-out infinite;
+
+    &:hover,
+    &:focus-visible {
+        animation: none;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        animation: none;
+    }
+}
+
+.income-distribution-tutorial-footer {
+    margin-top: 12px;
+    color: $gray-80;
+    font-size: 12px;
+}
+
+// The buttons centred under the chart, the count and hint to their right
+.income-distribution-tutorial-footer__nav {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    column-gap: 16px;
+    min-height: 56px;
+}
+
+.income-distribution-tutorial-footer__buttons {
+    display: flex;
+    grid-column: 2;
+    gap: 16px;
+}
+
+.income-distribution-tutorial-footer__meta {
+    display: flex;
+    grid-column: 3;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 8px;
+}
+
+.income-distribution-tutorial-footer--narrow
+    .income-distribution-tutorial-footer__nav {
+    min-height: 0;
+}
+
+.income-distribution-tutorial-footer--narrow
+    .income-distribution-tutorial-footer__meta {
+    grid-column: 2;
+}
+
+.income-distribution-tutorial-footer__count {
+    color: $blue-60;
+    font-weight: 500;
+}
+
+.income-distribution-tutorial__continue {
+    color: $blue-60;
+    font-size: 12px;
+    font-style: italic;
+    font-weight: 500;
+}
+
+.income-distribution-tutorial-footer__cc {
+    color: inherit;
+    text-decoration: none;
+
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
+// Narrow charts: the previous and next buttons over the chart's edges,
+// centred on its (fixed) height
+.income-distribution-tutorial-side-nav {
+    position: absolute;
+    top: 50%;
+    z-index: 3;
+    margin-top: -20px;
+}
+
+.income-distribution-tutorial-round-button.income-distribution-tutorial-side-nav--previous {
+    left: 0;
+    opacity: 0.75;
+}
+
+.income-distribution-tutorial-round-button.income-distribution-tutorial-side-nav--next {
+    right: 8px;
+    opacity: 0.85;
+}
+
+// Above the next button, clear of its halo
+.income-distribution-tutorial-side-nav__hint {
+    position: absolute;
+    top: calc(50% - 20px - 8px - 28px);
+    right: 0;
+    z-index: 3;
+    padding: 0 4px;
+    background: rgba($white, 0.85);
+    white-space: nowrap;
+}
+
+// Over the plot's top-left corner while a slide shows: the slide's aside
+// and its control
+.income-distribution-tutorial-aside {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    width: 260px;
+
+    .labeled-control {
+        flex: none;
+        min-width: 0;
+    }
+
+    .income-distribution-controls__units {
+        flex: none;
+        width: 220px;
+        min-width: 0;
+    }
+}
+
+.income-distribution-tutorial-aside__text {
+    margin: 0;
+    color: $gray-70;
+    font-size: 16px;
+    line-height: 21px;
+    // A soft white halo, so the text stays readable where it runs over the
+    // plot (several stacked shadows make it solid, not a thin glow)
+    text-shadow:
+        0 0 3px $white,
+        0 0 3px $white,
+        0 0 3px $white,
+        0 0 6px $white,
+        0 0 6px $white;
+}
