@@ -14,11 +14,7 @@ import {
     ErrorValueTypes,
     OwidTable,
 } from "@ourworldindata/core-table"
-import {
-    hasEntityRunsWithIncreasingTimes,
-    hasUniqueIndexValues,
-    legacyToOwidTableAndDimensions,
-} from "./LegacyToOwidTable"
+import { legacyToOwidTableAndDimensions } from "./LegacyToOwidTable"
 import {
     MultipleOwidVariableDataDimensionsMap,
     OwidVariableDataMetadataDimensions,
@@ -649,6 +645,41 @@ describe(legacyToOwidTableAndDimensions, () => {
             expect(pickValues(table)).toEqual([
                 ["World", 2020, 8, 20],
                 ["High-income", 2020, 10, 22],
+            ])
+        })
+
+        it("keeps only the first row of an entity-year repeated after its times go down", () => {
+            // Times going down and back up can repeat an entity-year without
+            // it ever being adjacent to its copy
+            const entities = [1, 1, 1]
+            const years = [2021, 2020, 2021]
+            const table = joinVariables(
+                makeVariable(2, { entities, years, values: [8, 9, 10] }),
+                makeVariable(3, { entities, years, values: [20, 21, 22] })
+            )
+            expect(pickValues(table)).toEqual([
+                ["World", 2021, 8, 20],
+                ["World", 2020, 9, 21],
+            ])
+        })
+
+        it("keeps only the first row of a repeated NaN year", () => {
+            const years = [2020, NaN, NaN]
+            const table = joinVariables(
+                makeVariable(2, {
+                    entities: [1, 1, 1],
+                    years,
+                    values: [8, 9, 10],
+                }),
+                makeVariable(3, {
+                    entities: [1, 1, 1],
+                    years,
+                    values: [20, 21, 22],
+                })
+            )
+            expect(pickValues(table)).toEqual([
+                ["World", 2020, 8, 20],
+                ["World", NaN, 9, 21],
             ])
         })
     })
@@ -1502,121 +1533,5 @@ Papua New Guinea,1983,5.5,1983,`
             config.selectedEntityColors
         ).get("3512").def
         expect(columnDef.nonRedistributable).toEqual(true)
-    })
-})
-
-// The join's fast path for tables with identical indices may only run when the
-// index values are unique, because the general join keeps just the first row of
-// a repeated index value. hasUniqueIndexValues decides that, and tries the
-// cheaper hasEntityRunsWithIncreasingTimes first: a "true" from it must imply
-// uniqueness, while a "false" only means "couldn't tell this way".
-describe(hasEntityRunsWithIncreasingTimes, () => {
-    const HAITI = 10
-    const ARUBA = 20
-
-    it.each([
-        {
-            name: "each entity in one run with increasing times",
-            entities: [HAITI, HAITI, ARUBA, ARUBA],
-            times: [2022, 2024, 2020, 2021],
-        },
-        { name: "a single row", entities: [HAITI], times: [2020] },
-        { name: "no rows", entities: [], times: [] },
-        {
-            name: "negative times, e.g. days before the epoch",
-            entities: [HAITI, HAITI],
-            times: [-30, -1],
-        },
-    ])("accepts $name", ({ entities, times }) => {
-        expect(
-            hasEntityRunsWithIncreasingTimes(entities, times, entities.length)
-        ).toBe(true)
-    })
-
-    it.each([
-        {
-            name: "an entity that comes back after another one, even with unique times",
-            entities: [HAITI, ARUBA, HAITI],
-            times: [2020, 2020, 2021],
-        },
-        {
-            name: "a repeated time within a run",
-            entities: [HAITI, HAITI],
-            times: [2020, 2020],
-        },
-        {
-            name: "decreasing times within a run",
-            entities: [HAITI, HAITI],
-            times: [2021, 2020],
-        },
-        {
-            name: "a non-numeric entity, whose string key could match a number's",
-            entities: [HAITI, "10"],
-            times: [2020, 2021],
-        },
-        {
-            name: "a non-numeric time",
-            entities: [HAITI, HAITI],
-            times: [2020, "2021"],
-        },
-        {
-            name: "a missing time",
-            entities: [HAITI, HAITI],
-            times: [2020, undefined],
-        },
-        {
-            name: "a NaN time",
-            entities: [HAITI, HAITI],
-            times: [2020, NaN],
-        },
-    ])("refuses $name", ({ entities, times }) => {
-        expect(
-            hasEntityRunsWithIncreasingTimes(entities, times, entities.length)
-        ).toBe(false)
-    })
-})
-
-describe(hasUniqueIndexValues, () => {
-    const makeTable = (entityId: number[], year: number[]): OwidTable =>
-        new OwidTable({ entityId, year })
-    const YEAR_ENTITY = [OwidTableSlugs.Year, OwidTableSlugs.EntityId]
-
-    it("accepts entity runs with increasing years", () => {
-        const table = makeTable([1, 1, 2], [2020, 2021, 2020])
-        expect(hasUniqueIndexValues(table, YEAR_ENTITY)).toBe(true)
-    })
-
-    it("accepts the index columns in either order", () => {
-        const table = makeTable([1, 1, 2], [2020, 2021, 2020])
-        expect(
-            hasUniqueIndexValues(table, [
-                OwidTableSlugs.EntityId,
-                OwidTableSlugs.Year,
-            ])
-        ).toBe(true)
-    })
-
-    it("accepts unique values that don't form entity runs", () => {
-        // Entity 1 comes back after entity 2, so only the full check can tell
-        const table = makeTable([1, 2, 1], [2020, 2020, 2021])
-        expect(hasUniqueIndexValues(table, YEAR_ENTITY)).toBe(true)
-    })
-
-    it("rejects an entity-year repeated in adjacent rows", () => {
-        const table = makeTable([1, 1, 2], [2020, 2020, 2020])
-        expect(hasUniqueIndexValues(table, YEAR_ENTITY)).toBe(false)
-    })
-
-    it("rejects an entity-year repeated further down", () => {
-        const table = makeTable([1, 2, 1], [2020, 2020, 2020])
-        expect(hasUniqueIndexValues(table, YEAR_ENTITY)).toBe(false)
-    })
-
-    it("checks an index without an entity column by its values alone", () => {
-        const table = makeTable([1, 2, 3], [2020, 2021, 2020])
-        expect(hasUniqueIndexValues(table, [OwidTableSlugs.Year])).toBe(false)
-        expect(hasUniqueIndexValues(table, [OwidTableSlugs.EntityId])).toBe(
-            true
-        )
     })
 })

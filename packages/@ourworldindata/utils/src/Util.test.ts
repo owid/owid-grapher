@@ -45,6 +45,7 @@ import {
     positiveModulo,
     findFinestCommonTimeInterval,
     diffDatesInDays,
+    getYearFromDaysSinceEpoch,
     convertDateToDaysSinceEpoch,
     convertDaysSinceEpochToDate,
     plainUtcTimestamp,
@@ -675,6 +676,35 @@ describe(diffDatesInDays, () => {
         expect(
             diffDatesInDays(dayjs.utc("2020-01-22T12:00:00Z"), epoch)
         ).toEqual(1)
+    })
+})
+
+describe(getYearFromDaysSinceEpoch, () => {
+    // Day 0 is the epoch, 2020-01-21
+    it.each([
+        { day: 0, year: 2020, date: "2020-01-21" },
+        { day: 345, year: 2020, date: "2020-12-31" },
+        { day: 346, year: 2021, date: "2021-01-01" },
+        { day: -21, year: 2019, date: "2019-12-31" },
+        // Years below 100 must not turn into 19xx
+        { day: -719382, year: 50, date: "0050-06-15" },
+        // Fractional days round to whole days
+        { day: 345.5, year: 2021, date: "2021-01-01" },
+        { day: 345.4, year: 2020, date: "2020-12-31" },
+    ])("is $year on day $day ($date)", ({ day, year }) => {
+        expect(getYearFromDaysSinceEpoch(day)).toEqual(year)
+    })
+
+    it("agrees with convertDaysSinceEpochToDate", () => {
+        for (let day = -800_000; day <= 800_000; day += 97)
+            expect(getYearFromDaysSinceEpoch(day), `day ${day}`).toEqual(
+                convertDaysSinceEpochToDate(day).year()
+            )
+    })
+
+    it("is NaN for days that aren't finite numbers", () => {
+        expect(getYearFromDaysSinceEpoch(NaN)).toBeNaN()
+        expect(getYearFromDaysSinceEpoch(Infinity)).toBeNaN()
     })
 })
 
