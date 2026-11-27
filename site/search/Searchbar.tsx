@@ -8,6 +8,7 @@ import { SearchCountrySelector } from "./SearchCountrySelector.js"
 import { FilterType } from "@ourworldindata/types"
 import { SearchAutocompleteContextProvider } from "./SearchAutocompleteContextProvider.js"
 import { SearchResetButton } from "./SearchResetButton.js"
+import { SearchRandomButton } from "./SearchRandomButton.js"
 import { useSearchContext } from "./SearchContext.js"
 import { useSelectedRegionNames } from "./searchHooks.js"
 
@@ -100,6 +101,12 @@ export const Searchbar = ({
                         setQuery={setQuery}
                     />
                 </SearchAutocompleteContextProvider>
+                <SearchRandomButton
+                    onSearch={(randomQuery) => {
+                        setLocalQuery(randomQuery)
+                        setQuery(randomQuery)
+                    }}
+                />
                 <SearchCountrySelector
                     requireAllCountries={requireAllCountries}
                     toggleRequireAllCountries={toggleRequireAllCountries}
