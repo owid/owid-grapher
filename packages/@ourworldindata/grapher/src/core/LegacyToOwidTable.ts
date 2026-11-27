@@ -1,11 +1,17 @@
-// Turns the variable data + metadata we fetch from our data API into the
-// single OwidTable that a chart renders from.
-//
-// Performance notes: this runs on every chart load and its input can be
-// hundreds of thousands of rows (daily indicators), so the per-variable tables
-// and the joins between them are built on plain column arrays (see FrameJoin).
-// Only the final result becomes an OwidTable, constructed from typed values so
-// it never needs to parse anything.
+/**
+ * Converts and combines our fetched indicator data & metadata files into an OwidTable.
+ *
+ * This involves simple steps like resolving the entity names and parsing annotations,
+ * but crucially also involves joining multiple indicators together. This becomes
+ * especially complex when there are both daily and yearly indicators, because they
+ * need to be aligned and joined correctly.
+ *
+ * Performance note: This code runs for every grapher chart, and at times handles >100k rows
+ * across many columns, so it needs to be written with performance in mind.
+ * There are many choices in this code already: We operate on "frames", which are just very basic
+ * multi-column objects, for a long time until we convert them to a OwidTable at the very end.
+ * We also use efficient Int32Arrays for indexing rows inside joins.
+ */
 
 import * as _ from "lodash-es"
 import {
@@ -60,22 +66,24 @@ import {
 } from "./FrameJoin.js"
 import { columnDefFromOwidVariable } from "./indicatorColumnDef.js"
 
-interface VariableFrame {
+// A frame, with some indicator metadata attached
+interface IndicatorFrame {
     frame: Frame
     interval: TimeInterval
-    timeSlug: OwidTableSlugs.Day | OwidTableSlugs.Year
-    valueSlug: ColumnSlug
+    timeColumnSlug: OwidTableSlugs.Day | OwidTableSlugs.Year
+    valueColumnSlug: ColumnSlug
 }
 
+// Indicators grouped by their interval, and whether they have a targetTime set
 interface IndicatorBuckets {
-    dayFrames: VariableFrame[]
-    yearFrames: VariableFrame[]
+    dayFrames: IndicatorFrame[]
+    yearFrames: IndicatorFrame[]
     /** Variables pinned to a target time; joined on entity only */
     targetTimeFrames: Frame[]
 }
 
 // ---------------------------------------------------------------------------
-// Entry points
+// Entry point
 // ---------------------------------------------------------------------------
 
 export const legacyToOwidTableAndDimensions = (
@@ -86,9 +94,8 @@ export const legacyToOwidTableAndDimensions = (
     const buckets = buildIndicatorBuckets(json, dimensions)
     let joined = joinIndicatorBuckets(buckets)
 
-    // Each time bucket can mix intervals (day/week/month/quarter in `day`,
-    // year/decade in `year`), and a chart can use both buckets at once, so
-    // tag each bucket's column independently with its finest common interval
+    // The output table can mix both `day` and `year` columns, and we want to relabel
+    // both to their interval (for example `day` -> "Week")
     joined = withFinestTimeColumnInterval(
         joined,
         buckets.dayFrames,
@@ -119,8 +126,8 @@ const buildIndicatorBuckets = (
         getIndicatorColumnSlug
     )
 
-    const dayFrames: VariableFrame[] = []
-    const yearFrames: VariableFrame[] = []
+    const dayFrames: IndicatorFrame[] = []
+    const yearFrames: IndicatorFrame[] = []
     const targetTimeFrames: Frame[] = []
 
     for (const dimension of indicatorDimensions) {
@@ -128,7 +135,7 @@ const buildIndicatorBuckets = (
         // Shouldn't happen, but does when adding dimensions in the chart editor
         if (!variable) continue
 
-        const variableFrame = buildVariableFrame(variable, dimension)
+        const variableFrame = buildIndicatorFrame(variable, dimension)
         const { targetYear } = dimension
         if (typeof targetYear === "number")
             targetTimeFrames.push(pinToTargetTime(variableFrame, targetYear))
@@ -209,7 +216,7 @@ const appendDerivedColumns = (
     json: MultipleOwidVariableDataDimensionsMap,
     selectedEntityColors: SelectedEntityColors | undefined
 ): Frame => {
-    // Entity ids and names map one to one, so joins only carry ids and names
+    // Entity ids and names map one to one, so joins only carry ids, and names
     // are looked up once for the final joined rows
     const entityIdColumn = findColumn(frame, OwidTableSlugs.EntityId)
     const entityNames = entityIdColumn
@@ -249,10 +256,11 @@ const appendDerivedColumns = (
 // ---------------------------------------------------------------------------
 
 /**
- * The name of each entity id, from the variables' metadata.
+ * The name of each entity id, from the variables' metadata JSON file.
  *
- * Data comes from S3 and metadata from MySQL, so an id can be missing from the
- * metadata; such entities are named after their id.
+ * While it shouldn't happen much, the data and metadata files could in theory be slightly
+ * out of sync, and thus an entity name might be missing from the metadata file.
+ * In that case, we simply fall back to the stringified ID as the entity name.
  */
 const lookupEntityNames = (
     json: MultipleOwidVariableDataDimensionsMap,
@@ -272,14 +280,14 @@ const lookupEntityNames = (
     return names
 }
 
-const buildVariableFrame = (
+const buildIndicatorFrame = (
     variable: OwidVariableDataMetadataDimensions,
     dimension: IndicatorDimensionInterface
-): VariableFrame => {
+): IndicatorFrame => {
     const { metadata, data } = variable
     const interval = getTimeInterval(metadata.display)
     const timeDef = TIME_COLUMN_DEF_BY_INTERVAL[interval]
-    const timeSlug = timeDef.slug as OwidTableSlugs.Day | OwidTableSlugs.Year
+    const timeColumnSlug = timeDef.slug
     const valueColumn = buildValueColumn(metadata, dimension, data.values ?? [])
 
     const entityIds = data.entities ?? []
@@ -289,8 +297,8 @@ const buildVariableFrame = (
 
     return {
         interval,
-        timeSlug,
-        valueSlug: valueColumn.def.slug,
+        timeColumnSlug,
+        valueColumnSlug: valueColumn.def.slug,
         frame: {
             columns: [
                 { def: OwidEntityIdColumnDef, values: parsedIds },
@@ -349,13 +357,13 @@ const buildValueColumn = (
  * that the frame can be joined on entity alone.
  */
 const pinToTargetTime = (
-    variableFrame: VariableFrame,
+    variableFrame: IndicatorFrame,
     targetTime: Time
 ): Frame => {
-    const { frame, timeSlug, valueSlug } = variableFrame
+    const { frame, timeColumnSlug, valueColumnSlug } = variableFrame
     const entityIdColumn = findColumn(frame, OwidTableSlugs.EntityId)!
-    const timeColumn = findColumn(frame, timeSlug)!
-    const valueColumn = findColumn(frame, valueSlug)!
+    const timeColumn = findColumn(frame, timeColumnSlug)!
+    const valueColumn = findColumn(frame, valueColumnSlug)!
 
     const tolerance =
         valueColumn.def.display?.tolerance ?? valueColumn.def.tolerance ?? 0
@@ -379,10 +387,10 @@ const pinToTargetTime = (
             {
                 def: {
                     ...timeColumn.def,
-                    slug: makeOriginalTimeSlugFromColumnSlug(valueSlug),
+                    slug: makeOriginalTimeSlugFromColumnSlug(valueColumnSlug),
                     display: { includeInTable: false },
                     derivedFrom: {
-                        columnSlug: valueSlug,
+                        columnSlug: valueColumnSlug,
                         relationship: "originalTime",
                     },
                 },
@@ -433,7 +441,7 @@ const findRowsMatchingTargetTime = (
     return keptRows
 }
 
-/** Appends a year column, derived from the frame's day column */
+/** Appends a year column, computed from the frame's day column */
 const withYearDerivedFromDay = (frame: Frame): Frame => {
     const dayColumn = findColumn(frame, OwidTableSlugs.Day)
     if (!dayColumn) return frame
@@ -464,13 +472,17 @@ const withYearDerivedFromDay = (frame: Frame): Frame => {
 
 /**
  * Relabels the joined time column with the finest interval that can represent
- * every joined variable's times
+ * every joined variable's times.
+ * For example, if one indicator is monthly and another one is quarterly, then
+ * the whole `day` column gets labelled as "Month".
  */
 const withFinestTimeColumnInterval = (
     frame: Frame,
-    variableFrames: VariableFrame[],
+    variableFrames: IndicatorFrame[],
     slug: OwidTableSlugs.Day | OwidTableSlugs.Year
 ): Frame => {
+    if (variableFrames.length <= 1) return frame
+
     const intervals = variableFrames.map((v) => v.interval)
     if (new Set(intervals).size < 2) return frame
     const timeDef =
@@ -510,7 +522,7 @@ const parseTime = (value: number): number =>
 
 // Maps each time interval to the time column it produces. Sub-yearly intervals
 // all share the `day` slug (days-since-epoch) so they join in the same bucket
-const TIME_COLUMN_DEF_BY_INTERVAL: Record<TimeInterval, OwidColumnDef> = {
+const TIME_COLUMN_DEF_BY_INTERVAL = {
     [TimeInterval.Day]: {
         slug: OwidTableSlugs.Day,
         type: ColumnTypeNames.Day,
@@ -541,7 +553,7 @@ const TIME_COLUMN_DEF_BY_INTERVAL: Record<TimeInterval, OwidColumnDef> = {
         type: ColumnTypeNames.Decade,
         name: "Decade",
     },
-}
+} as const satisfies Record<TimeInterval, OwidColumnDef>
 
 const timeValuesFromOwidVariable = (
     metadata: OwidVariableWithSource,
@@ -551,7 +563,7 @@ const timeValuesFromOwidVariable = (
     const interval = getTimeInterval(display)
     if (!isSubYearly(interval)) return years.map(parseTime)
 
-    // Day-encoded values are relative to the variable's zeroDay; shift them
+    // Day-encoded values might specify a custom zeroDay for the indicator; shift them
     // onto the shared EPOCH_DATE so that variables are comparable
     const zeroDay = display?.zeroDay
     const offset =
@@ -559,11 +571,12 @@ const timeValuesFromOwidVariable = (
             ? diffDatesInDays(dayjs.utc(zeroDay), epochDate())
             : 0
 
-    // Snap sub-yearly values (except plain days) to the start of their
-    // period, so that variables that pick different representative days for
-    // the same period still align
     if (interval === TimeInterval.Day)
         return years.map((year) => parseTime(year + offset))
+
+    // Snap sub-yearly values (except days) to the start of their period,
+    // so that variables that pick different representative days for the same
+    // period still align
     return years.map((year) =>
         parseTime(snapToIntervalStart(year + offset, interval))
     )

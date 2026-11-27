@@ -1,9 +1,12 @@
-// Lightweight columnar frames and join routines used by LegacyToOwidTable.
-//
-// Building charts from large daily indicators can involve hundreds of thousands
-// of rows. Operating on plain column arrays avoids constructing intermediate
-// OwidTables and lets common cases (aligned keys, fallback-only joins) reuse
-// column arrays without copying.
+/**
+ * Frames are a lightweight columnar data structure, and they have less overhead
+ * a full OwidTable.
+ *
+ * There are also methods in here that can efficiently join frames on shared keys
+ * without constructing full OwidTables.
+ *
+ * Performance is key here, and all operations in here should be optimized.
+ */
 
 import { ColumnSlug } from "@ourworldindata/utils"
 import { CoreValueType, OwidColumnDef } from "@ourworldindata/types"
@@ -18,7 +21,7 @@ export interface Frame {
     /** In output order */
     columns: FrameColumn[]
     numRows: number
-    /** Set when every row is known to have a distinct value for these key columns */
+    /** Set when we know that every row has distinct values for this key; e.g. "entityId,year" */
     uniqueKey?: string
 }
 
@@ -46,15 +49,13 @@ export const frameToTable = (frame: Frame): OwidTable =>
 /**
  * Full outer join of frames that all share the given 2-column `key`.
  *
- * Columns present in every frame (the key columns plus shared entity metadata
- * like entityName) appear once in the result, taken from the first
+ * Columns present in every frame (the key columns) appear once in the result, taken from the first
  * frame that introduces each key; we assume they agree across frames. All other
  * columns are kept from their originating frame, with
  * `ErrorValueTypes.NoMatchingValueAfterJoin` where a frame has no row for a key.
  */
 export const fullJoin = (frames: Frame[], key: PairKey): Frame => {
     if (frames.length === 0) return EMPTY_FRAME
-    // Not marked as unique: a single frame can still have duplicate keys
     if (frames.length === 1) return frames[0]
 
     const uniqueKey = key.join(",")
@@ -62,17 +63,19 @@ export const fullJoin = (frames: Frame[], key: PairKey): Frame => {
     const sharedSlugs = getSharedColumnSlugs(frames)
     const sharedSlugSet = new Set(sharedSlugs)
 
-    // Fast path: every frame has the same unique keys in the same order, so
-    // reuse all column arrays directly without building any lookup tables.
+    // Fast path: for multi-indicator charts, we often have the case where all indicators
+    // come from the same dataset, and all frames have the same keys in the exact same order.
+    // In this case, we call the frames "aligned" and can just concatenate them together.
     if (haveIdenticalKeys(frames, key) && isUniqueOnKey(firstFrame, key))
         return joinAlignedFrames(frames, sharedSlugs, sharedSlugSet, uniqueKey)
 
+    // Create pointers to each unique key, so that we can quickly join them
     const { rowsByFrame, ownerFrame, ownerRow } = enumerateKeys(frames, key)
     const numOutRows = ownerFrame.length
 
-    // Keys are enumerated in frame order. If frame 0 owns the last output row,
-    // it owns all of them; equal row counts also prove its keys were unique, so
-    // its column arrays can be reused as-is.
+    // Fast path: If every key appears in frame 0, and they are also unique, then
+    // frame 0's column arrays can be reused as-is, and we can effectively perform
+    // a left join on frame 0.
     const firstFrameOwnsAllRows =
         numOutRows === firstFrame.numRows &&
         (numOutRows === 0 || ownerFrame[numOutRows - 1] === 0)
@@ -288,7 +291,9 @@ const haveIdenticalKeys = (frames: Frame[], key: PairKey): boolean => {
  * Cheap check that no two rows of `frame` share a `(time, entity)` key.
  * Succeeds if the frame came out of a join on this key, or if each entity's
  * rows form a single contiguous run with strictly increasing times (the usual
- * layout of our data). Returns false when it cannot prove uniqueness cheaply.
+ * layout of our data).
+ * Returns false when it cannot prove uniqueness cheaply. Returning false thus
+ * doesn't necessarily mean that it's _not_ unique on key.
  */
 const isUniqueOnKey = (frame: Frame, key: PairKey): boolean => {
     if (frame.uniqueKey === key.join(",")) return true
