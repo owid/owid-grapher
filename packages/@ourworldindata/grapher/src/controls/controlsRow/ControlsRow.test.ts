@@ -8,7 +8,7 @@ import {
 import { LifeExpectancyGrapher } from "../../testData/OwidTestData.sample"
 import { GrapherState } from "../../core/GrapherState"
 import { GrapherProgrammaticInterface } from "../../core/Grapher"
-import { ControlsRowLayout } from "./ControlsRowHelpers"
+import { ControlsRowLayout, countVisibleTabs } from "./ControlsRowHelpers"
 import { EntitySelectionToggle } from "../EntitySelectionToggle"
 import { SettingsMenu } from "../SettingsMenu"
 import { DataTableFilterDropdown } from "../DataTableFilterDropdown"
@@ -118,7 +118,11 @@ describe(ControlsRow.measureWidth, () => {
 
     const measureControlsSide = (grapherState: GrapherState): number =>
         ControlsRow.measureWidth(grapherState, FULL_LAYOUT) -
-        ContentSwitchers.measureWidth(grapherState, FULL_LAYOUT.tabs)
+        ContentSwitchers.measureWidth(
+            grapherState,
+            FULL_LAYOUT.tabs,
+            countVisibleTabs(grapherState.availableTabs.length)
+        )
 
     it("is only the gap between its sides when it shows nothing", () => {
         const grapherState = LifeExpectancyGrapher({

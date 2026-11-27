@@ -16,7 +16,11 @@ import {
 } from "react-aria-components"
 import { GrapherTabIcon } from "@ourworldindata/components"
 import { Bounds } from "@ourworldindata/utils"
-import { ControlsRowLayout } from "./controlsRow/ControlsRowHelpers"
+import {
+    ControlsRowLayout,
+    pickVisibleTabs,
+    TabPartition,
+} from "./controlsRow/ControlsRowHelpers"
 
 export interface ContentSwitchersManager {
     availableTabs?: GrapherTabName[]
@@ -24,9 +28,6 @@ export interface ContentSwitchersManager {
     setTab: (tab: GrapherTabName) => void
     onTabChange: (oldTab: GrapherTabName, newTab: GrapherTabName) => void
 }
-
-const MAX_VISIBLE_TABS = 4
-const MAX_VISIBLE_TABS_BEFORE_OVERFLOW = 3
 
 // Keep in sync with Tabs.scss and ContentSwitchers.scss
 const TAB_FONT_SIZE_PX = 13
@@ -45,6 +46,7 @@ function shouldShowContentSwitchers(manager: ContentSwitchersManager): boolean {
 interface ContentSwitchersProps {
     manager: ContentSwitchersManager
     layout: ControlsRowLayout["tabs"]
+    visibleTabCount: number
 }
 
 @observer
@@ -55,13 +57,19 @@ export class ContentSwitchers extends React.Component<ContentSwitchersProps> {
 
     static measureWidth(
         manager: ContentSwitchersManager,
-        tabsLayout: ControlsRowLayout["tabs"]
+        tabsLayout: ControlsRowLayout["tabs"],
+        visibleTabCount: number
     ): number {
-        const switchers = new ContentSwitchers({ manager, layout: tabsLayout })
+        const switchers = new ContentSwitchers({
+            manager,
+            layout: tabsLayout,
+            visibleTabCount,
+        })
         if (!switchers.shouldShow) return 0
+        const { visible, hidden } = switchers.tabPartition
         return measureTabGroupWidth(
-            switchers.visibleTabs.map((tab) => makeLabelForGrapherTab(tab)),
-            switchers.hiddenTabs.length,
+            visible.map((tab) => makeLabelForGrapherTab(tab)),
+            hidden.length,
             tabsLayout
         )
     }
@@ -78,31 +86,11 @@ export class ContentSwitchers extends React.Component<ContentSwitchersProps> {
         return shouldShowContentSwitchers(this.manager)
     }
 
-    @computed private get visibleTabs(): GrapherTabName[] {
-        const { activeTab, availableTabs } = this
-
-        // If there are four or fewer tabs, show all of them
-        if (availableTabs.length <= MAX_VISIBLE_TABS) {
-            return availableTabs
-        }
-
-        // Otherwise, only show the first 3 tabs
-        const visibleTabs = availableTabs.slice(
-            0,
-            MAX_VISIBLE_TABS_BEFORE_OVERFLOW
-        )
-
-        // If the active tab is not visible, replace the last visible tab with it
-        if (!visibleTabs.includes(activeTab)) {
-            visibleTabs[visibleTabs.length - 1] = activeTab
-        }
-
-        return visibleTabs
-    }
-
-    @computed private get hiddenTabs(): GrapherTabName[] {
-        return this.availableTabs.filter(
-            (tab) => !this.visibleTabs.includes(tab)
+    @computed private get tabPartition(): TabPartition {
+        return pickVisibleTabs(
+            this.availableTabs,
+            this.activeTab,
+            this.props.visibleTabCount
         )
     }
 
@@ -111,7 +99,7 @@ export class ContentSwitchers extends React.Component<ContentSwitchersProps> {
     }
 
     @computed private get tabItems(): TabItem<GrapherTabName>[] {
-        return this.visibleTabs.map((tab) => ({
+        return this.tabPartition.visible.map((tab) => ({
             key: tab,
             element: (
                 <TabContent
@@ -139,6 +127,7 @@ export class ContentSwitchers extends React.Component<ContentSwitchersProps> {
         if (!this.shouldShow) return null
 
         const { labelMode, paddingPx } = this.props.layout
+        const { hidden } = this.tabPartition
         return (
             <div className="ContentSwitchers__Container">
                 <Tabs
@@ -152,11 +141,8 @@ export class ContentSwitchers extends React.Component<ContentSwitchersProps> {
                     selectedKey={this.activeTab}
                     onChange={this.setTab}
                 />
-                {this.hiddenTabs.length > 0 && (
-                    <OverflowMenu
-                        hiddenTabs={this.hiddenTabs}
-                        onSelect={this.setTab}
-                    />
+                {hidden.length > 0 && (
+                    <OverflowMenu hiddenTabs={hidden} onSelect={this.setTab} />
                 )}
             </div>
         )

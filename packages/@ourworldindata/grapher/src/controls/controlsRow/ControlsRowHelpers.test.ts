@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest"
+import { GRAPHER_TAB_NAMES, GrapherTabName } from "@ourworldindata/types"
 import {
     ControlsRowLayout,
     EntityLabelMode,
     EntityLabelParts,
     findControlsRowLayout,
+    pickVisibleTabs,
     resolveEntityLabel,
 } from "./ControlsRowHelpers"
 import { listCompactionSteps } from "./ControlsRowTestHelpers"
@@ -91,5 +93,39 @@ describe(resolveEntityLabel, () => {
         expect(
             resolveAllModes({ action: "Edit", entity: "provinces" })
         ).toEqual({ full: "Edit provinces", short: "Edit", actionOnly: "Edit" })
+    })
+})
+
+describe(pickVisibleTabs, () => {
+    const { Table, WorldMap, LineChart, DiscreteBar, Marimekko } =
+        GRAPHER_TAB_NAMES
+    const TABS: GrapherTabName[] = [
+        Table,
+        WorldMap,
+        LineChart,
+        DiscreteBar,
+        Marimekko,
+    ]
+
+    it("shows every tab when the count covers them all", () => {
+        expect(pickVisibleTabs(TABS, LineChart, TABS.length)).toEqual({
+            visible: TABS,
+            hidden: [],
+        })
+        expect(pickVisibleTabs(TABS, LineChart, 10).hidden).toEqual([])
+    })
+
+    it("shows the first tabs when the active tab is among them", () => {
+        expect(pickVisibleTabs(TABS, WorldMap, 3)).toEqual({
+            visible: [Table, WorldMap, LineChart],
+            hidden: [DiscreteBar, Marimekko],
+        })
+    })
+
+    it("puts an active tab that would be hidden into the last visible slot", () => {
+        expect(pickVisibleTabs(TABS, Marimekko, 3)).toEqual({
+            visible: [Table, WorldMap, Marimekko],
+            hidden: [LineChart, DiscreteBar],
+        })
     })
 })
