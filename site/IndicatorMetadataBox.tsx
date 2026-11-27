@@ -216,8 +216,8 @@ function StitchedIndicatorList({
             </h3>
             <ul>
                 {indicators.map((indicator, i) => (
-                    // Folded indicators stay in the HTML, where find-in-page
-                    // and agents can read them
+                    // Folded indicators stay in the HTML, where crawlers and
+                    // agents can read them
                     <li key={i} hidden={i >= visibleCount}>
                         <span className="indicator-metadata-box__indicator-list-title">
                             {appendTitleVariant(
