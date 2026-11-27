@@ -84,8 +84,8 @@ export const frameToTable = (frame: Frame): OwidTable =>
  * Overall, it works as follows:
  * 1. Collect all unique `(time, entityId)` keys across all indicators, and give them an incremental output row index.
  * 2. For each frame, create an Int32Array which contains the key index for every row in that frame.
- * 3. Then, we invert this mapping to get a map from output row index to the first row in the indicator that corresponds to that key.
- * 4. From this mapping, we can efficiently gather the values for each output row from the corresponding rows in the indicator frames.
+ * 3. For each indicator, start from a value column that's filled with NoMatchingValueAfterJoin values, and write each input row's value into
+ *    its output row (the first row wins if a key repeats).
  */
 export const fullJoin = (indicators: IndicatorFrame[]): Frame => {
     if (indicators.length === 0) return EMPTY_FRAME
@@ -119,15 +119,12 @@ export const fullJoin = (indicators: IndicatorFrame[]): Frame => {
                     values: valueColumn.values,
                 }
 
-            const firstRowPerOutRow = invertToFirstRowPerKey(
-                outRowsByIndicator[index],
-                numOutRows
-            )
             return {
                 def: { ...valueColumn.def },
-                values: gatherColumnValues(
+                values: writeOutputRows(
                     valueColumn.values,
-                    firstRowPerOutRow
+                    outRowsByIndicator[index],
+                    numOutRows
                 ),
             }
         }
@@ -420,20 +417,26 @@ const collectUniqueKeys = (
 }
 
 /**
- * Inverts `inputRow -> outRow` into `outRow -> firstMatchingInputRow` (-1 if
- * absent), logging once per duplicate key in the frame.
+ * Places each input row's value at its output row (`outRows[inputRow]`), with
+ * `NoMatchingValueAfterJoin` where no input row maps. The first input row wins
+ * for a repeated key, logging once per such key.
  */
-const invertToFirstRowPerKey = (
+const writeOutputRows = (
+    source: CoreValueType[],
     outRows: Int32Array,
     numOutRows: number
-): Int32Array => {
-    const rows = new Int32Array(numOutRows).fill(-1)
+): CoreValueType[] => {
+    const values: CoreValueType[] = new Array(numOutRows).fill(
+        ErrorValueTypes.NoMatchingValueAfterJoin
+    )
+    const filled = new Uint8Array(numOutRows)
     // Allocated lazily since duplicate keys in a single frame are rare
     let duplicateOutRows: Set<number> | undefined
     for (let row = 0; row < outRows.length; row++) {
         const outRow = outRows[row]
-        if (rows[outRow] === -1) {
-            rows[outRow] = row
+        if (filled[outRow] === 0) {
+            filled[outRow] = 1
+            values[outRow] = source[row]
         } else {
             duplicateOutRows ??= new Set()
             if (!duplicateOutRows.has(outRow)) {
@@ -442,7 +445,7 @@ const invertToFirstRowPerKey = (
             }
         }
     }
-    return rows
+    return values
 }
 
 /** Keeps the first row for each distinct key, logging duplicates once per key */
