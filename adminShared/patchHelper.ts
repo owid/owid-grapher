@@ -1,5 +1,12 @@
 import * as _ from "lodash-es"
-import jsonpointer from "json8-pointer"
+import {
+    InvalidIndexError,
+    NotAContainerError,
+    pointerGet,
+    pointerParse,
+    type PointerSegments,
+    type ReadonlyJson,
+} from "@hyperjump/json-pointer"
 import { GrapherConfigPatch } from "./AdminSessionTypes.js"
 import { checkIsStringIndexable } from "@ourworldindata/utils"
 import * as R from "remeda"
@@ -126,16 +133,33 @@ export function setValueRecursive(
     }
 }
 
+/** Like `pointerGet`, but returns undefined instead of throwing when the path
+ * runs through a missing or non-container value (e.g. `/map/colorScale` on a
+ * config without `map`) */
+function getPointerValueOrUndefined(
+    subject: unknown,
+    path: PointerSegments
+): unknown {
+    try {
+        return pointerGet(path, subject as ReadonlyJson)
+    } catch (error) {
+        if (
+            error instanceof NotAContainerError ||
+            error instanceof InvalidIndexError
+        )
+            return undefined
+        throw error
+    }
+}
+
 export function compileGetValueFunction(jsonPointer: string): (x: any) => any {
-    // TODO: the json8-pointer libarary compile function does not return undefined
-    // if the item can't be found like find but instead throws. Probably it makes sense
-    // to try to create a more efficient version here that does not throw exceptions since
-    // this will be used very often in an inner loop
-    return (input): any => jsonpointer.find(input, jsonPointer)
+    // Parse once up front, since the returned getter is called in inner loops
+    const path = pointerParse(jsonPointer)
+    return (input): any => getPointerValueOrUndefined(input, path)
 }
 
 export function applyPatch(patchSet: GrapherConfigPatch, config: unknown): any {
-    const pointer = jsonpointer.parse(patchSet.jsonPointer) as string[]
+    const pointer = pointerParse(patchSet.jsonPointer)
 
     if (pointer.length === 0) throw Error("Empty JSON path is not supported")
     if (
@@ -149,7 +173,7 @@ export function applyPatch(patchSet: GrapherConfigPatch, config: unknown): any {
         )
     }
 
-    const currentValue = jsonpointer.find(config, patchSet.jsonPointer)
+    const currentValue = getPointerValueOrUndefined(config, pointer)
     const currentIsOld = _.isEqual(currentValue, patchSet.oldValue)
     const currentIsOldOrAllowedNull =
         currentIsOld ||

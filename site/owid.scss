@@ -71,6 +71,7 @@
 @import "./search/Search.scss";
 @import "./search/SearchCountrySelector.scss";
 @import "./search/SearchDataResults.scss";
+@import "./search/SearchFeaturedVizHit.scss";
 @import "./search/SearchDataTopic.scss";
 @import "./search/Autocomplete.scss";
 @import "./search/SearchTopicsRefinementList.scss";
@@ -131,6 +132,10 @@
 @import "./blocks/expandable-paragraph.scss";
 @import "./blocks/prominent-link.scss";
 @import "./blocks/related-charts.scss";
+@import "./blocks/AllChartsBlockHeading.scss";
+@import "./blocks/AllChartsBlockSearch.scss";
+@import "./blocks/AllChartsBlockSuggestions.scss";
+@import "./blocks/AllChartsBlockResults.scss";
 @import "./blocks/CookiePreferences.scss";
 @import "./blocks/Grid.scss";
 @import "./blocks/BiographyCard.scss";
@@ -153,6 +158,8 @@
 @import "./gdocs/components/Image.scss";
 @import "./gdocs/components/StaticVizDownload.scss";
 @import "./gdocs/components/LatestCarousel.scss";
+@import "./gdocs/components/LatestDataInsightsGrid.scss";
+@import "./gdocs/components/LatestDataInsightsExperiment.scss";
 @import "./gdocs/components/LatestCarouselSection.scss";
 @import "./gdocs/components/LatestBreadcrumb.scss";
 @import "./gdocs/components/StandalonePostBody.scss";
@@ -201,14 +208,14 @@
 @import "./multiDim/MultiDim.scss";
 @import "./multiDim/MultiDimDataPageContent.scss";
 @import "./multiDim/DimensionDropdown.scss";
-@import "./multiDim/MultiDimDropdowns.scss";
+@import "./multiDim/DimensionToggleButtons.scss";
+@import "./multiDim/MultiDimControls.scss";
 @import "./multiDim/MultiDimDataPageSettingsPanel.scss";
 @import "./multiDim/MultiDimEmbedSettingsPanel.scss";
 @import "./GrapherImage.scss";
 @import "./KeyDataTable.scss";
 @import "./DownloadSection.scss";
 @import "./MetadataSection.scss";
-@import "./TopicTags.scss";
 
 @import "./gdocs/pages/Homepage.scss";
 @import "./gdocs/pages/Author.scss";
@@ -217,7 +224,6 @@
 @import "./gdocs/pages/FeaturedViz.scss";
 @import "./slideshows/SlideshowPage.scss";
 @import "./slideshows/SlideContent.scss";
-@import "./experiments.scss";
 
 @import "css/donate.scss";
 @import "./ThankYouPage.scss";

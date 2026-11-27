@@ -69,6 +69,32 @@ describe(isEmptyQuerySearchPayload, () => {
         ).toBe(false)
     })
 
+    it("rejects an empty query filtered on a pinned search, which holds the reader's search", () => {
+        const filters = 'type:featured-viz AND pinnedForSearches:"population"'
+        expect(
+            isEmptyQuerySearchPayload({
+                requests: [{ indexName: "pages", query: "", filters }],
+            })
+        ).toBe(false)
+        expect(
+            isEmptyQuerySearchPayload({
+                requests: [
+                    { indexName: "pages", params: { query: "", filters } },
+                ],
+            })
+        ).toBe(false)
+    })
+
+    it("still accepts an empty query with ordinary filters (e.g. /latest, data insights)", () => {
+        expect(
+            isEmptyQuerySearchPayload({
+                requests: [
+                    { indexName: "pages", query: "", filters: "type:article" },
+                ],
+            })
+        ).toBe(true)
+    })
+
     it("rejects malformed payloads", () => {
         expect(isEmptyQuerySearchPayload(undefined)).toBe(false)
         expect(isEmptyQuerySearchPayload(null)).toBe(false)

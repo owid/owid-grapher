@@ -39,6 +39,9 @@ if (LOAD_SENTRY) {
         release: COMMIT_SHA,
         integrations: [
             Sentry.browserTracingIntegration(),
+            // Records performance.measure() calls (e.g. Grapher's) as spans
+            // on pageload/navigation traces
+            Sentry.userTimingIntegration(),
             Sentry.replayIntegration({
                 maskAllText: false,
                 maskAllInputs: false,

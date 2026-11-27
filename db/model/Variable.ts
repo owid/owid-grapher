@@ -20,10 +20,9 @@ import {
     getVariableDataRoute,
     getVariableMetadataRoute,
 } from "@ourworldindata/grapher"
-import pl from "nodejs-polars"
+import pl, { type DataType } from "nodejs-polars"
 import { DATA_API_URL } from "../../settings/serverSettings.js"
-import { deleteGrapherConfigFromR2ByUuid } from "../../serverUtils/r2/chartConfigR2Helpers.js"
-import pMap from "p-map"
+import { deleteGrapherConfigsFromR2ByUuid } from "../../serverUtils/r2/chartConfigR2Helpers.js"
 import {
     MultipleOwidVariableDataDimensionsMap,
     OwidVariableDataMetadataDimensions,
@@ -538,19 +537,22 @@ export async function writeVariableCSV(
     knex: db.KnexReadonlyTransaction
 ): Promise<void> {
     // get variables as dataframe
-    const variablesDF = (
-        await readSQLasDF(
-            `-- sql
+    const variablesDF = await readSQLasDF(
+        `-- sql
         SELECT
             id as variableId,
             name as variableName,
             columnOrder
         FROM variables v
         WHERE id IN (?)`,
-            [variableIds],
-            knex
-        )
-    ).withColumn(pl.col("variableId").cast(pl.Int32))
+        [variableIds],
+        knex,
+        {
+            variableId: pl.Int32,
+            variableName: pl.String,
+            columnOrder: pl.Int32,
+        }
+    )
 
     // Throw an error if not all variables exist
     if (variablesDF.shape.height !== variableIds.length) {
@@ -571,7 +573,9 @@ export async function writeVariableCSV(
         // variables as columns
         .pivot("value", {
             index: ["entityName", "year"],
-            columns: "variableName",
+            on: "variableName",
+            // keep variable columns in the columnOrder we sorted by above
+            maintainOrder: true,
         })
         .sort(["entityName", "year"])
         .rename({ entityName: "Entity", year: "Year" })
@@ -582,22 +586,21 @@ export const entitiesAsDF = async (
     entityIds: number[],
     knex: db.KnexReadonlyTransaction
 ): Promise<pl.DataFrame> => {
-    return (
-        await readSQLasDF(
-            `
+    return readSQLasDF(
+        `
         SELECT
             id AS entityId,
             name AS entityName,
             code AS entityCode
         FROM entities WHERE id in (?)
         `,
-            [_.uniq(entityIds)],
-            knex
-        )
-    ).select(
-        pl.col("entityId").cast(pl.Int32),
-        pl.col("entityName").cast(pl.Utf8),
-        pl.col("entityCode").cast(pl.Utf8)
+        [_.uniq(entityIds)],
+        knex,
+        {
+            entityId: pl.Int32,
+            entityName: pl.String,
+            entityCode: pl.String,
+        }
     )
 }
 
@@ -636,29 +639,32 @@ export const _dataAsDFfromS3 = async (
     const dfs = await Promise.all(
         variableIds.map(async (variableId) => {
             const s3values = await fetchS3Values(variableId)
-            // convert values to strings before creating dataframe
+            // convert values to strings before creating dataframe; numbers
+            // in the pl.String column would otherwise be dropped as null
             s3values.values = s3values.values.map((value) => {
                 // convert all to string except nulls and undefined
                 return value === null || value === undefined
                     ? value
                     : value.toString()
             })
-            return createDataFrame(s3values)
-                .rename({
-                    values: "value",
-                    entities: "entityId",
-                    years: "year",
-                })
-                .select(
-                    pl.col("entityId").cast(pl.Int32),
-                    pl.col("year").cast(pl.Int32),
-                    pl.col("value").cast(pl.Utf8),
-                    pl.lit(variableId).cast(pl.Int32).alias("variableId")
-                )
+            return createDataFrame(
+                {
+                    entityId: s3values.entities,
+                    year: s3values.years,
+                    value: s3values.values,
+                    variableId: s3values.years.map(() => variableId),
+                },
+                {
+                    entityId: pl.Int32,
+                    year: pl.Int32,
+                    value: pl.String,
+                    variableId: pl.Int32,
+                }
+            )
         })
     )
 
-    const df = pl.concat(dfs)
+    const df = pl.concat(dfs) as (typeof dfs)[number]
 
     if (df.height === 0) {
         return emptyDataDF()
@@ -772,26 +778,45 @@ export const fetchS3MetadataByPath = async (
     }
 }
 
-export const createDataFrame = (data: unknown): pl.DataFrame => {
-    if (Array.isArray(data)) {
-        // transpose list of objects into object of lists because polars raises
-        // an error when creating a dataframe with null values (see https://github.com/pola-rs/nodejs-polars/issues/20)
-        // otherwise we'd just use pl.DataFrame(rows)
-        const keys = _.keys(data[0])
-        const values = _.map(keys, (key) => _.map(data, key))
-
-        return pl.DataFrame(_.zipObject(keys, values))
-    } else {
-        return pl.DataFrame(data)
-    }
+/**
+ * Create a dataframe from column arrays with exactly the columns and dtypes of
+ * `schema`.
+ *
+ * Careful: polars doesn't cast to the schema — a value of the wrong JS type
+ * (e.g. a number in a `pl.String` column) is silently dropped and becomes
+ * null. So the data must already have the schema's types.
+ */
+export const createDataFrame = <S extends Record<string, DataType>>(
+    columns: Record<keyof S, readonly unknown[]>,
+    schema: S
+): pl.DataFrame<S> => {
+    // Pass the columns in schema order, since polars assigns schema dtypes to
+    // the data's columns by position, not by name.
+    return pl.DataFrame(
+        _.mapValues(schema, (_dtype, name) => columns[name]),
+        { schema }
+    )
 }
 
-export const readSQLasDF = async (
+/**
+ * Run a query and return its rows as a dataframe with exactly the columns and
+ * dtypes of `schema`.
+ *
+ * Careful: a value of the wrong JS type is silently dropped and becomes null
+ * (see createDataFrame). So the schema must match what mysql2 returns: numbers
+ * for int columns, strings for varchar columns.
+ */
+export const readSQLasDF = async <S extends Record<string, DataType>>(
     sql: string,
     params: any[],
-    knex: db.KnexReadonlyTransaction
-): Promise<pl.DataFrame> => {
-    return createDataFrame(await db.knexRaw(knex, sql, params))
+    knex: db.KnexReadonlyTransaction,
+    schema: S
+): Promise<pl.DataFrame<S>> => {
+    const rows = await db.knexRaw<Record<string, unknown>>(knex, sql, params)
+    const columns = _.mapValues(schema, (_dtype, name) =>
+        rows.map((row) => row[name])
+    )
+    return createDataFrame(columns, schema)
 }
 
 export async function getVariableOfDatapageIfApplicable(
@@ -1778,13 +1803,9 @@ export async function deleteIndicators(
         await trx("chart_configs").whereIn("id", chartConfigIds).delete()
 
         // Only multi dim chart configs are stored in R2
-        await pMap(
-            multiDimConfigIds,
-            // A failed delete should not roll this transaction back.
-            // The next sync to R2 will clean up any orphaned objects.
-            (id) => deleteGrapherConfigFromR2ByUuid(id).catch(console.error),
-            { concurrency: 20 }
-        )
+        // A failed delete should not roll this transaction back.
+        // The next sync to R2 will clean up any orphaned objects.
+        await deleteGrapherConfigsFromR2ByUuid(multiDimConfigIds, console.error)
     }
 
     return { deleted: deletableIndicatorIds, blocked }

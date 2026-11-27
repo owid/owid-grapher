@@ -117,7 +117,6 @@ export function OwidGdoc({
                 imageMetadata: _.get(props, "imageMetadata", {}),
                 linkedCharts: _.get(props, "linkedCharts", {}),
                 linkedIndicators: _.get(props, "linkedIndicators", {}),
-                relatedCharts: _.get(props, "relatedCharts", []),
                 latestDataInsights: _.get(props, "latestDataInsights", []),
                 latestAnnouncements: _.get(props, "latestAnnouncements", []),
                 homepageMetadata: _.get(props, "homepageMetadata", {}),
@@ -130,6 +129,7 @@ export function OwidGdoc({
                 linkedStaticViz: _.get(props, "linkedStaticViz", {}),
                 linkedCallouts: _.get(props, "linkedCallouts", {}),
                 bespokeMetadata: _.get(props, "bespokeMetadata"),
+                allChartsBlockResults: _.get(props, "allChartsBlockResults"),
                 // lodash doesn't use fallback when value is null
                 tags: props.tags ?? [],
             }}

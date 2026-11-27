@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest"
 import { Bounds } from "@ourworldindata/utils"
 import {
+    ChartLabelMode,
     ColumnTypeNames,
     GRAPHER_CHART_TYPES,
     GrapherVariant,
+    IndicatorAnnotation,
     SortBy,
     SortOrder,
 } from "@ourworldindata/types"
@@ -36,24 +38,15 @@ const REGIME_ROWS = [
 function makeChart(
     regimeColumnType: ColumnTypeNames,
     config: Partial<GrapherProgrammaticInterface> = {},
-    annotations: Record<string, string> = {}
+    annotations: IndicatorAnnotation[] = []
 ): { grapherState: GrapherState; chart: SwimlaneChart } {
-    const hasAnnotations = Object.keys(annotations).length > 0
-    const rows = hasAnnotations
-        ? REGIME_ROWS.map((row) => ({
-              ...row,
-              "regime-annotations": annotations[row.entityName] ?? "",
-          }))
-        : REGIME_ROWS
-    const table = new OwidTable(rows, [
+    const table = new OwidTable(REGIME_ROWS, [
         { slug: "year", type: ColumnTypeNames.Year },
-        ...(hasAnnotations
-            ? [{ slug: "regime-annotations", type: ColumnTypeNames.String }]
-            : []),
         {
             slug: "regime",
             type: regimeColumnType,
             sort: ["Republic", "Monarchy"],
+            annotations,
         },
     ])
     const grapherState = new GrapherState({
@@ -304,8 +297,8 @@ describe("thumbnail", () => {
         ).toEqual(["2000", "2005"])
     })
 
-    it("drops the legend but keeps the rows with minimal labeling", () => {
-        const chart = makeThumbnail({ useMinimalLabeling: true })
+    it("drops the legend but keeps the rows when it shows values only", () => {
+        const chart = makeThumbnail({ labelMode: ChartLabelMode.Values })
 
         expect(chart["categoricalLegendState"]).toBeUndefined()
         expect(chart["ordinalLegendState"]).toBeUndefined()
@@ -325,11 +318,13 @@ describe("thumbnail", () => {
 
 describe("annotations", () => {
     it("places an entity's annotation in its row only", () => {
-        const { chart } = makeChart(
-            ColumnTypeNames.String,
-            {},
-            { France: "Fifth Republic" }
-        )
+        const { chart } = makeChart(ColumnTypeNames.String, {}, [
+            {
+                text: "Fifth Republic",
+                entityNames: ["France"],
+                timeScope: "all",
+            },
+        ])
 
         expect(findRow(chart, "France").annotationPosition).toBeDefined()
         expect(findRow(chart, "Germany").annotationPosition).toBeUndefined()

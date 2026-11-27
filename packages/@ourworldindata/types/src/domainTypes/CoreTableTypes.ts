@@ -131,21 +131,13 @@ enum OwidTableNames {
 }
 
 export type EntityName = string
-export type EntityCode = string
 export type EntityId = number
-
-export interface Entity {
-    entityName: EntityName
-    entityId?: EntityId
-    entityCode?: EntityCode
-}
 
 export enum ColumnTypeNames {
     NumberOrString = "NumberOrString",
     Numeric = "Numeric",
     String = "String",
     Region = "Region",
-    SeriesAnnotation = "SeriesAnnotation",
     Categorical = "Categorical",
     Ordinal = "Ordinal",
     Continent = "Continent",
@@ -199,11 +191,7 @@ export interface CoreColumnDef extends ColumnColorScale {
     // Denotes the relationship of this column to another column
     derivedFrom?: {
         columnSlug: ColumnSlug
-        relationship:
-            | "annotations"
-            | "originalTime"
-            | "originalStartTime"
-            | "originalValue"
+        relationship: "originalTime" | "originalStartTime" | "originalValue"
     }
 
     // Column information used for display only
@@ -259,13 +247,13 @@ export interface OwidColumnDef extends CoreColumnDef {
     coverage?: string
     datasetId?: number
     datasetName?: string
-    annotationsColumnSlug?: ColumnSlug
     nonRedistributable?: boolean
     skipParsing?: boolean
     catalogPath?: string
     owidProcessingLevel?: OwidProcessingLevel
     owidSchemaVersion?: number
     shortName?: string
+    annotations?: IndicatorAnnotation[]
 }
 
 export const OwidEntityNameColumnDef = {
@@ -288,14 +276,12 @@ export const OwidEntityCodeColumnDef = {
 export const StandardOwidColumnDefs: OwidColumnDef[] = [
     OwidEntityNameColumnDef,
     OwidEntityIdColumnDef,
-    OwidEntityCodeColumnDef,
 ]
 
 // This is a row with the additional columns specific to our OWID data model
 export interface OwidRow extends CoreRow {
     entityName: EntityName
     time: Time
-    entityCode?: EntityCode
     entityId?: EntityId
     year?: Year
     day?: Integer
@@ -309,3 +295,15 @@ export interface OwidVariableRow<ValueType extends PrimitiveType> {
     originalTime: Time
     originalValue?: ValueType
 }
+
+type AnnotationEntityScope =
+    | { entityNames: [EntityName, ...EntityName[]] }
+    | { entityNames?: never }
+
+export type AnnotationTimeScope =
+    | { timeScope: "all" }
+    | { timeScope: "point"; time: Time }
+    | { timeScope: "range"; startTime: Time; endTime: Time }
+
+export type IndicatorAnnotation = { text: string } & AnnotationEntityScope &
+    AnnotationTimeScope

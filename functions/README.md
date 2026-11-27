@@ -301,13 +301,14 @@ There is however a [Cloudflare Access rule restricting access to \*.owid.pages.d
 Our grapher pages are (slightly) dynamic!
 They're still driven by a statically rendered page, but to make dynamic thumbnails work, we need to inject the query params into the `<meta property="og:image">` [^1] and `<meta property="twitter:image">` [^2] tags.
 
-So, for example, if a request is coming in for `/grapher/population?tab=chart&time=1999..2023`, then we need to reflect these query params in the tags for social media preview images, too, and would put something like `<meta property="og:image" content="/grapher/thumbnail/population?tab=chart&time=1999..2023>` so that social media posts will then show the preview for the exact chart configuration.
+So, for example, if a request is coming in for `/grapher/population?tab=chart&time=1999..2023`, then we need to reflect these query params in the tags for social media preview images, too, and would put something like `<meta property="og:image" content="/grapher/population.png?imPreset=og&tab=chart&time=1999..2023">` so that social media posts will then show the preview for the exact chart configuration.
 
 For detailed API documentation, including all parameters, response schemas, and examples, see [chart-api.openapi.yaml](../docs/chart-api.openapi.yaml).
 
-## `/grapher/thumbnail/:slug`
+## `/grapher/:slug.png` and `/grapher/:slug.svg`
 
 This route is where the actual thumbnail magic happens 🙌🏻✨
+The deprecated `/grapher/thumbnail/:slug` route 301-redirects here through the baked `_redirects` file (see `baker/redirects.ts`), keeping the query string.
 
 It can:
 
@@ -321,7 +322,7 @@ We cannot possibly create static previews for all possible combinations, but we 
 
 ### How it works
 
-When a request to `/grapher/thumbnail/:slug` comes in, the following steps are performed:
+When a request to `/grapher/:slug.png` comes in, the following steps are performed:
 
 1. Fetch the grapher page `/grapher/:slug` and extract the grapher config using the `// EMBEDDED_JSON` trickery.
 2. Instantiate the grapher (the whole `@ourworldindata/grapher` module is bundled together with the worker).
@@ -340,65 +341,21 @@ You can find these fonts in the `fonts/` directory here; note however that these
 
 ### Options
 
-All of the below options can be given as query parameters, e.g. `?imType=og&nocache`.
+Image params start with `im`. The route parses them with `parseImageRequest` from `@ourworldindata/grapher` and answers 400 for an invalid or contradictory request. Unrecognised `im*` params are ignored. [chart-api.openapi.yaml](../docs/chart-api.openapi.yaml) documents every param and the combinations that fail.
 
-<table>
-  <tr>
-    <th>Option name</th>
-    <th>Valid values / types</th>
-    <th>Description</th>
-  </tr>
-  <tr>
-    <td><code>nocache</code></td>
-    <td>
-      Assumed to be true whenever present in any way, even just
-      <code>&nocache</code>
-      works.
-    </td>
-    <td>
-      When present, will not read or write from/to the Cloudflare cache, and return a
-      <code>Cache-Control: max-age=0</code> header.
-      <tr>
-        <td><code>imType</code></td>
-        <td>
-          <code>twitter</code> or <code>og</code> (short for
-          <a href="https://ogp.me">Open Graph</a>)
-        </td>
-        <td>
-          If present, will use fitting defaults for the generated image size:
-          <ul>
-            <li><code>twitter</code>: 800x418</li>
-            <li><code>og</code>: 1200x628</li>
-          </ul>
-          All below options will be ignored if <code>imType</code> is set to one of these values.
-        </td>
-      </tr>
-      <tr>
-        <td><code>imWidth</code></td>
-        <td>number</td>
-        <td rowspan="2">
-          The width/height of the png image to be rendered. <br />For technical reasons, the
-          <code>viewbox</code> of the returned svg might be different. <br />
-          If only one these values is provided, the other one is filled in according to a default
-          aspect ratio.<br /><br />
-          If Details on Demand are to be included in the footer (<code>imDetails</code>) then the
-          total height may be higher, because the height only measures the chart frame itself.
-        </td>
-      </tr>
-      <tr>
-        <td><code>imHeight</code></td>
-        <td>number</td>
-      </tr>
-      <tr>
-        <td><code>imDetails</code></td>
-        <td><code>1</code></td>
-        <td>
-          Whether the footer should list definitions of all Details on Demand included in the chart.
-        </td>
-      </tr>
-    </td>
-  </tr>
-</table>
+Each picture combines a variant, a label mode and a size:
+
+| URL                                                                       | Picture                                                                         |
+| ------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| `/grapher/population.png`                                                 | The captioned chart at 850×600                                                  |
+| `/grapher/population.png?imPreset=og`                                     | The captioned chart at 1200×628 for Open Graph, as in the page's `og:image` tag |
+| `/grapher/population.png?imVariant=uncaptioned&imWidth=1200&imHeight=800` | The chart without title, subtitle or footer                                     |
+| `/grapher/population.png?imVariant=simplified`                            | The search thumbnail, laid out at 300×160 and rendered at 1200×640              |
+| `/grapher/population.png?imVariant=simplified&imLabels=values`            | The thumbnail next to a data table, with values and no legend                   |
+| `/grapher/population.png?imVariant=simplified&imLabels=names`             | The thumbnail with names, and no values or legend                               |
+| `/grapher/population.png?imVariant=simplified&imLabels=none`              | The thumbnail with no text at all                                               |
+
+`imType` and `imMinimal` still work as deprecated aliases, so URLs cached by social sites and search engines keep rendering. `nocache` skips the Cloudflare cache, both reading and writing.
 
 In addition, all grapher URL options can be included as query parameters, e.g. `?time=1850..latest&tab=map&region=Asia`.
 

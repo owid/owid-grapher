@@ -19,19 +19,24 @@ describe("download", () => {
         SampleColumnSlugs.Population,
         SampleColumnSlugs.LifeExpectancy,
     ]
-    const originalOtherColumns = originalTable.columnSlugs.filter(
-        (slug) => !originalYColumns.includes(slug)
-    )
-
-    it("doesn't include any y-columns when none are specified", () => {
-        const grapherState = new GrapherState({ table: SynthesizeGDPTable() })
-        const slugs = grapherState.tableForDownload.columnSlugs
-        const expectedSlugs = originalTable.columnSlugs.filter(
+    // The download drops the entity id and adds entity codes (looked up
+    // from the regions list) right after the entity name
+    const downloadOtherColumns = originalTable.columnSlugs
+        .filter(
             (slug) =>
                 !originalYColumns.includes(slug) &&
                 slug !== OwidTableSlugs.EntityId
         )
-        expect(slugs).toEqual(expectedSlugs)
+        .flatMap((slug) =>
+            slug === OwidTableSlugs.EntityName
+                ? [slug, OwidTableSlugs.EntityCode]
+                : [slug]
+        )
+
+    it("doesn't include any y-columns when none are specified", () => {
+        const grapherState = new GrapherState({ table: SynthesizeGDPTable() })
+        const slugs = grapherState.tableForDownload.columnSlugs
+        expect(slugs).toEqual(downloadOtherColumns)
     })
 
     it("only includes the chart's y-columns", () => {
@@ -49,9 +54,9 @@ describe("download", () => {
             })
             const slugs = grapherState.tableForDownload.columnSlugs
             const expectedSlugs = [
-                ...originalOtherColumns,
+                ...downloadOtherColumns,
                 ...ySlugs.split(" "),
-            ].filter((slug) => slug !== OwidTableSlugs.EntityId)
+            ]
             expectUnorderedEqual(slugs, expectedSlugs)
         }
     })

@@ -5,7 +5,10 @@ import {
     MultiDimDimensionChoices,
     MultiDimRedirectsTableName,
 } from "@ourworldindata/types"
-import { MultiDimDataPageConfig } from "@ourworldindata/utils"
+import {
+    MultiDimDataPageConfig,
+    multiDimDimensionsToViewQueryStr,
+} from "@ourworldindata/utils"
 
 export type MultiDimRedirectSourcePrefix = "/grapher/" | "/explorers/"
 
@@ -27,116 +30,117 @@ export interface MultiDimRedirectRule {
 // view). Throws if a view config id is given but no matching view exists.
 export function getViewParamsFromConfig(
     viewConfigId: string | null,
-    config: string,
+    config: MultiDimDataPageConfigEnriched,
     multiDimSlug: string
 ): MultiDimDimensionChoices {
     if (!viewConfigId) return {}
-
-    const parsedConfig = JSON.parse(config) as MultiDimDataPageConfigEnriched
-    const mdimConfig = MultiDimDataPageConfig.fromObject(parsedConfig)
-    const dimensions = mdimConfig.findViewDimensionsByConfigId(viewConfigId)
-    if (!dimensions) {
-        throw new Error(
-            `No matching view found for viewConfigId ${viewConfigId} on multi-dim ${multiDimSlug}`
+    const dimensions =
+        MultiDimDataPageConfig.fromObject(config).findViewDimensionsByConfigId(
+            viewConfigId
         )
-    }
+    if (!dimensions) throw noMatchingViewError(viewConfigId, multiDimSlug)
     return dimensions
 }
 
 export function buildQueryStrFromConfig(
     viewConfigId: string | null,
-    config: string,
+    config: MultiDimDataPageConfigEnriched,
     multiDimSlug: string
 ): string | undefined {
-    const dimensions = getViewParamsFromConfig(
-        viewConfigId,
-        config,
-        multiDimSlug
+    return viewQueryStr(
+        getViewParamsFromConfig(viewConfigId, config, multiDimSlug)
     )
-    const params = new URLSearchParams()
-    const sortedDimensions = Object.entries(dimensions).sort(([keyA], [keyB]) =>
-        keyA.localeCompare(keyB)
-    )
-    for (const [dimension, choice] of sortedDimensions) {
-        params.set(dimension, choice)
-    }
-    const queryStr = params.toString()
-    return queryStr || undefined
 }
 
+// The path a redirect to a multi-dim view lands on, e.g.
+// `/grapher/energy?metric=total&source=all`.
+export function buildRedirectTargetPath(
+    multiDimSlug: string,
+    dimensions: MultiDimDimensionChoices
+): string {
+    const queryStr = viewQueryStr(dimensions)
+    return `/grapher/${multiDimSlug}${queryStr ? `?${queryStr}` : ""}`
+}
+
+// The view's canonical query string, the same one the multi-dim's baked views
+// and the Cloudflare functions use, or undefined for the default view.
+function viewQueryStr(
+    dimensions: MultiDimDimensionChoices
+): string | undefined {
+    return multiDimDimensionsToViewQueryStr(dimensions) || undefined
+}
+
+function noMatchingViewError(
+    viewConfigId: string,
+    multiDimSlug: string
+): Error {
+    return new Error(
+        `No matching view found for viewConfigId ${viewConfigId} on multi-dim ${multiDimSlug}`
+    )
+}
+
+// Joins a redirect `mdr` to its target view's dimensions, to select as
+// `mdvd.dimensions AS viewDimensions` and read with parseViewDimensions. Going
+// through multi_dim_x_chart_configs limits the view to the redirect's own
+// multi-dim's current views. Reading the dimensions from here rather than from
+// the multi-dim's config keeps configs, which can be several MB and shared by
+// thousands of redirects, out of redirect queries.
+export const VIEW_DIMENSIONS_JOIN = `
+    LEFT JOIN multi_dim_x_chart_configs mdxcc
+        ON mdxcc.multiDimId = mdr.multiDimId
+        AND mdxcc.chartConfigId = mdr.viewConfigId
+    LEFT JOIN multi_dim_view_dimensions mdvd
+        ON mdvd.chartConfigId = mdxcc.chartConfigId`
+
+// The dimensions of a redirect's target view, from a row selected with
+// VIEW_DIMENSIONS_JOIN, or none for the multi-dim's default view. Throws if
+// the view isn't one of the multi-dim's current views.
+export function parseViewDimensions(row: {
+    viewConfigId: string | null
+    viewDimensions: string | null
+    multiDimSlug: string
+}): MultiDimDimensionChoices {
+    if (!row.viewConfigId) return {}
+    if (!row.viewDimensions) {
+        throw noMatchingViewError(row.viewConfigId, row.multiDimSlug)
+    }
+    return JSON.parse(row.viewDimensions) as MultiDimDimensionChoices
+}
+
+// One representative target per source slug, for callers that resolve by slug
+// alone. The query-param matching itself happens at request time in the
+// Cloudflare function, from getMultiDimRedirectRulesBySource.
 export async function getMultiDimRedirectTargets(
     knex: db.KnexReadonlyTransaction,
     slugs: string[] | undefined,
     sourcePrefix: MultiDimRedirectSourcePrefix
 ): Promise<Map<string, MultiDimRedirectTarget>> {
-    const redirectMap = new Map<string, MultiDimRedirectTarget>()
-    if (slugs && slugs.length === 0) return redirectMap
-
-    let whereClause: string
-    let params: string[]
-    if (!slugs) {
-        whereClause = "mdr.source LIKE ?"
-        params = [`${sourcePrefix}%`]
-    } else {
-        whereClause = `mdr.source IN (${slugs.map(() => "?").join(",")})`
-        params = slugs.map((slug) => `${sourcePrefix}${slug}`)
-    }
-
-    const redirects = await db.knexRaw<{
-        sourceSlug: string
-        multiDimSlug: string
-        viewConfigId: string | null
-        config: string
-        id: number
-        hasSourceQueryParams: number
-    }>(
+    const rulesBySource = await getMultiDimRedirectRulesBySource(
         knex,
-        `-- sql
-        SELECT
-            REPLACE(mdr.source, ?, '') as sourceSlug,
-            mddp.slug as multiDimSlug,
-            mdr.viewConfigId as viewConfigId,
-            mddp.config as config,
-            mdr.id as id,
-            (mdr.sourceQueryParams IS NOT NULL) as hasSourceQueryParams
-        FROM ${MultiDimRedirectsTableName} mdr
-        JOIN multi_dim_data_pages mddp ON mddp.id = mdr.multiDimId
-        WHERE mddp.published = TRUE
-            AND mddp.slug IS NOT NULL
-            AND ${whereClause}
-        `,
-        [sourcePrefix, ...params]
+        sourcePrefix,
+        slugs
     )
-
-    // We keep only one target per source (the actual query-param matching
-    // happens at request time in the Cloudflare function). Prefer the
-    // unconditional (catch-all) rule so the representative view is the
-    // default, then order by id so the pick is deterministic across bakes.
-    //
-    // This is sorted in JS rather than via a SQL ORDER BY: each row carries a
-    // full multi-dim `config` JSON blob, which can be large enough (several
-    // hundred KB) that a SQL-side filesort overflows the server's
-    // sort_buffer_size (ER_OUT_OF_SORTMEMORY). The result set here is small
-    // (one row per redirect rule), so sorting it in JS is cheap.
-    redirects.sort(
-        (a, b) => a.hasSourceQueryParams - b.hasSourceQueryParams || a.id - b.id
-    )
-
-    for (const redirect of redirects) {
-        // First row wins (rows are sorted most-preferred first).
-        if (redirectMap.has(redirect.sourceSlug)) continue
-        const queryStr = buildQueryStrFromConfig(
-            redirect.viewConfigId,
-            redirect.config,
-            redirect.multiDimSlug
-        )
-        redirectMap.set(redirect.sourceSlug, {
-            targetSlug: redirect.multiDimSlug,
-            queryStr,
+    const targets = new Map<string, MultiDimRedirectTarget>()
+    for (const [sourceSlug, rules] of rulesBySource) {
+        // Prefer the unconditional (catch-all) rule, so the representative
+        // view is the default, else the oldest rule (rules come in id order).
+        const rule =
+            rules.find(
+                (rule) => Object.keys(rule.sourceQueryParams).length === 0
+            ) ?? rules[0]
+        const { targetSlug, targetQueryParams } = rule.target
+        // A null param only tells the redirect function to drop that source
+        // param; the rest are the target view's dimensions.
+        const viewParams: MultiDimDimensionChoices = {}
+        for (const [key, value] of Object.entries(targetQueryParams)) {
+            if (value !== null) viewParams[key] = value
+        }
+        targets.set(sourceSlug, {
+            targetSlug,
+            queryStr: viewQueryStr(viewParams),
         })
     }
-
-    return redirectMap
+    return targets
 }
 
 // Returns, for the given source slugs, those that resolve to more than one
@@ -188,13 +192,15 @@ export async function getMultiDimRedirectRulesBySource(
     const rulesBySource = new Map<string, MultiDimRedirectRule[]>()
     if (slugs && slugs.length === 0) return rulesBySource
 
+    // Deterministic order so that, when two same-specificity rules overlap for
+    // a source, buildQueryParamDecisionTree breaks the tie the same way on
+    // every bake (it uses input order).
     const redirects = await db.knexRaw<{
         sourceSlug: string
         sourceQueryParams: string | null
         multiDimSlug: string
         viewConfigId: string | null
-        config: string
-        id: number
+        viewDimensions: string | null
     }>(
         knex,
         `-- sql
@@ -203,10 +209,10 @@ export async function getMultiDimRedirectRulesBySource(
             mdr.sourceQueryParams as sourceQueryParams,
             mddp.slug as multiDimSlug,
             mdr.viewConfigId as viewConfigId,
-            mddp.config as config,
-            mdr.id as id
+            mdvd.dimensions as viewDimensions
         FROM ${MultiDimRedirectsTableName} mdr
         JOIN multi_dim_data_pages mddp ON mddp.id = mdr.multiDimId
+        ${VIEW_DIMENSIONS_JOIN}
         WHERE mddp.published = TRUE
             AND mddp.slug IS NOT NULL
             AND ${
@@ -214,6 +220,7 @@ export async function getMultiDimRedirectRulesBySource(
                     ? `mdr.source IN (${slugs.map(() => "?").join(",")})`
                     : "mdr.source LIKE ?"
             }
+        ORDER BY mdr.id
         `,
         [
             sourcePrefix,
@@ -223,23 +230,11 @@ export async function getMultiDimRedirectRulesBySource(
         ]
     )
 
-    // Deterministic order so that, when two same-specificity rules overlap for
-    // a source, buildQueryParamDecisionTree breaks the tie the same way on
-    // every bake (it uses input order). Sorted in JS rather than via a SQL
-    // ORDER BY: each row carries a full multi-dim `config` JSON blob, which can
-    // be large enough (several hundred KB) that a SQL-side filesort overflows
-    // the server's sort_buffer_size (ER_OUT_OF_SORTMEMORY).
-    redirects.sort((a, b) => a.id - b.id)
-
     for (const redirect of redirects) {
         const sourceQueryParams = parseSourceQueryParams(
             redirect.sourceQueryParams
         )
-        const viewParams = getViewParamsFromConfig(
-            redirect.viewConfigId,
-            redirect.config,
-            redirect.multiDimSlug
-        )
+        const viewParams = parseViewDimensions(redirect)
         const rule: MultiDimRedirectRule = {
             sourceQueryParams,
             target: {
@@ -262,7 +257,7 @@ export async function getMultiDimRedirectRulesBySource(
 // values are inherently strings, so non-null values are coerced to strings (a
 // `null` value is preserved as a wildcard). Returns an empty (match-anything)
 // condition when the column is null/empty.
-function parseSourceQueryParams(
+export function parseSourceQueryParams(
     raw: string | null
 ): Record<string, string | null> {
     // Null-prototype object so param names coming from stored JSON (e.g.
@@ -316,7 +311,7 @@ export async function getRecentMultiDimRedirects(
         source: string
         multiDimSlug: string
         viewConfigId: string | null
-        config: string
+        viewDimensions: string | null
     }>(
         knex,
         `-- sql
@@ -324,9 +319,10 @@ export async function getRecentMultiDimRedirects(
             mdr.source as source,
             mddp.slug as multiDimSlug,
             mdr.viewConfigId as viewConfigId,
-            mddp.config as config
+            mdvd.dimensions as viewDimensions
         FROM ${MultiDimRedirectsTableName} mdr
         JOIN multi_dim_data_pages mddp ON mddp.id = mdr.multiDimId
+        ${VIEW_DIMENSIONS_JOIN}
         WHERE mddp.published = TRUE
             AND mddp.slug IS NOT NULL
             AND mdr.source LIKE '/grapher/%' -- exclude explorers from here, since they have redirect rules with query params, and we don't want to generate a static redirect for them
@@ -334,21 +330,11 @@ export async function getRecentMultiDimRedirects(
         `
     )
 
-    const result: Array<{ source: string; target: string }> = []
-    for (const redirect of redirects) {
-        const queryStr = buildQueryStrFromConfig(
-            redirect.viewConfigId,
-            redirect.config,
-            redirect.multiDimSlug
-        )
-        const target = `/grapher/${redirect.multiDimSlug}${
-            queryStr ? `?${queryStr}` : ""
-        }`
-        result.push({
-            source: redirect.source,
-            target,
-        })
-    }
-
-    return result
+    return redirects.map((redirect) => ({
+        source: redirect.source,
+        target: buildRedirectTargetPath(
+            redirect.multiDimSlug,
+            parseViewDimensions(redirect)
+        ),
+    }))
 }

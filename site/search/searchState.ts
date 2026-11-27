@@ -25,6 +25,8 @@ import {
     createFilter,
     SEARCH_BASE_PATH,
 } from "./searchUtils.js"
+import { listedRegionsNames } from "@ourworldindata/utils"
+import { getSynonymMap } from "./synonymUtils.js"
 import { useMemo, useEffect, useCallback } from "react"
 import { useSearchParams } from "react-router-dom-v5-compat"
 
@@ -376,22 +378,21 @@ export function stateToSearchParams(state: SearchState): URLSearchParams {
     return params
 }
 
-/**
- * Build a link to the site search, pre-filtered to a single topic and a given
- * result type (Data / Writing). Used by the LTP "Sections" block and the
- * sidebar TOC's bottom "See all charts" CTA.
- */
-export function buildSearchHrefForCard(
-    resultType: SearchResultType,
-    tagName: string
-): string {
-    const searchState: SearchState = {
-        query: "",
-        filters: [createTopicFilter(tagName)],
+export function buildSearchHref({
+    resultType,
+    query = "",
+    topic,
+}: {
+    resultType: SearchResultType
+    query?: string
+    topic?: string
+}): string {
+    const params = stateToSearchParams({
+        query,
+        filters: topic ? [createTopicFilter(topic)] : [],
         requireAllCountries: false,
         resultType,
-    }
-    const params = stateToSearchParams(searchState)
+    })
     return `${SEARCH_BASE_PATH}?${params.toString()}`
 }
 
@@ -468,4 +469,26 @@ export function applyAutomaticFilters(
     )
 
     return replaceQueryWordsWithFilters(state, countryMatches)
+}
+
+export interface AllChartsBlockQuery {
+    textQuery: string
+    countries: string[]
+}
+
+export function parseAllChartsBlockQuery(query: string): AllChartsBlockQuery {
+    const state = applyAutomaticFilters(
+        {
+            query,
+            filters: [],
+            requireAllCountries: true,
+            resultType: SearchResultType.DATA,
+        },
+        listedRegionsNames(),
+        getSynonymMap()
+    )
+    return {
+        textQuery: state.query,
+        countries: [...getFilterNamesOfType(state.filters, FilterType.COUNTRY)],
+    }
 }

@@ -2318,7 +2318,7 @@
                                             "content": "climate change",
                                             "textStyle": {
                                                 "link": {
-                                                    "url": "https://ourworldindata.org/explorers/climate-change"
+                                                    "url": "https://ourworldindata.org/grapher/climate-change"
                                                 }
                                             }
                                         }
@@ -3529,10 +3529,10 @@
                                         "startIndex": 9571,
                                         "endIndex": 9633,
                                         "textRun": {
-                                            "content": "https://ourworldindata.org/explorers/population-and-demography",
+                                            "content": "https://ourworldindata.org/grapher/population-and-demography",
                                             "textStyle": {
                                                 "link": {
-                                                    "url": "https://ourworldindata.org/explorers/population-and-demography"
+                                                    "url": "https://ourworldindata.org/grapher/population-and-demography"
                                                 }
                                             }
                                         }

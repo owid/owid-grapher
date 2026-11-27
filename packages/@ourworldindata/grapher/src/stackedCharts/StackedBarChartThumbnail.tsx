@@ -11,7 +11,11 @@ import {
     FontSettings,
 } from "../core/GrapherConstants"
 import { scaleFontSize } from "../chart/ChartUtils"
-import { Bounds, excludeUndefined } from "@ourworldindata/utils"
+import {
+    getAxisTextOverrides,
+    getVisibleLabels,
+} from "../chart/VisibleChartLabels"
+import { Bounds } from "@ourworldindata/utils"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { Time } from "@ourworldindata/types"
@@ -21,7 +25,7 @@ import {
 } from "./StackedConstants"
 import {
     getXAxisConfigDefaultsForStackedBar,
-    resolveCollision,
+    makeStackedAnchoredLabelsState,
     toPlacedStackedBarSeries,
 } from "./StackedUtils"
 import {
@@ -71,7 +75,15 @@ export class StackedBarChartThumbnail
         const { xAxisConfig } = this.manager
         const defaults = getXAxisConfigDefaultsForStackedBar(this.chartState)
         const custom = { labelPadding: 0 }
-        return new AxisConfig({ ...custom, ...defaults, ...xAxisConfig }, this)
+        return new AxisConfig(
+            {
+                ...custom,
+                ...defaults,
+                ...xAxisConfig,
+                ...getAxisTextOverrides(this.manager.labelMode),
+            },
+            this
+        )
     }
 
     @computed private get yAxisConfig(): AxisConfig {
@@ -114,17 +126,8 @@ export class StackedBarChartThumbnail
     }
 
     @computed private get labelsRange(): [number, number] {
-        const {
-            horizontalAxisPart,
-            manager: { chartAreaPadding = 0 },
-        } = this
-
-        return this.bounds
-            .expand({
-                top: chartAreaPadding,
-                bottom: chartAreaPadding + horizontalAxisPart.height,
-            })
-            .yRange()
+        const padding = this.manager.chartAreaPadding ?? 0
+        return [this.bounds.bottom + padding, this.bounds.top - padding]
     }
 
     @computed private get labelsMaxWidth(): number {
@@ -135,21 +138,19 @@ export class StackedBarChartThumbnail
         InitialAnchoredLabelSeries,
         "position"
     >[] {
-        if (!this.manager.showLegend) return []
-
-        return excludeUndefined(
-            this.chartState.series.map((series, seriesIndex) => {
-                const { seriesName, shortEntityName, color, focus } = series
-
-                // Don't label background series
-                if (focus?.background) return undefined
-
-                const value = this.chartState.midpoints[seriesIndex]
-                const label = shortEntityName ?? seriesName
-
-                return { seriesName, value, label, color }
-            })
+        if (
+            !this.manager.showSeriesLabels ||
+            !getVisibleLabels(this.manager.labelMode).endLabelNames
         )
+            return []
+
+        return this.chartState.series.map((series, seriesIndex) => {
+            const { seriesName, shortEntityName, color, focus } = series
+            const value = this.chartState.midpoints[seriesIndex]
+            const label = shortEntityName ?? seriesName
+            const emphasis = resolveEmphasis({ focus })
+            return { seriesName, value, label, color, emphasis }
+        })
     }
 
     private makeAnchoredLabelsState({
@@ -159,35 +160,13 @@ export class StackedBarChartThumbnail
     }): AnchoredLabelsState | undefined {
         if (this.labelsSeries.length === 0) return undefined
 
-        const series = this.labelsSeries.map((series) => {
-            const position = {
-                x: dualAxis.bounds.right,
-                y: dualAxis.verticalAxis.place(series.value),
-            }
-
-            return { ...series, position }
-        })
-
-        return new AnchoredLabelsState(series, {
-            ...this.labelFontSettings,
+        return makeStackedAnchoredLabelsState(this.labelsSeries, {
+            seriesByName: this.chartState.seriesByName,
+            dualAxis,
+            fontSettings: this.labelFontSettings,
             maxWidth: this.labelsMaxWidth,
             labelPadding: LEGEND_PADDING,
             yRange: this.labelsRange,
-            resolveCollision: (
-                s1: InitialAnchoredLabelSeries,
-                s2: InitialAnchoredLabelSeries
-            ): InitialAnchoredLabelSeries => {
-                const series1 = this.chartState.seriesByName.get(s1.seriesName)
-                const series2 = this.chartState.seriesByName.get(s2.seriesName)
-
-                if (!series1 || !series2) return s1 // no preference
-
-                const picked = resolveCollision(series1, series2)
-                if (picked?.seriesName === s1.seriesName) return s1
-                if (picked?.seriesName === s2.seriesName) return s2
-
-                return s1 // no preference
-            },
         })
     }
 

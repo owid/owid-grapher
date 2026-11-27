@@ -1,4 +1,6 @@
-import { Env, Etag } from "./env.js"
+import { parseImageRequest } from "@ourworldindata/grapher"
+import { error } from "itty-router"
+import { Env } from "./env.js"
 import { fetchAndRenderGrapher } from "./grapherRenderer.js"
 import { GrapherIdentifier } from "./grapherTools.js"
 
@@ -23,7 +25,6 @@ export async function handleThumbnailRequest(
     id: GrapherIdentifier,
     searchParams: URLSearchParams,
     env: Env,
-    _etag: Etag,
     ctx: EventContext<unknown, any, Record<string, unknown>>,
     extension: "png" | "svg"
 ) {
@@ -31,12 +32,22 @@ export async function handleThumbnailRequest(
 
     console.log("Handling", env.url, ctx.request.headers.get("User-Agent"))
 
+    const parsed = parseImageRequest(searchParams)
+    if (!parsed.ok)
+        return error(400, `${parsed.error.param}: ${parsed.error.reason}`)
+
     // Check cache
     const shouldCache = !url.searchParams.has("nocache")
     const cachedResponse = await checkCache(ctx.request, shouldCache)
     if (cachedResponse) return cachedResponse
 
-    const resp = await fetchAndRenderGrapher(id, searchParams, extension, env)
+    const resp = await fetchAndRenderGrapher(
+        id,
+        parsed.request,
+        searchParams,
+        extension,
+        env
+    )
     if (shouldCache) {
         resp.headers.set("Cache-Control", "max-age=3600")
         ctx.waitUntil(caches.default.put(ctx.request, resp.clone()))

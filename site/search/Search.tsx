@@ -34,7 +34,7 @@ import { SearchTemplatesAll } from "./SearchTemplatesAll.js"
 import { SearchTemplatesData } from "./SearchTemplatesData.js"
 import { SearchTemplatesWriting } from "./SearchTemplatesWriting.js"
 import { SearchNoResults } from "./SearchNoResults.js"
-import { buildSynonymMap } from "./synonymUtils.js"
+import { getSynonymMap } from "./synonymUtils.js"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 import { PoweredBy } from "react-instantsearch"
 import { listedRegionsNames } from "@ourworldindata/utils"
@@ -58,7 +58,7 @@ export const Search = ({
         [eligibleAreas, eligibleTopics]
     )
 
-    const synonymMap = useMemo(() => buildSynonymMap(), [])
+    const synonymMap = getSynonymMap()
 
     // State derived from URL - single source of truth (includes automatic filter detection)
     const { state, actions } = useSearchParamsState(

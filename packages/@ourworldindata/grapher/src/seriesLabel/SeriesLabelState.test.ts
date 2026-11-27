@@ -181,7 +181,7 @@ describe(SeriesLabelState, () => {
         ])
     })
 
-    it("shows an icon next to a region publisher suffix when enabled", () => {
+    it("attaches the region tooltip to the publisher suffix when enabled", () => {
         const label = new SeriesLabelState({
             text: "Africa (WHO)",
             maxWidth: Infinity,
@@ -191,13 +191,17 @@ describe(SeriesLabelState, () => {
 
         expect(label.positionedFragments).toMatchObject([
             { type: "text", role: "name", text: "Africa" },
-            { type: "text", role: "suffix", text: "(WHO" },
-            { type: "icon", tooltipKey: "who" },
-            { type: "text", role: "suffix", text: ")" },
+            { type: "text", role: "suffix", text: "(WHO)" },
+        ])
+        expect(label.tooltipTargets).toMatchObject([
+            {
+                role: "suffix",
+                content: { regionTooltip: { tooltipKey: "who" } },
+            },
         ])
     })
 
-    it("only shows on icon if the suffix names a known region publisher", () => {
+    it("only attaches a tooltip if the suffix names a known region publisher", () => {
         const label = new SeriesLabelState({
             text: "Africa (FAKE)",
             maxWidth: Infinity,
@@ -209,6 +213,7 @@ describe(SeriesLabelState, () => {
             { type: "text", role: "name", text: "Africa" },
             { type: "text", role: "suffix", text: "(FAKE)" },
         ])
+        expect(label.tooltipTargets).toEqual([])
     })
 
     it("right-aligns fragments for textAnchor=end", () => {
@@ -225,21 +230,7 @@ describe(SeriesLabelState, () => {
         }
     })
 
-    it("shows an icon for income group labels when enabled", () => {
-        const label = new SeriesLabelState({
-            text: "High-income countries",
-            maxWidth: Infinity,
-            fontSize: FONT_SIZE,
-            showRegionTooltip: true,
-        })
-
-        expect(label.positionedFragments).toMatchObject([
-            { type: "text", role: "name", text: "High-income countries" },
-            { type: "icon", tooltipKey: "incomeGroups" },
-        ])
-    })
-
-    it("shows an icon for continent labels when enabled", () => {
+    it("attaches the continents tooltip to continent names", () => {
         const label = new SeriesLabelState({
             text: "Africa",
             maxWidth: Infinity,
@@ -247,10 +238,65 @@ describe(SeriesLabelState, () => {
             showRegionTooltip: true,
         })
 
-        expect(label.positionedFragments).toMatchObject([
-            { type: "text", role: "name", text: "Africa" },
-            { type: "icon", tooltipKey: "continents" },
+        expect(label.tooltipTargets).toMatchObject([
+            {
+                role: "name",
+                content: { regionTooltip: { tooltipKey: "continents" } },
+            },
         ])
+    })
+
+    it("attaches the tooltip to one target spanning every line of a wrapped name", () => {
+        const label = new SeriesLabelState({
+            text: "North America",
+            maxWidth: 80,
+            fontSize: FONT_SIZE,
+            showRegionTooltip: true,
+        })
+
+        expect(label.positionedFragments).toHaveLength(2)
+        expect(label.tooltipTargets).toHaveLength(1)
+        expect(label.tooltipTargets[0]).toMatchObject({
+            role: "name",
+            content: { regionTooltip: { tooltipKey: "continents" } },
+        })
+        expect(label.tooltipTargets[0].fragments).toEqual(
+            label.positionedFragments
+        )
+    })
+
+    it("attaches the income groups tooltip to income group names", () => {
+        const label = new SeriesLabelState({
+            text: "High-income countries",
+            maxWidth: Infinity,
+            fontSize: FONT_SIZE,
+            showRegionTooltip: true,
+        })
+
+        expect(label.tooltipTargets).toMatchObject([
+            {
+                role: "name",
+                content: { regionTooltip: { tooltipKey: "incomeGroups" } },
+            },
+        ])
+    })
+
+    it("does not reserve extra width for a region tooltip", () => {
+        const options = {
+            text: "Africa (WHO)",
+            maxWidth: Infinity,
+            fontSize: FONT_SIZE,
+        }
+        const withTooltip = new SeriesLabelState({
+            ...options,
+            showRegionTooltip: true,
+        })
+        const withoutTooltip = new SeriesLabelState({
+            ...options,
+            showRegionTooltip: false,
+        })
+
+        expect(withTooltip.width).toBe(withoutTooltip.width)
     })
 
     it("resolves region from a short entity name", () => {
@@ -261,13 +307,98 @@ describe(SeriesLabelState, () => {
             showRegionTooltip: true,
         })
 
-        const iconFragment = label.positionedFragments.find(
-            (f) => f.type === "icon"
-        )
+        const [target] = label.tooltipTargets
 
         // The region name should be resolved correctly even if the label uses a shorter name
-        expect(iconFragment?.regionName).toBe(
+        expect(target.role).toBe("suffix")
+        expect(target.content.regionTooltip?.regionName).toBe(
             "Middle East, North Africa, Afghanistan and Pakistan (WB)"
         )
+    })
+
+    describe("tooltipTargets", () => {
+        const annotations = [{ text: "A note", timeScope: "point" as const }]
+
+        it("yields no targets without annotations or a region tooltip", () => {
+            const label = new SeriesLabelState({
+                text: "United States",
+                maxWidth: Infinity,
+                fontSize: FONT_SIZE,
+            })
+
+            expect(label.tooltipTargets).toEqual([])
+        })
+
+        it("yields one target spanning every line of a wrapped annotated name", () => {
+            const label = new SeriesLabelState({
+                text: "Democratic Republic of Congo",
+                maxWidth: 140,
+                fontSize: FONT_SIZE,
+                annotations,
+            })
+
+            expect(label.tooltipTargets).toHaveLength(1)
+            const [target] = label.tooltipTargets
+            expect(target.role).toBe("name")
+            expect(target.content.annotations).toEqual(annotations)
+            expect(target.fragments).toHaveLength(2)
+            expect(target.textBounds.top).toBe(-FONT_SIZE)
+            expect(target.textBounds.height).toBe(
+                label.singleLineHeight + FONT_SIZE
+            )
+        })
+
+        it("yields only the suffix target for a region label with a publisher suffix", () => {
+            const label = new SeriesLabelState({
+                text: "Africa (WHO)",
+                maxWidth: Infinity,
+                fontSize: FONT_SIZE,
+                showRegionTooltip: true,
+            })
+
+            expect(label.tooltipTargets).toHaveLength(1)
+            expect(label.tooltipTargets[0].role).toBe("suffix")
+        })
+
+        it("yields the name target before the suffix target", () => {
+            const label = new SeriesLabelState({
+                text: "Africa (WHO)",
+                maxWidth: Infinity,
+                fontSize: FONT_SIZE,
+                showRegionTooltip: true,
+                annotations,
+            })
+
+            expect(label.tooltipTargets).toMatchObject([
+                {
+                    role: "name",
+                    content: { annotations },
+                },
+                {
+                    role: "suffix",
+                    content: { regionTooltip: { tooltipKey: "who" } },
+                },
+            ])
+            expect(label.tooltipTargets[0].content.regionTooltip).toBe(
+                undefined
+            )
+        })
+
+        it("starts the name target at the widest line's left edge for textAnchor=end", () => {
+            const label = new SeriesLabelState({
+                text: "Democratic Republic of Congo",
+                maxWidth: 140,
+                fontSize: FONT_SIZE,
+                textAnchor: "end",
+                annotations,
+            })
+
+            const [target] = label.tooltipTargets
+            const widestLineLeft = Math.min(
+                ...label.positionedFragments.map((f) => f.x)
+            )
+            expect(target.textBounds.left).toBe(widestLineLeft)
+            expect(target.textBounds.left).toBe(-label.width)
+        })
     })
 })

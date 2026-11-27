@@ -24,8 +24,8 @@ export default {
                 })
                 const rewritten = rewriteMetaTags(
                     pageUrl,
-                    `${pageUrl.pathname}.png?imType=og`,
-                    `${pageUrl.pathname}.png?imType=twitter`,
+                    `${pageUrl.pathname}.png?imPreset=og`,
+                    `${pageUrl.pathname}.png?imPreset=twitter`,
                     page,
                     async () => {
                         if (!body.companion) {

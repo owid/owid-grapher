@@ -13,7 +13,7 @@ import {
 } from "@ourworldindata/types"
 import {
     GrapherState,
-    selectPeerCountries,
+    selectPeers,
     prepareEntitiesForPeerSelection,
 } from "@ourworldindata/grapher"
 import {
@@ -175,8 +175,6 @@ class QuickAddSection extends React.Component<{
 
     @action.bound async onSetDataRange() {
         const { grapherState } = this
-        const dataColumn = grapherState.table.get(grapherState.yColumnSlug)
-        if (!dataColumn || dataColumn.isMissing || dataColumn.isEmpty) return
 
         const additionalDataLoaderFn = grapherState.additionalDataLoaderFn
         if (!additionalDataLoaderFn) return
@@ -187,10 +185,12 @@ class QuickAddSection extends React.Component<{
                 : 6
 
         const availableEntities = prepareEntitiesForPeerSelection(grapherState)
-        const entities = await selectPeerCountries({
+        const entities = await selectPeers({
             peerCountryStrategy: PeerCountryStrategy.DataRange,
             availableEntities,
-            dataColumn,
+            dataColumn: grapherState.table.get(grapherState.yColumnSlug),
+            endTime: grapherState.endTime,
+            isSingleTimeChart: grapherState.isSingleTimeSelectionActive,
             additionalDataLoaderFn,
             targetCount,
             randomize: true,
@@ -307,9 +307,9 @@ class AddPeersSection extends React.Component<{
         const availableEntities = prepareEntitiesForPeerSelection(
             this.grapherState
         )
-        return selectPeerCountries({
+        return selectPeers({
             peerCountryStrategy: PeerCountryStrategy.ParentRegions,
-            targetCountry,
+            targetEntity: targetCountry,
             availableEntities,
         })
     }
@@ -334,9 +334,9 @@ class AddPeersSection extends React.Component<{
         const availableEntities = prepareEntitiesForPeerSelection(
             this.grapherState
         )
-        const peers = await selectPeerCountries({
+        const peers = await selectPeers({
             peerCountryStrategy: PeerCountryStrategy.GdpPerCapita,
-            targetCountry: this.effectiveTargetCountry,
+            targetEntity: this.effectiveTargetCountry,
             availableEntities,
             additionalDataLoaderFn: this.grapherState.additionalDataLoaderFn,
         })
@@ -350,9 +350,9 @@ class AddPeersSection extends React.Component<{
         const availableEntities = prepareEntitiesForPeerSelection(
             this.grapherState
         )
-        const peers = await selectPeerCountries({
+        const peers = await selectPeers({
             peerCountryStrategy: PeerCountryStrategy.Population,
-            targetCountry: this.effectiveTargetCountry,
+            targetEntity: this.effectiveTargetCountry,
             availableEntities,
             additionalDataLoaderFn: this.grapherState.additionalDataLoaderFn,
         })
@@ -366,9 +366,9 @@ class AddPeersSection extends React.Component<{
         const availableEntities = prepareEntitiesForPeerSelection(
             this.grapherState
         )
-        const peers = await selectPeerCountries({
+        const peers = await selectPeers({
             peerCountryStrategy: PeerCountryStrategy.Neighbors,
-            targetCountry: this.effectiveTargetCountry,
+            targetEntity: this.effectiveTargetCountry,
             availableEntities,
             additionalDataLoaderFn: this.grapherState.additionalDataLoaderFn,
         })
@@ -380,14 +380,13 @@ class AddPeersSection extends React.Component<{
         if (!this.effectiveTargetCountry) return
 
         const { grapherState } = this
-        const dataColumn = grapherState.table.get(grapherState.yColumnSlug)
-
-        const availableEntities = prepareEntitiesForPeerSelection(grapherState)
-        const peers = await selectPeerCountries({
+        const peers = await selectPeers({
             peerCountryStrategy: PeerCountryStrategy.DataRange,
-            targetCountry: this.effectiveTargetCountry,
-            availableEntities,
-            dataColumn,
+            targetEntity: this.effectiveTargetCountry,
+            availableEntities: prepareEntitiesForPeerSelection(grapherState),
+            dataColumn: grapherState.table.get(grapherState.yColumnSlug),
+            endTime: grapherState.endTime,
+            isSingleTimeChart: grapherState.isSingleTimeSelectionActive,
             additionalDataLoaderFn: grapherState.additionalDataLoaderFn,
             randomize: false,
         })
@@ -694,8 +693,9 @@ export class FocusSection extends React.Component<{
             availableSeriesNameSet
         ).sort()
 
-        const invalidFocusedSeriesNames =
-            focusedSeriesNameSet.difference(seriesNameSet)
+        const invalidFocusedSeriesNames = new Set(
+            grapherState.invalidFocusedSeriesNames
+        )
 
         return (
             <Section name="Data to highlight">

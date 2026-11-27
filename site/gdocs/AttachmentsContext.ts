@@ -6,7 +6,6 @@ import {
     LinkedIndicator,
     OwidGdocMinimalPostInterface,
     ImageMetadata,
-    RelatedChart,
     LatestAnnouncement,
     LatestDataInsight,
     OwidGdocHomepageMetadata,
@@ -15,6 +14,7 @@ import {
     MinimalTag,
     LinkedStaticViz,
     BespokeMetadata,
+    BakedAllChartsBlockResults,
 } from "@ourworldindata/types"
 
 export type Attachments = {
@@ -24,7 +24,6 @@ export type Attachments = {
     linkedIndicators: Record<number, LinkedIndicator>
     linkedDocuments: Record<string, OwidGdocMinimalPostInterface>
     imageMetadata: Record<string, ImageMetadata>
-    relatedCharts: RelatedChart[]
     latestDataInsights?: LatestDataInsight[]
     latestAnnouncements?: LatestAnnouncement[]
     homepageMetadata?: OwidGdocHomepageMetadata
@@ -34,6 +33,7 @@ export type Attachments = {
     tags: MinimalTag[]
     linkedCallouts?: LinkedCallouts
     bespokeMetadata?: BespokeMetadata
+    allChartsBlockResults?: BakedAllChartsBlockResults
 }
 
 export const AttachmentsContext = createContext<Attachments>({
@@ -42,7 +42,6 @@ export const AttachmentsContext = createContext<Attachments>({
     imageMetadata: {},
     linkedCharts: {},
     linkedIndicators: {},
-    relatedCharts: [],
     latestDataInsights: [],
     latestAnnouncements: [],
     homepageMetadata: {},

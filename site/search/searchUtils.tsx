@@ -22,6 +22,7 @@ import {
     Ngram,
     WordPositioned,
     ScoredFilterPositioned,
+    SearchFacetFilters,
 } from "@ourworldindata/types"
 import {
     Url,
@@ -31,7 +32,6 @@ import {
     getAllChildrenOfArea,
     timeBoundToTimeBoundString,
     queryParamsToStr,
-    omitUndefinedValues,
     type SearchFacetAttribute,
     getFilterNamesOfType,
     setToFacetFilters,
@@ -40,11 +40,15 @@ import {
     formatFeaturedMetricFacetFilter,
     formatCountryFacetFilters,
     formatTopicFacetFilters,
+    normalizePinnedSearch,
+    PINNED_SEARCHES_ATTRIBUTE,
 } from "@ourworldindata/utils"
 import {
     generateSelectedEntityNamesParam,
     isValidTabQueryParam,
     mapGrapherTabNameToQueryParam,
+    serializeImageRequest,
+    type ImageRequest,
 } from "@ourworldindata/grapher"
 import { getIndexName } from "./searchClient.js"
 import {
@@ -55,6 +59,7 @@ import {
     faFileLines,
     faFlag,
     faLightbulb,
+    faChartLine,
     faTag,
     IconDefinition,
 } from "@fortawesome/free-solid-svg-icons"
@@ -70,10 +75,7 @@ import {
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
 } from "../../settings/clientSettings.mjs"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
-import {
-    PreviewVariant,
-    RichDataComponentVariant,
-} from "./SearchChartHitRichDataTypes.js"
+import { RichDataComponentVariant } from "./SearchChartHitRichDataTypes.js"
 
 // Common English stop words that should be ignored in search
 const STOP_WORDS = new Set([
@@ -301,36 +303,19 @@ export const constructSearchResultUrl = ({
 export const constructPreviewUrl = ({
     hit,
     grapherParams,
-    variant,
-    isMinimal,
-    fontSize,
-    imageWidth,
-    imageHeight,
+    imageRequest,
 }: {
     hit: SearchChartHit
     grapherParams?: GrapherQueryParams
-    variant: PreviewVariant
-    isMinimal?: boolean
-    fontSize?: number
-    imageWidth?: number
-    imageHeight?: number
+    imageRequest: ImageRequest
 }): string => {
     const isExplorerView = hit.type === ChartRecordType.ExplorerView
 
-    const queryStr = generateQueryStrForChartHit({ hit, grapherParams })
-
-    const searchParams = new URLSearchParams(
-        omitUndefinedValues({
-            imType: variant === "large" ? "uncaptioned" : variant,
-            imMinimal: isMinimal ? "1" : "0",
-            imFontSize: fontSize?.toString(),
-            imWidth: imageWidth?.toString(),
-            imHeight: imageHeight?.toString(),
-        })
-    )
-    const fullQueryStr = queryStr
-        ? `${queryStr}&${searchParams}`
-        : `?${searchParams}`
+    const queryParts = [
+        generateQueryStrForChartHit({ hit, grapherParams }).replace(/^\?/, ""),
+        serializeImageRequest(imageRequest).toString(),
+    ].filter((queryStr) => queryStr)
+    const fullQueryStr = queryParts.length > 0 ? `?${queryParts.join("&")}` : ""
 
     const basePath = isExplorerView
         ? EXPLORER_DYNAMIC_THUMBNAIL_URL
@@ -368,6 +353,37 @@ export const PAGES_INDEX = getIndexName(SearchIndexName.Pages)
 export const PAGES_CHRONOLOGICAL_INDEX = getIndexName(
     SearchIndexName.PagesChronological
 )
+
+/** Keeps profiles and featured-viz pages out of the autocomplete's
+ *  text-matched pages. Each has its own autocomplete source. */
+export const AUTOCOMPLETE_PAGES_FILTER = `NOT type:${OwidGdocType.Profile} AND NOT type:${OwidGdocType.FeaturedViz}`
+
+const FEATURED_VIZ_TYPE_FILTER = `type:${OwidGdocType.FeaturedViz}`
+
+/**
+ * Filters for the featured viz search queries.
+ *
+ * Finds featured viz pages pinned for the reader's exact search and tagged
+ * with the selected topic. Either one can be empty.
+ *
+ * Keep the pinned search in `filters`. The cached-queries proxy looks for it
+ * there to skip its cache (`isEmptyQuerySearchPayload`).
+ */
+export function getFeaturedVizFilters(
+    query: string,
+    topic?: string
+): { filters: string; facetFilters: SearchFacetFilters } | null {
+    const words = normalizePinnedSearch(query)
+    if (!words && !topic) return null
+    return {
+        filters: words
+            ? // Normalization strips quotes, so the words can't break out of them
+              `${FEATURED_VIZ_TYPE_FILTER} AND ${PINNED_SEARCHES_ATTRIBUTE}:"${words}"`
+            : FEATURED_VIZ_TYPE_FILTER,
+        facetFilters: topic ? formatTopicFacetFilters(new Set([topic])) : [],
+    }
+}
+
 export const DATA_CATALOG_ATTRIBUTES = [
     "title",
     "containerTitle",
@@ -380,6 +396,7 @@ export const DATA_CATALOG_ATTRIBUTES = [
     "queryParams",
     "availableTabs",
     "subtitle",
+    "source",
     "chartConfigId",
     "explorerType",
 ]
@@ -1081,8 +1098,11 @@ export function getPageTypeNameAndIcon(pageType: OwidGdocType): {
             name: "Country Profile",
             icon: faFlag,
         }))
+        .with(OwidGdocType.FeaturedViz, () => ({
+            name: "Featured visualization",
+            icon: faChartLine,
+        }))
         .with(
-            OwidGdocType.FeaturedViz, // Not yet indexed
             OwidGdocType.Author, // Should never be indexed
             OwidGdocType.Fragment, // Should never be indexed
             OwidGdocType.Homepage, // Should never be indexed

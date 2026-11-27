@@ -11,20 +11,28 @@ import {
     MultiDimDataPageConfigRaw,
     MultiDimDataPagesTableName,
     MultiDimRedirectsTableName,
+    MultiDimXChartConfigsTableName,
 } from "@ourworldindata/types"
 import {
     MultiDimDataPageConfig,
-    queryParamsToStr,
+    multiDimDimensionsToViewQueryStr,
     Url,
 } from "@ourworldindata/utils"
 import {
     getMultiDimDataPageById,
+    getMultiDimDataPageByIdForUpdate,
     getMultiDimDataPageByCatalogPath,
 } from "../../db/model/MultiDimDataPage.js"
 import { redirectWithSourceExists } from "../../db/model/Redirect.js"
-import { buildQueryStrFromConfig } from "../../db/model/MultiDimRedirects.js"
+import {
+    buildRedirectTargetPath,
+    VIEW_DIMENSIONS_JOIN,
+    getViewParamsFromConfig,
+    parseSourceQueryParams,
+} from "../../db/model/MultiDimRedirects.js"
 import { expectInt } from "../../serverUtils/serverUtil.js"
 import {
+    deleteUnpublishedMultiDim,
     upsertMultiDim,
     setMultiDimPublished,
     setMultiDimSlug,
@@ -41,19 +49,18 @@ import {
 } from "../validation.js"
 import * as z from "zod"
 
+// For the deploy message only, so a view missing from the config (which would
+// make getViewParamsFromConfig throw) mustn't block deleting its redirect.
 function buildRedirectTargetDescription(
     multiDim: DbEnrichedMultiDimDataPage,
     viewConfigId: string | null
 ): string {
-    let targetDescription = `/grapher/${multiDim.slug}`
-    if (viewConfigId) {
-        const mdimConfig = MultiDimDataPageConfig.fromObject(multiDim.config)
-        const dimensions = mdimConfig.findViewDimensionsByConfigId(viewConfigId)
-        if (dimensions) {
-            targetDescription += queryParamsToStr(dimensions)
-        }
-    }
-    return targetDescription
+    const dimensions = viewConfigId
+        ? MultiDimDataPageConfig.fromObject(
+              multiDim.config
+          ).findViewDimensionsByConfigId(viewConfigId)
+        : null
+    return buildRedirectTargetPath(multiDim.slug ?? "", dimensions ?? {})
 }
 
 // Deep-compares two source query param conditions for equality (key order
@@ -372,19 +379,64 @@ export async function handleGetMultiDims(
             Pick<
                 DbPlainMultiDimDataPage,
                 "id" | "catalogPath" | "slug" | "updatedAt" | "published"
-            > & { title: string; pageviews: number; mdimViews: number }
+            > & {
+                title: string
+                isDataExplorer: number | null
+                dimensionNames: string
+                tags: string
+                mdimViews: number
+                viewsPerDay: string
+                narrativeChartsCount: number
+                referencesCount: number
+                defaultViewConfigId: string | null
+            }
         >(
             trx,
+            // With no dimension params, searchParamsToMultiDimView fills each
+            // dimension from the first available view, so the default view
+            // (the one a multi-dim's thumbnail shows) is always the first one.
             `-- sql
             SELECT
                 mdp.id,
                 mdp.catalogPath,
                 mdp.slug,
                 mdp.config->>'$.title.title' as title,
+                COALESCE(mdp.config->'$.dimensions[*].name', JSON_ARRAY()) as dimensionNames,
+                COALESCE(mdp.config->'$.topicTags', JSON_ARRAY()) as tags,
+                mdp.config->>'$.views[0].fullConfigId' as defaultViewConfigId,
                 mdp.updatedAt,
                 mdp.published,
-                COALESCE(agv.views_14d, 0) as pageviews,
-                COALESCE(JSON_LENGTH(mdp.config, '$.views'), 0) as mdimViews
+                mdp.config->>'$.presentation.pageType' = 'data-explorer' as isDataExplorer,
+                COALESCE(JSON_LENGTH(mdp.config, '$.views'), 0) as mdimViews,
+                ROUND(COALESCE(agv.views_365d, 0) / 365, 1) as viewsPerDay,
+                (
+                    SELECT COUNT(*)
+                    FROM narrative_charts nc
+                    JOIN ${MultiDimXChartConfigsTableName} mx
+                        ON mx.id = nc.parentMultiDimXChartConfigId
+                    WHERE mx.multiDimId = mdp.id
+                ) as narrativeChartsCount,
+                (
+                    SELECT COUNT(DISTINCT pgl.sourceId)
+                    FROM (
+                        SELECT mdp.slug AS slug
+                        UNION
+                        SELECT REPLACE(mdr.source, '/grapher/', '')
+                        FROM ${MultiDimRedirectsTableName} mdr
+                        WHERE mdr.multiDimId = mdp.id
+                    ) slugs
+                    JOIN posts_gdocs_links pgl
+                        ON pgl.target = slugs.slug
+                        AND pgl.linkType = 'grapher'
+                    JOIN posts_gdocs pg
+                        ON pg.id = pgl.sourceId
+                        AND pg.published = TRUE
+                        AND pg.type NOT IN ('fragment', 'about-page')
+                ) + (
+                    SELECT COUNT(*)
+                    FROM static_viz sv
+                    WHERE sv.grapherSlug = mdp.slug
+                ) as referencesCount
             FROM ${MultiDimDataPagesTableName} mdp
             LEFT JOIN analytics_grapher_views agv ON (
                 agv.grapher_slug = mdp.slug
@@ -394,8 +446,13 @@ export async function handleGetMultiDims(
         const multiDims = results.map((row) => ({
             ...row,
             published: Boolean(row.published),
-            pageviews: Number(row.pageviews),
+            isDataExplorer: Boolean(row.isDataExplorer),
+            dimensionNames: JSON.parse(row.dimensionNames),
+            tags: JSON.parse(row.tags),
             mdimViews: Number(row.mdimViews),
+            viewsPerDay: Number(row.viewsPerDay),
+            narrativeChartsCount: Number(row.narrativeChartsCount),
+            referencesCount: Number(row.referencesCount),
         }))
         return { multiDims }
     } catch (error) {
@@ -459,7 +516,7 @@ export async function handlePatchMultiDim(
     trx: db.KnexReadWriteTransaction
 ) {
     const id = expectInt(req.params.id)
-    let multiDim = await getMultiDimDataPageById(trx, id)
+    let multiDim = await getMultiDimDataPageByIdForUpdate(trx, id)
     if (!multiDim) {
         throw new JsonError(`Multi-dimensional data page not found`, 404)
     }
@@ -510,6 +567,21 @@ export async function handlePatchMultiDim(
         )
     }
     return { success: true, multiDim }
+}
+
+export async function handleDeleteMultiDim(
+    req: Request,
+    _res: HandlerResponse,
+    trx: db.KnexReadWriteTransaction
+) {
+    const id = expectInt(req.params.id)
+    const multiDim = await getMultiDimDataPageByIdForUpdate(trx, id)
+    if (!multiDim) {
+        throw new JsonError("Multi-dimensional data page not found", 404)
+    }
+    // No static build needed, since an unpublished multi-dim isn't baked
+    await deleteUnpublishedMultiDim(trx, multiDim)
+    return { success: true }
 }
 
 // Lists the redirects that target a path, so the admin can ask whether to
@@ -570,8 +642,7 @@ export async function handleGetMultiDimRedirects(
 function parseSourceQueryParamsColumn(
     raw: string | null
 ): Record<string, string | null> | null {
-    if (!raw) return null
-    return JSON.parse(raw) as Record<string, string | null>
+    return raw ? parseSourceQueryParams(raw) : null
 }
 
 const postMultiDimRedirectSchema = z
@@ -720,15 +791,17 @@ export async function handlePostMultiDimRedirect(
     // Repointing first lets the regular validation below pass, and the
     // transaction rolls it back if the redirect is rejected anyway
     if (repointRedirectsToSource && multiDim.slug) {
-        const queryStr = buildQueryStrFromConfig(
-            viewConfigId ?? null,
-            JSON.stringify(multiDim.config),
-            multiDim.slug
-        )
         await repointRedirectsToPath(trx, source, {
             multiDimId: multiDim.id,
             viewConfigId: viewConfigId ?? null,
-            targetFullPath: `/grapher/${multiDim.slug}${queryStr ? `?${queryStr}` : ""}`,
+            targetFullPath: buildRedirectTargetPath(
+                multiDim.slug,
+                getViewParamsFromConfig(
+                    viewConfigId ?? null,
+                    multiDim.config,
+                    multiDim.slug
+                )
+            ),
         })
     }
 
@@ -1028,10 +1101,10 @@ export async function handleGetAllMultiDimRedirects(
         source: string
         sourceQueryParams: string | null
         viewConfigId: string | null
+        viewDimensions: string | null
         multiDimId: number
         multiDimSlug: string
         multiDimTitle: string
-        multiDimConfig: string
     }>(
         trx,
         `-- sql
@@ -1040,29 +1113,22 @@ export async function handleGetAllMultiDimRedirects(
             mdr.source,
             mdr.sourceQueryParams,
             mdr.viewConfigId,
+            mdvd.dimensions as viewDimensions,
             mddp.id as multiDimId,
             mddp.slug as multiDimSlug,
-            mddp.config->>'$.title.title' as multiDimTitle,
-            mddp.config as multiDimConfig
+            mddp.config->>'$.title.title' as multiDimTitle
         FROM ${MultiDimRedirectsTableName} mdr
         JOIN ${MultiDimDataPagesTableName} mddp ON mddp.id = mdr.multiDimId
+        ${VIEW_DIMENSIONS_JOIN}
         WHERE mddp.published = 1 AND mddp.slug IS NOT NULL
         ORDER BY mddp.slug, mdr.source`
     )
 
     const redirects = rows.map((row) => {
-        let targetQueryStr: string | null = null
-        if (row.viewConfigId) {
-            const config = MultiDimDataPageConfig.fromObject(
-                JSON.parse(row.multiDimConfig)
-            )
-            const dimensions = config.findViewDimensionsByConfigId(
-                row.viewConfigId
-            )
-            if (dimensions) {
-                targetQueryStr = queryParamsToStr(dimensions)
-            }
-        }
+        const queryStr = row.viewDimensions
+            ? multiDimDimensionsToViewQueryStr(JSON.parse(row.viewDimensions))
+            : ""
+        const targetQueryStr = queryStr ? `?${queryStr}` : null
         return {
             id: row.id,
             source: row.source,

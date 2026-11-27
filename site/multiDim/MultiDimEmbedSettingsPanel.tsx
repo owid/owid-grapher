@@ -6,7 +6,7 @@ import { MultiDimDimensionChoices } from "@ourworldindata/types"
 import { MultiDimDataPageConfig } from "@ourworldindata/utils"
 import { SMALL_BREAKPOINT_MEDIA_QUERY } from "../SiteConstants.js"
 import { useResolvedSettings } from "./multiDimSettings.js"
-import MultiDimDropdowns from "./MultiDimDropdowns.js"
+import MultiDimControls from "./MultiDimControls.js"
 
 export default function MultiDimEmbedSettingsPanel({
     className,
@@ -23,7 +23,6 @@ export default function MultiDimEmbedSettingsPanel({
     const resolvedSettings = useResolvedSettings(settings, dimensions)
     const isSmallScreen = useMediaQuery(SMALL_BREAKPOINT_MEDIA_QUERY)
     const containerRef = useRef<HTMLDivElement>(null)
-    const dropdownsRef = useRef<HTMLDivElement>(null)
 
     const availableSettings = useMemo(() => {
         return config.filterToAvailableChoices(resolvedSettings)
@@ -44,20 +43,17 @@ export default function MultiDimEmbedSettingsPanel({
         }
 
         const container = containerRef.current
-        const dropdownsContainer = dropdownsRef.current
-        if (!container || !dropdownsContainer) return
+        if (!container) return
 
         const containerWidth = container.offsetWidth
         const containerPadding = 32 // 16px on each side
         const buffer = 5 // For some reason the numbers don't add up precisely
         const availableWidth = containerWidth - containerPadding - buffer
-        const gap = 8 // Gap between dropdowns (and also toggle button) as defined in CSS
+        const gap = 16 // Gap between dropdowns (and also toggle button) as defined in CSS
         const toggleButtonWidth = 90
 
         const dropdowns = Array.from(
-            dropdownsContainer.querySelectorAll<HTMLDivElement>(
-                ".md-settings__dropdown"
-            )
+            container.querySelectorAll<HTMLDivElement>(".md-settings__control")
         )
 
         // First, try to fit all dropdowns without toggle button
@@ -106,11 +102,8 @@ export default function MultiDimEmbedSettingsPanel({
 
     return (
         <div className={cx("md-embed-settings", className)} ref={containerRef}>
-            <div className="h6-black-caps md-embed-settings__header">
-                Configure the data
-            </div>
-            <MultiDimDropdowns
-                ref={dropdownsRef}
+            <MultiDimControls
+                dimensions={dimensions}
                 availableSettings={availableSettings}
                 resolvedSettings={resolvedSettings}
                 onChange={onChange}

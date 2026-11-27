@@ -118,7 +118,9 @@ paths:
             Topic name for filtering charts. Only applicable when `type=charts`
             or `type=topics`.
 
-            [View all available topics](https://datasette-public.owid.io/owid/tags?slug__notnull=1&_sort=createdAt)
+            Takes topic tag names, e.g. `CO2 & Greenhouse Gas Emissions`. A
+            request naming a topic that doesn't exist returns an error listing
+            the available ones.
           required: false
           schema:
             type: string
@@ -176,6 +178,7 @@ paths:
                         slug: "gdp-per-capita-worldbank"
                         subtitle: "GDP per capita is a country's gross domestic product divided by its population. This data is adjusted for inflation and differences in living costs between countries."
                         variantName: "World Bank, constant international-$"
+                        source: "Eurostat, OECD, IMF, and World Bank (2026)"
                         type: "chart"
                         availableEntities:
                           - "United States"
@@ -361,6 +364,10 @@ components:
           type: string
           description: Name of the chart variant (if applicable)
           example: "Default"
+        source:
+          type: string
+          description: The chart's data sources as its footer shows them, in plain text. Not set for explorer views.
+          example: "Riley (2005); Zijdeman et al. (2015); HMD (2025); UN WPP (2024)"
         type:
           type: string
           enum:

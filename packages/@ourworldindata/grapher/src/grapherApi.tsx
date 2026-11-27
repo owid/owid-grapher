@@ -30,8 +30,9 @@ export interface FromTableOptions extends GrapherApiOptionsBase {
 
 /** Options for {@link GrapherLoader.fromCsv}. Provide the CSV either inline
  *  (`csv`) or as a URL to fetch (`csvUrl`). It must have an entityName column
- *  and a year (or day) column, plus one or more value columns; entityCode
- *  and entityId columns are optional. */
+ *  and a year (or day) column, plus one or more value columns; an entityId
+ *  column is optional. Entity codes for data downloads are looked up by
+ *  entity name from the built-in regions list. */
 export type FromCsvOptions = GrapherApiOptionsBase & {
     /** Column definitions — use these to specify types and display names for
      *  your value columns. */
@@ -310,6 +311,7 @@ export class GrapherLoader {
             dimensions: config.dimensions,
             selectedEntityColors: config.selectedEntityColors,
             dataApiUrl,
+            slug: config.slug,
         }).then((table) => {
             if (table) grapherState.inputTable = table
             grapherState.isDataReady = true

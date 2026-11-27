@@ -61,16 +61,24 @@ export class GdocHomepage
     override _loadSubclassAttachments = async (
         knex: db.KnexReadWriteTransaction
     ): Promise<void> => {
-        const [grapherCount, nonGrapherExplorerViewCount, multiDimViewCount] =
-            await Promise.all([
-                db.getTotalNumberOfCharts(knex),
-                db.getNonGrapherExplorerViewCount(knex),
-                db.getMultiDimViewCount(knex),
-            ])
-
-        const explorerCount = await db
-            .getPublishedExplorersBySlug(knex, false)
-            .then((explorers) => Object.keys(explorers).length)
+        const [
+            grapherCount,
+            nonGrapherExplorerViewCount,
+            multiDimViewCount,
+            explorers,
+            // Multi-dim pages that present themselves as data explorers count
+            // towards the "N data explorers" stat, since they are listed on
+            // /explorers.
+            multiDimDataExplorerCount,
+        ] = await Promise.all([
+            db.getTotalNumberOfCharts(knex),
+            db.getNonGrapherExplorerViewCount(knex),
+            db.getMultiDimViewCount(knex),
+            db.getPublishedExplorersBySlug(knex, false),
+            db.getMultiDimDataExplorerCount(knex),
+        ])
+        const explorerCount =
+            Object.keys(explorers).length + multiDimDataExplorerCount
 
         this.homepageMetadata = {
             chartCount:

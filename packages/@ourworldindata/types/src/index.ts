@@ -144,6 +144,7 @@ export {
     type GlobeConfig,
     type ProjectionColumnInfo,
     GrapherVariant,
+    ChartLabelMode,
     type ChartErrorInfo,
     type ToleranceOptions,
 } from "./grapherTypes/GrapherTypes.js"
@@ -393,6 +394,7 @@ export {
     joinTitleFragments,
     normalizeDescriptionKey,
     type OwidVariableType,
+    type OwidVariableAnnotation,
 } from "./OwidVariable.js"
 
 export type { OwidSource } from "./OwidSource.js"
@@ -434,10 +436,10 @@ export {
     type CoreMatrix,
     OwidTableSlugs,
     type EntityName,
-    type EntityCode,
     type EntityId,
-    type Entity,
     type OwidColumnDef,
+    type AnnotationTimeScope,
+    type IndicatorAnnotation,
     OwidEntityNameColumnDef,
     OwidEntityIdColumnDef,
     OwidEntityCodeColumnDef,
@@ -774,6 +776,7 @@ export {
     type MinimalTag,
     type TagGraphRole,
     TagsTableName,
+    UNLISTED_TAG_NAME,
 } from "./dbTypes/Tags.js"
 export {
     type DbPlainTagVariableTopicTag,
@@ -868,10 +871,14 @@ export type {
     MultiDimDataPageProps,
     MultiDimPageCompanion,
     MultiDimPageCompanionView,
+    MultiDimExplorerPresentation,
     FaqEntryKeyedByGdocIdAndFragmentId,
     Choice,
     ChoicesEnriched,
+    Dimension,
     DimensionEnriched,
+    DimensionPresentation,
+    DimensionPresentationType,
     MultiDimDimensionChoices,
     ExplorerRedirectTarget,
     View,

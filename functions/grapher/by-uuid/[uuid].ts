@@ -20,24 +20,22 @@ router
     )
     .get(
         `/grapher/by-uuid/:uuid${extensions.png}`,
-        async ({ params: { uuid } }, { searchParams }, env, etag, ctx) =>
+        async ({ params: { uuid } }, { searchParams }, env, _etag, ctx) =>
             handleThumbnailRequest(
                 { type: "uuid", id: uuid },
                 searchParams,
                 env,
-                etag,
                 ctx,
                 "png"
             )
     )
     .get(
         `/grapher/by-uuid/:uuid${extensions.svg}`,
-        async ({ params: { uuid } }, { searchParams }, env, etag, ctx) =>
+        async ({ params: { uuid } }, { searchParams }, env, _etag, ctx) =>
             handleThumbnailRequest(
                 { type: "uuid", id: uuid },
                 searchParams,
                 env,
-                etag,
                 ctx,
                 "svg"
             )

@@ -1,6 +1,7 @@
 import * as _ from "lodash-es"
 import { expect, it, describe } from "vitest"
 import {
+    ChartLabelMode,
     GRAPHER_CHART_TYPES,
     EntitySelectionMode,
     GRAPHER_TAB_CONFIG_OPTIONS,
@@ -19,6 +20,7 @@ import {
     GrapherTabName,
     MultipleOwidVariableDataDimensionsMap,
     CoreValueType,
+    PeerCountryStrategy,
 } from "@ourworldindata/types"
 import {
     TimeBoundValue,
@@ -124,6 +126,24 @@ describe("hideDownloadButton", () => {
     it("respects the explicit hideDownloadButton config", () => {
         const grapher = new GrapherState({ hideDownloadButton: true })
         expect(grapher.hideDownloadButton).toBe(true)
+    })
+})
+
+describe("showLegend under each label mode", () => {
+    it.each([ChartLabelMode.Values, ChartLabelMode.Names, ChartLabelMode.None])(
+        "is false for %s",
+        (labelMode) => {
+            const grapher = new GrapherState({})
+            grapher.labelMode = labelMode
+            expect(grapher.showLegend).toBe(false)
+        }
+    )
+
+    it("follows hideLegend for All", () => {
+        const grapher = new GrapherState({})
+        expect(grapher.showLegend).toBe(true)
+        grapher.hideLegend = true
+        expect(grapher.showLegend).toBe(false)
     })
 })
 
@@ -262,24 +282,12 @@ it("correctly identifies inputColumnSlugs", () => {
             "entityColor",
             "year",
             "gdp",
-            "gdp-annotations",
             "child_mortality",
             "population",
             "continent",
             "happiness",
         ],
-        [
-            "Belgium",
-            "BEL",
-            "#f6f",
-            2010,
-            80000,
-            "pretty damn high",
-            1.5,
-            9000000,
-            "Europe",
-            81.2,
-        ],
+        ["Belgium", "BEL", "#f6f", 2010, 80000, 1.5, 9000000, "Europe", 81.2],
     ])
     const grapher = new GrapherState({
         table,
@@ -1630,20 +1638,6 @@ describe("download", () => {
         )
     })
 
-    it("includes annotation columns when present", () => {
-        const table = new OwidTable([
-            ["entityName", "entityCode", "year", "gdp", "gdp-annotations"],
-            ["France", "FRA", 2020, 2500, "preliminary"],
-            ["France", "FRA", 2021, 2600, ""],
-        ])
-
-        const grapher = makeGrapher(table)
-
-        const downloadTable = grapher.filteredTableForDownload
-
-        expect(downloadTable.columnSlugs).toContain("gdp-annotations")
-    })
-
     it("drops rows without any x or y values", () => {
         const table = new OwidTable([
             ["entityName", "entityCode", "year", "gdp", "population"],
@@ -1660,27 +1654,54 @@ describe("download", () => {
         expect(downloadTable.numRows).toBe(2) // Only 2020 and 2022
     })
 
-    it("attempts to fill in missing entity codes from inputTable", () => {
-        // Create a table where entity codes may be missing or present
+    it("looks up entity codes by entity name from the regions list", () => {
+        // The input table has no code column; codes come from regionsData
         const table = new OwidTable([
-            ["entityName", "entityCode", "entityId", "year", "gdp"],
-            ["France", "FRA", 1, 2020, 2500],
-            ["United Kingdom", "GBR", 2, 2020, 3500],
-            ["United Kingdom", undefined, 2, 2021, 3600], // Missing code in one row
+            ["entityName", "entityId", "year", "gdp"],
+            ["France", 1, 2020, 2500],
+            ["Africa (FAO)", 2, 2020, 3500],
+            ["Some Custom Entity", 3, 2020, 3600],
         ])
 
         const grapher = makeGrapher(table, {
-            selectedEntityNames: ["France", "United Kingdom"],
+            selectedEntityNames: [
+                "France",
+                "Africa (FAO)",
+                "Some Custom Entity",
+            ],
         })
 
         const downloadTable = grapher.filteredTableForDownload
-        const ukRows = downloadTable.rows.filter(
-            (r) => r.entityName === "United Kingdom"
-        )
 
-        // All UK rows should have the code backfilled
-        expect(ukRows.length).toBeGreaterThan(0)
-        expect(ukRows.every((r) => r.entityCode === "GBR")).toBe(true)
+        // The code column comes right after the entity name
+        expect(downloadTable.columnSlugs.slice(0, 2)).toEqual([
+            "entityName",
+            "entityCode",
+        ])
+        expect(downloadTable.toPrettyCsv()).toEqual(
+            [
+                "Entity,Code,Year,gdp",
+                "Africa (FAO),FAO_AFR,2020,3500",
+                "France,FRA,2020,2500",
+                "Some Custom Entity,,2020,3600",
+            ].join("\n")
+        )
+    })
+
+    it("omits the entity code column if no entity has a code", () => {
+        const table = new OwidTable([
+            ["entityName", "entityId", "year", "gdp"],
+            ["Fire", 1, 2020, 2500],
+            ["Earthquake", 2, 2020, 3500],
+        ])
+
+        const grapher = makeGrapher(table, {
+            selectedEntityNames: ["Fire", "Earthquake"],
+        })
+
+        expect(grapher.filteredTableForDownload.columnSlugs).not.toContain(
+            "entityCode"
+        )
     })
 
     it("uses original time as main time column when there's only one y column", () => {
@@ -2509,6 +2530,77 @@ describe("relative mode follows the facet strategy in effect", () => {
     })
 })
 
+describe("isStaticLayoutResponsive", () => {
+    const phoneBounds = new Bounds(0, 0, 328, 575)
+    const createStaticGrapher = (
+        options: GrapherProgrammaticInterface,
+        bounds: Bounds = phoneBounds
+    ): GrapherState => {
+        const grapher = new GrapherState({
+            bounds,
+            staticBounds: bounds,
+            ...options,
+        })
+        grapher.isExportingToSvgOrPng = true
+        return grapher
+    }
+
+    it.each([
+        {
+            width: 328,
+            isNarrow: true,
+            isSemiNarrow: true,
+            isSmall: true,
+            isMedium: true,
+        },
+        {
+            width: 600,
+            isNarrow: false,
+            isSemiNarrow: false,
+            isSmall: true,
+            isMedium: true,
+        },
+    ])("takes breakpoints from a width of $width when set", (expected) => {
+        const grapher = createStaticGrapher(
+            { isStaticLayoutResponsive: true },
+            new Bounds(0, 0, expected.width, 575)
+        )
+        expect({
+            width: expected.width,
+            isNarrow: grapher.isNarrow,
+            isSemiNarrow: grapher.isSemiNarrow,
+            isSmall: grapher.isSmall,
+            isMedium: grapher.isMedium,
+        }).toEqual(expected)
+    })
+
+    it("sizes fonts and patterns like a live chart when set", () => {
+        const grapher = createStaticGrapher({ isStaticLayoutResponsive: true })
+        expect(grapher.isStaticAndSmall).toBe(false)
+        expect(grapher.baseFontSize).toBe(14)
+        expect(grapher.patternScale).toBe(1)
+    })
+
+    it("keeps the static layout when unset", () => {
+        const grapher = createStaticGrapher({})
+        expect(grapher.isNarrow).toBe(false)
+        expect(grapher.isSemiNarrow).toBe(false)
+        expect(grapher.isSmall).toBe(false)
+        expect(grapher.isMedium).toBe(false)
+        expect(grapher.isStaticAndSmall).toBe(true)
+        expect(grapher.baseFontSize).toBeCloseTo(22.36, 2)
+        expect(grapher.patternScale).toBeLessThan(1)
+    })
+
+    it("lets an explicit baseFontSize win", () => {
+        const grapher = createStaticGrapher({
+            isStaticLayoutResponsive: true,
+            baseFontSize: 12,
+        })
+        expect(grapher.baseFontSize).toBe(12)
+    })
+})
+
 describe("urls", () => {
     it("can change base url", () => {
         const url = new GrapherState({
@@ -3122,4 +3214,73 @@ describe("time and year url params", () => {
             })
         })
     })
+})
+
+describe("showLegend", () => {
+    it("shows the legend by default", () => {
+        expect(new GrapherState({}).showLegend).toBe(true)
+    })
+
+    it("hides the legend when the chart shows values only", () => {
+        expect(
+            new GrapherState({ labelMode: ChartLabelMode.Values }).showLegend
+        ).toBe(false)
+    })
+})
+
+describe("removeInvalidFocusedSeriesNames", () => {
+    const table = SynthesizeGDPTable({ entityNames: ["France", "Spain"] })
+
+    it("drops a focused entity when the series are indicators", () => {
+        const grapher = new GrapherState({
+            table,
+            ySlugs: `${SampleColumnSlugs.GDP} ${SampleColumnSlugs.Population}`,
+            selectedEntityNames: ["France"],
+            focusedSeriesNames: ["France"],
+        })
+
+        grapher.removeInvalidFocusedSeriesNames()
+
+        expect(grapher.focusArray.seriesNames).toEqual([])
+    })
+
+    it("keeps focused series that are plotted and drops the rest", () => {
+        const grapher = new GrapherState({
+            table,
+            ySlugs: SampleColumnSlugs.GDP,
+            selectedEntityNames: ["France", "Spain"],
+            focusedSeriesNames: ["France", "Canada"],
+        })
+
+        grapher.removeInvalidFocusedSeriesNames()
+
+        expect(grapher.focusArray.seriesNames).toEqual(["France"])
+    })
+
+    it("leaves focus alone before the data is ready", () => {
+        const grapher = new GrapherState({
+            table,
+            ySlugs: SampleColumnSlugs.GDP,
+            selectedEntityNames: ["France"],
+            focusedSeriesNames: ["Canada"],
+        })
+        grapher.isDataReady = false
+
+        grapher.removeInvalidFocusedSeriesNames()
+
+        expect(grapher.focusArray.seriesNames).toEqual(["Canada"])
+    })
+})
+
+it("clears the peer params along with the other query params", () => {
+    const grapher = new GrapherState({})
+    grapher.populateFromQueryParams({
+        peerCountries: PeerCountryStrategy.DefaultSelection,
+        peerCount: "6",
+    })
+
+    grapher.clearQueryParams()
+
+    expect(grapher.peerCountryStrategy).toBeUndefined()
+    expect(grapher.peerCount).toBeUndefined()
 })

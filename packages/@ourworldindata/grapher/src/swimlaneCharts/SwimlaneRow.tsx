@@ -14,12 +14,14 @@ export function SwimlaneRow({
     series,
     y,
     noDataPatternId,
+    showEntityLabel,
     onSegmentMouseEnter,
     onSegmentMouseLeave,
 }: {
     series: RenderSwimlaneSeries
     y: number
     noDataPatternId: string
+    showEntityLabel: boolean
     onSegmentMouseEnter?: (
         entityName: string,
         segment: RenderSwimlaneSegment
@@ -31,23 +33,27 @@ export function SwimlaneRow({
             id={makeFigmaId(series.seriesName)}
             transform={y ? `translate(0, ${roundForSvg(y)})` : undefined}
         >
-            <SeriesLabel
-                state={series.label}
-                x={series.labelPosition.x}
-                y={series.labelPosition.yOffset}
-                color={{ name: GRAPHER_LIGHT_TEXT }}
-                opacity={SWIMLANE_LABEL_STYLE[series.emphasis].opacity}
-            />
-            {series.annotationTextWrap && series.annotationPosition && (
-                <TextWrapSvg
-                    textWrap={series.annotationTextWrap}
-                    x={series.annotationPosition.x}
-                    y={series.annotationPosition.yOffset}
-                    fill={GRAPHER_LIGHT_TEXT}
-                    textAnchor="end"
+            {showEntityLabel && (
+                <SeriesLabel
+                    state={series.label}
+                    x={series.labelPosition.x}
+                    y={series.labelPosition.yOffset}
+                    color={{ name: GRAPHER_LIGHT_TEXT }}
                     opacity={SWIMLANE_LABEL_STYLE[series.emphasis].opacity}
                 />
             )}
+            {showEntityLabel &&
+                series.annotationTextWrap &&
+                series.annotationPosition && (
+                    <TextWrapSvg
+                        textWrap={series.annotationTextWrap}
+                        x={series.annotationPosition.x}
+                        y={series.annotationPosition.yOffset}
+                        fill={GRAPHER_LIGHT_TEXT}
+                        textAnchor="end"
+                        opacity={SWIMLANE_LABEL_STYLE[series.emphasis].opacity}
+                    />
+                )}
             <SwimlaneSegments
                 segments={series.placedSegments}
                 noDataPatternId={noDataPatternId}

@@ -4,6 +4,8 @@ import timezoneMock from "timezone-mock"
 import dayjs from "./dayjs.js"
 import {
     deriveAnnouncementLatestType,
+    pointsToPath,
+    roundForSvg,
     findClosestTime,
     formatDay,
     retryPromise,
@@ -1321,6 +1323,21 @@ describe(imemo, () => {
         expect(firstValue).toBeTypeOf("number")
         expect(spy).toHaveBeenCalledOnce()
     })
+
+    it("rejects private getters", () => {
+        // Decorators run when the class is defined, so defining it throws
+        expect(() => {
+            class PrivateIMemoTest {
+                @imemo get #value(): number {
+                    return 1
+                }
+                read(): number {
+                    return this.#value
+                }
+            }
+            return PrivateIMemoTest
+        }).toThrow("@imemo can't decorate the private getter #value")
+    })
 })
 
 describe(getUniqueNamesFromTagHierarchies, () => {
@@ -1564,4 +1581,36 @@ describe(deriveAnnouncementLatestType, () => {
             expect(deriveAnnouncementLatestType(kicker)).toBe("announcement")
         }
     )
+})
+
+describe(roundForSvg, () => {
+    it.each([
+        [123.456, 123.46],
+        [-123.454, -123.45],
+        [0.125, 0.13],
+        [10, 10],
+    ])("rounds %d to %d", (value, expected) => {
+        expect(roundForSvg(value)).toBe(expected)
+    })
+
+    it("passes non-finite values through", () => {
+        expect(roundForSvg(NaN)).toBeNaN()
+        expect(roundForSvg(Infinity)).toBe(Infinity)
+    })
+})
+
+describe(pointsToPath, () => {
+    it("builds a rounded polyline path", () => {
+        expect(
+            pointsToPath([
+                { x: 0, y: 1.004 },
+                { x: 10.123, y: -2 },
+                { x: 20, y: 3.456 },
+            ])
+        ).toBe("M0 1L10.12 -2L20 3.46")
+    })
+
+    it("returns an empty string for no points", () => {
+        expect(pointsToPath([])).toBe("")
+    })
 })

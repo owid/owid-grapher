@@ -1,4 +1,3 @@
-import * as _ from "lodash-es"
 import {
     KeyChartLevel,
     ContentGraphLinkType,
@@ -7,6 +6,7 @@ import {
     ChartsIndexingContext,
     IndexingContext,
     ChartSlugRedirectsTableName,
+    UNLISTED_TAG_NAME,
 } from "@ourworldindata/types"
 import * as db from "../../../db/db.js"
 import { getRelatedArticles } from "../../../db/model/Post.js"
@@ -19,11 +19,10 @@ import {
 } from "@ourworldindata/utils"
 import {
     computeRecordScore,
-    maybeAddChangeInPrefix,
     processAvailableEntities,
     parseJsonStringArray,
+    loadGrapherStateWithMetadata,
 } from "./shared.js"
-import { GrapherState } from "@ourworldindata/grapher"
 import { toPlaintext } from "@ourworldindata/components"
 import { createChartsIndexingContext } from "./context.js"
 import pMap from "p-map"
@@ -127,7 +126,7 @@ async function getRawChartsRecords(
             AND NOT EXISTS (
                 SELECT 1 FROM chart_tags ct_unlisted
                 JOIN tags t_unlisted ON ct_unlisted.tagId = t_unlisted.id
-                WHERE ct_unlisted.chartId = c.id AND t_unlisted.name = 'Unlisted'
+                WHERE ct_unlisted.chartId = c.id AND t_unlisted.name = '${UNLISTED_TAG_NAME}'
             )
             -- AND has at least one indexable tag (topic page OR searchableInAlgolia)
             AND EXISTS (
@@ -237,7 +236,10 @@ async function buildChartRecord(
     chart: ParsedChartRecordRow,
     context: ChartsIndexingContext
 ): Promise<ChartRecord | null> {
-    const grapherState = new GrapherState(chart.config)
+    const grapherState = await loadGrapherStateWithMetadata(
+        chart.config,
+        context.loadIndicatorMetadata
+    )
 
     const relatedArticles = (await getRelatedArticles(knex, chart.id)) ?? []
     const linksFromGdocs = await getPublishedLinksTo(
@@ -246,13 +248,7 @@ async function buildChartRecord(
         ContentGraphLinkType.Grapher
     )
 
-    const title = maybeAddChangeInPrefix(
-        chart.config.title,
-        grapherState.shouldAddChangeInPrefixToTitle
-    )
-    const plaintextSubtitle = _.isNil(chart.config.subtitle)
-        ? undefined
-        : toPlaintext(chart.config.subtitle)
+    const title = grapherState.mainTitle
 
     const topicTags = getUniqueNamesFromTagHierarchies(
         chart.tags,
@@ -271,7 +267,8 @@ async function buildChartRecord(
         title,
         variantName: chart.config.variantName ?? "",
         titleVariant: chart.titleVariant || undefined,
-        subtitle: plaintextSubtitle,
+        subtitle: toPlaintext(grapherState.effectiveSubtitle),
+        source: toPlaintext(grapherState.sourcesLine),
         availableEntities: chart.entityNames,
         numDimensions: parseInt(chart.numDimensions),
         availableTabs: grapherState.availableTabs,
@@ -279,7 +276,7 @@ async function buildChartRecord(
         updatedAt: chart.updatedAt,
         tags: topicTags,
         keyChartForTags: chart.keyChartForTags,
-        titleLength: chart.config.title?.length ?? 0,
+        titleLength: title.length,
         numRelatedArticles,
 
         views_7d,
@@ -313,7 +310,7 @@ export const getChartsRecords = async (
     const recordsOrNull = await pMap(
         parsedCharts,
         (chart) => buildChartRecord(knex, chart, context),
-        { concurrency: 10 }
+        { concurrency: 20 }
     )
 
     return excludeNullish(recordsOrNull)

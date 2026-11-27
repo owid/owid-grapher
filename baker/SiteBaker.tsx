@@ -63,6 +63,7 @@ import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.
 import { getAllImages } from "../db/model/Image.js"
 import { generateEmbedSnippet } from "../site/viteUtils.js"
 import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
+import { fetchAllChartsBlockResults } from "./allChartsBlockResults.js"
 import { mapSlugsToConfigs } from "../db/model/Chart.js"
 import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
 import {
@@ -83,6 +84,7 @@ import {
 } from "../db/model/Gdoc/GdocFactory.js"
 import { getBakePath } from "@ourworldindata/components"
 import { GdocAuthor, getMinimalAuthors } from "../db/model/Gdoc/GdocAuthor.js"
+import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { getLatestArchivedPostPageVersionsIfEnabled } from "../db/model/ArchivedPostVersion.js"
 import {
     makeExplorerLinkedChart,
@@ -304,8 +306,10 @@ export class SiteBaker {
 
         // Update prefetched linkedDocuments cache with filtered entity codes
         if (this._prefetchedAttachmentsCache) {
-            for (const [gdocId, renderedCodes] of this
-                ._renderedProfileEntityCodes) {
+            for (const [
+                gdocId,
+                renderedCodes,
+            ] of this._renderedProfileEntityCodes) {
                 const linkedDoc =
                     this._prefetchedAttachmentsCache.linkedDocuments[gdocId]
                 if (linkedDoc) {
@@ -333,7 +337,6 @@ export class SiteBaker {
         const html = renderGdocTombstone(tombstone, {
             ...attachments,
             linkedCharts: {},
-            relatedCharts: [],
             tags: [],
         })
         const outPath = path.join(
@@ -821,17 +824,14 @@ export class SiteBaker {
                         )
                     }
 
-                    // this is a no-op if the gdoc doesn't have an all-chart block
-                    if ("loadRelatedCharts" in publishedGdoc) {
-                        await publishedGdoc.loadRelatedCharts(
-                            knex,
-                            attachments.archivedVersions.charts
-                        )
-                    }
-
                     // this is a no-op if the gdoc has no bespoke metadata to load
                     if ("loadBespokeMetadata" in publishedGdoc) {
                         await publishedGdoc.loadBespokeMetadata()
+                    }
+
+                    if (publishedGdoc instanceof GdocPost) {
+                        publishedGdoc.allChartsBlockResults =
+                            await fetchAllChartsBlockResults(publishedGdoc)
                     }
 
                     await publishedGdoc.validate(knex)

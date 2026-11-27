@@ -981,5 +981,5 @@ function makeNarrativeChartEditLink(
 function makePngUrlForNarrativeChart(
     dataInsight: RequiredBy<OwidGdocDataInsightIndexItem, "narrativeChart">
 ) {
-    return `${GRAPHER_DYNAMIC_THUMBNAIL_URL}/by-uuid/${dataInsight.narrativeChart.chartConfigId}.png?imType=square&nocache`
+    return `${GRAPHER_DYNAMIC_THUMBNAIL_URL}/by-uuid/${dataInsight.narrativeChart.chartConfigId}.png?imPreset=square&nocache`
 }

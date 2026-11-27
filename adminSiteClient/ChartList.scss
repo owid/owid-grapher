@@ -9,6 +9,17 @@
     opacity: 0.6;
 }
 
+.chart-list__preview--empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 850 / 600;
+    border: 1px dashed #d9d9d9;
+    background: #fafafa;
+    color: #999;
+    font-size: 0.8em;
+}
+
 .chart-list__chart {
     min-width: 280px;
 }
@@ -81,11 +92,60 @@
     padding: 0 5px;
 }
 
+.chart-list__dimensions,
+.chart-list__data-explorer {
+    display: inline-block;
+    padding: 0 6px;
+    border: 1px solid #d6dde6;
+    border-radius: 4px;
+    background: #f2f5f9;
+    color: #3f5170;
+    font-size: 0.95em;
+    line-height: 1.5;
+}
+
+.chart-list__dimensions {
+    cursor: help;
+}
+
+.chart-list__data-explorer {
+    border-color: #ddd0ea;
+    background: #f6f1fb;
+    color: #5b3f80;
+}
+
+.chart-list__slug-field .ant-typography {
+    font-family: monospace;
+    font-size: 0.85em;
+    color: #777;
+}
+
+.chart-list__page-links {
+    padding-top: 5px;
+    white-space: nowrap;
+}
+
 .chart-list__notes {
     margin-top: 4px;
     font-size: 0.85em;
     color: #666;
     font-style: italic;
+}
+
+// The publish switch, then when and by whom
+.chart-list__published {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+
+    .ant-switch {
+        margin-top: 2px;
+    }
+}
+
+// Wraps the switch so its tooltip shows while it's disabled
+.chart-list__publish-switch {
+    display: flex;
 }
 
 .chart-list__timestamp {

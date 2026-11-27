@@ -5,6 +5,7 @@ import { CoreColumn } from "@ourworldindata/core-table"
 import { ChartManager } from "../chart/ChartManager"
 import { InteractionState } from "../interaction/InteractionState"
 import { Emphasis } from "../interaction/Emphasis"
+import { EntityAnnotation } from "../annotations/EntityAnnotations"
 
 export interface SlopeChartManager extends ChartManager {
     canSelectMultipleEntities?: boolean // used to pick an appropriate series name
@@ -19,7 +20,7 @@ export interface SlopeChartSeries extends ChartSeries {
     displayName: string
     start: OwidVariableRow<number>
     end: OwidVariableRow<number>
-    annotation?: string
+    entityAnnotation?: EntityAnnotation
     focus: InteractionState
 }
 

@@ -13,7 +13,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCopy, faSpinner, faTimes } from "@fortawesome/free-solid-svg-icons"
 import { copyToClipboard } from "@ourworldindata/utils"
 import { useListSearch } from "./useListSearch.js"
-import { useSearchQueryParam } from "./variableSearchQuery.js"
+import { useSearchQueryParam } from "./useSearchQueryParam.js"
 
 type FileMapOrFile = DbPlainFile | FileMap
 

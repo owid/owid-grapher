@@ -1,11 +1,27 @@
 import { ChartManager } from "../chart/ChartManager"
-import { CoreValueType, EntityName, Time } from "@ourworldindata/types"
+import {
+    ColumnSlug,
+    CoreValueType,
+    EntityName,
+    ProjectionColumnInfo,
+    SeriesName,
+    Time,
+} from "@ourworldindata/types"
 import { ChartSeries } from "../chart/ChartInterface"
-import { Color } from "@ourworldindata/utils"
+import { Bounds, Color, PointVector } from "@ourworldindata/utils"
 import { InteractionState } from "../interaction/InteractionState"
 import { Emphasis } from "../interaction/Emphasis"
 import { LegendStyleConfig } from "../legend/LegendStyleConfig"
-import { GRAPHER_OPACITY_MUTED } from "../core/GrapherConstants"
+import {
+    GRAPHER_OPACITY_MUTED,
+    GRAPHER_THUMBNAIL_OPACITY_MUTED,
+} from "../core/GrapherConstants"
+import {
+    AnnotationMarker,
+    EntityAnnotation,
+    PointAnnotation,
+    RangeAnnotation,
+} from "../annotations/EntityAnnotations"
 
 export const LINE_CHART_CLASS_NAME = "LineChart"
 
@@ -23,9 +39,21 @@ export const VARIABLE_COLOR_MARKER_RADIUS = 2.2
 export const DISCONNECTED_DOTS_MARKER_RADIUS = 2.6
 export const STATIC_SMALL_MARKER_RADIUS = 3
 
+// Range annotation
+export const RANGE_ANNOTATION_TOOLTIP_MARGIN = 6
+export const RANGE_ANNOTATION_TOOLTIP_BELOW_PREFERENCE_PX = 24
+
 // Line outline
 export const DEFAULT_LINE_OUTLINE_WIDTH = 0.5
 export const VARIABLE_COLOR_LINE_OUTLINE_WIDTH = 1.0
+
+export interface PlaceRangeAnnotationTooltipArgs {
+    points: readonly PointVector[]
+    clickPosition: PointVector
+    tooltipBounds: Bounds
+    containerBounds: Bounds
+    outlineWidth: number
+}
 
 export interface LineStyleConfig {
     strokeWidthFactor: number // multiplied by the base stroke width
@@ -52,6 +80,17 @@ export const LINE_STYLE: Record<Emphasis, LineStyleConfig> = {
         showOutline: false,
     },
 }
+
+export const THUMBNAIL_LINE_STYLE: Record<Emphasis, LineStyleConfig> = {
+    ...LINE_STYLE,
+    [Emphasis.Muted]: {
+        ...LINE_STYLE[Emphasis.Muted],
+        opacity: GRAPHER_THUMBNAIL_OPACITY_MUTED,
+    },
+}
+
+/** Widest a name label in a line or slope thumbnail gets, as a share of the chart width */
+export const THUMBNAIL_NAME_LABEL_MAX_WIDTH_SHARE = 0.25
 
 // Legend
 export const LEGEND_PADDING = 25
@@ -90,12 +129,47 @@ export interface LineChartSeries extends ChartSeries {
     plotMarkersOnly?: boolean
     points: LinePoint[]
     entityName: EntityName
+    columnSlug: ColumnSlug
     columnName: string
     focus: InteractionState
+    pointAnnotations: PointAnnotation[]
+    rangeAnnotations: RangeAnnotation[]
+    entityAnnotation?: EntityAnnotation
+}
+
+export interface PlacedPointAnnotation {
+    annotation: PointAnnotation
+    point: PlacedPoint
+}
+
+export interface PlacedRangeAnnotation {
+    annotation: RangeAnnotation
+    points: PlacedPoint[]
+    snappedTimeRange: { startTime: Time; endTime: Time }
+}
+
+export interface RenderPointAnnotation extends PlacedPointAnnotation {
+    key: string
+    seriesName: SeriesName
+    emphasis: Emphasis
+    heading: string
+    isTooltipOpen: boolean
+}
+
+export interface RenderRangeAnnotation extends PlacedRangeAnnotation {
+    key: string
+    seriesName: SeriesName
+    emphasis: Emphasis
+    heading: string
+    isTooltipOpen: boolean
+    color: Color
+    outlineWidth: number
 }
 
 export interface PlacedLineChartSeries extends LineChartSeries {
     placedPoints: PlacedPoint[]
+    placedPointAnnotations: PlacedPointAnnotation[]
+    placedRangeAnnotations: PlacedRangeAnnotation[]
 }
 
 export interface RenderLineChartSeries extends PlacedLineChartSeries {
@@ -108,4 +182,20 @@ export interface LineChartManager extends ChartManager {
     lineStrokeWidth?: number
     canSelectMultipleEntities?: boolean // used to pick an appropriate series name
     hasScatter?: boolean // x-axis config is ignored if a secondary scatter plot is present
+    projectionColumnInfoBySlug?: Map<ColumnSlug, ProjectionColumnInfo>
 }
+
+export type AnnotationTooltipState =
+    | { kind: "idle" }
+    | { kind: "labelOpen"; seriesName: SeriesName; hasAnnotations: boolean }
+    | { kind: "markerOpen"; seriesName: SeriesName; marker: AnnotationMarker }
+
+export type AnnotationTooltipEvent =
+    | {
+          type: "labelTooltipShow"
+          seriesName: SeriesName
+          hasAnnotations: boolean
+      }
+    | { type: "labelTooltipHide"; seriesName: SeriesName }
+    | { type: "markerClick"; seriesName: SeriesName; marker: AnnotationMarker }
+    | { type: "markerTooltipClose" }

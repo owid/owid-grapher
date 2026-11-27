@@ -7,7 +7,7 @@ title: Data explorers
 subtitle: Interactive visualization tools to explore a wide range of related indicators.
 [.explorers]
 url: https://ourworldindata.org/explorers/poverty-explorer
-url: https://ourworldindata.org/explorers/population-and-demography
+url: https://ourworldindata.org/grapher/population-and-demography
 url: https://ourworldindata.org/explorers/global-health
 url: https://ourworldindata.org/grapher/energy-mix
 []

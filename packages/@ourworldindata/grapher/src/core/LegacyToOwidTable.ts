@@ -15,12 +15,15 @@ import {
     EntityName,
     TimeInterval,
     SelectedEntityColors,
+    AnnotationTimeScope,
+    IndicatorAnnotation,
+    OwidVariableAnnotation,
+    Time,
 } from "@ourworldindata/types"
 import {
     OwidTable,
     ErrorValueTypes,
     makeKeyFn,
-    makeAnnotationsSlug,
 } from "@ourworldindata/core-table"
 import {
     diffDatesInDays,
@@ -41,6 +44,7 @@ import {
     findFinestCommonTimeInterval,
     snapToIntervalStart,
     dayjs,
+    convertDateToDaysSinceEpoch,
 } from "@ourworldindata/utils"
 import { isContinentsVariableId } from "./GrapherConstants"
 import * as R from "remeda"
@@ -107,10 +111,6 @@ export const legacyToOwidTableAndDimensions = (
             valueColumnDef.targetTime = dimension.targetYear
         columnDefs.set(valueColumnDef.slug, valueColumnDef)
 
-        // Annotations column
-        const [annotationMap, annotationColumnDef] =
-            annotationMapAndDefFromOwidVariable(variable.metadata)
-
         // Column values
 
         const times = timeColumnValuesFromOwidVariable(
@@ -125,23 +125,14 @@ export const legacyToOwidTableAndDimensions = (
             // no longer be a problem
             (id) => entityMetaById[id]?.name ?? id.toString()
         )
-        // see comment above about entityMetaById[id]
-        const entityCodes = entityIds.map((id) => entityMetaById[id]?.code)
 
         const columnStore: { [key: string]: any[] } = {
             [OwidTableSlugs.EntityId]: entityIds,
-            [OwidTableSlugs.EntityCode]: entityCodes,
             [OwidTableSlugs.EntityName]: entityNames,
             [timeColumnDef.slug]: times,
             [valueColumnDef.slug]: variable.data.values || [],
         }
 
-        if (annotationColumnDef) {
-            columnStore[annotationColumnDef.slug] = entityNames.map(
-                (entityName) => annotationMap!.get(entityName)
-            )
-            columnDefs.set(annotationColumnDef.slug, annotationColumnDef)
-        }
         // Build the tables
 
         let variableTable = new OwidTable(
@@ -375,6 +366,138 @@ const getIndicatorDisplayOverride = (
     },
 })
 
+/**
+ * Checks that no two rows of the table share the same values in the index
+ * columns, with the same string keys the general join uses.
+ */
+export const hasUniqueIndexValues = (
+    table: OwidTable,
+    indexColumnNames: OwidTableSlugs[]
+): boolean => {
+    const { columnStore, numRows } = table
+
+    // Fast path for the usual entity + time index: the data typically lists
+    // each entity in one contiguous run of rows with strictly increasing
+    // times, which proves uniqueness without building a key for every row.
+    // It only applies to numeric values, whose string keys are distinct
+    // whenever the numbers are
+    if (indexColumnNames.length === 2) {
+        const entitySlugIndex = indexColumnNames.indexOf(
+            OwidTableSlugs.EntityId
+        )
+        if (entitySlugIndex !== -1) {
+            const entities = columnStore[indexColumnNames[entitySlugIndex]]
+            const times = columnStore[indexColumnNames[1 - entitySlugIndex]]
+            if (hasEntityRunsWithIncreasingTimes(entities, times, numRows))
+                return true
+        }
+    }
+
+    const keyFn = makeKeyFn(columnStore, indexColumnNames)
+    const seenKeys = new Set<string>()
+    for (let row = 0; row < numRows; row++) {
+        const key = keyFn(row)
+        if (seenKeys.has(key)) return false
+        seenKeys.add(key)
+    }
+    return true
+}
+
+// Checks whether the table has entity-time pairs in an order where they're grouped by entity,
+// and inside each group the times are strictly increasing.
+// If that's the case, then it means that the index values are necessarily unique. But even when this
+// returns false, they might still be unique, just not in this specific way (that is common and can be checked
+// performantly).
+// A table that adheres to this format is:
+// | Entity | Year |
+// | ------ | ---- |
+// | 2      | 2022 |
+// | 2      | 2024 |
+// | 1      | 2020 |
+// | 1      | 2021 |
+export const hasEntityRunsWithIncreasingTimes = (
+    entities: unknown[],
+    times: unknown[],
+    numRows: number
+): boolean => {
+    const seenEntities = new Set<number>()
+    let previousEntity: unknown = undefined
+    let previousTime = -Infinity
+    for (let row = 0; row < numRows; row++) {
+        const entity = entities[row]
+        const time = times[row]
+        if (typeof entity !== "number" || typeof time !== "number") return false
+        if (row > 0 && entity === previousEntity) {
+            if (!(time > previousTime)) return false
+        } else {
+            // A new run starts; the entity must not have had one before
+            if (seenEntities.has(entity)) return false
+            seenEntities.add(entity)
+        }
+        previousEntity = entity
+        previousTime = time
+    }
+    return true
+}
+
+/**
+ * Fast path for fullJoinTables: when every table has the exact same index
+ * values in the same row order (e.g. several indicators from one dataset with
+ * the same coverage), row i of every table belongs to row i of the joined
+ * table, so the join needs no lookups. Returns undefined when the fast path
+ * doesn't apply.
+ *
+ * The result is identical to the general join: shared columns come from the
+ * first table, followed by each table's own columns, in table order.
+ */
+const attemptToJoinTablesWithIdenticalIndex = (
+    tables: OwidTable[],
+    indexColumnNames: OwidTableSlugs[],
+    sharedColumnNames: string[]
+): OwidTable | undefined => {
+    const [firstTable, ...otherTables] = tables
+    const numRows = firstTable.numRows
+    const firstIndexColumns: unknown[][] = []
+    for (const slug of indexColumnNames) {
+        const column = firstTable.columnStore[slug]
+        if (!column) return undefined
+        firstIndexColumns.push(column)
+    }
+
+    for (const table of otherTables) {
+        if (table.numRows !== numRows) return undefined
+        for (let c = 0; c < indexColumnNames.length; c++) {
+            const column = table.columnStore[indexColumnNames[c]]
+            if (!column) return undefined
+            const firstColumn = firstIndexColumns[c]
+            for (let row = 0; row < numRows; row++)
+                if (column[row] !== firstColumn[row]) return undefined
+        }
+    }
+
+    // The general join keeps only the first row of a repeated index value, so
+    // only take the fast path if every index value is unique
+    if (!hasUniqueIndexValues(firstTable, indexColumnNames)) return undefined
+
+    const copyColumns = (table: OwidTable, slugs: string[]): OwidColumnDef[] =>
+        table.getColumns(slugs).map((col) => ({
+            ...col.def,
+            values: table.columnStore[col.slug],
+        }))
+    return new OwidTable(
+        [],
+        [
+            ...copyColumns(firstTable, sharedColumnNames),
+            ...tables.flatMap((table) =>
+                copyColumns(
+                    table,
+                    _.difference(table.columnSlugs, sharedColumnNames)
+                )
+            ),
+        ]
+    )
+}
+
 const fullJoinTables = (
     tables: OwidTable[],
     indexColumnNames: OwidTableSlugs[],
@@ -403,6 +526,26 @@ const fullJoinTables = (
     if (tables.length === 0) return new OwidTable()
     else if (tables.length === 1) return tables[0]
 
+    // Figure out which column names are shared. Shared columns (the index columns but also in our
+    // data model stuff like entityName that we usually have in addition to entityId)
+    // will end up only once in the final table. This is a bit of a footgun for arbitrary data models
+    // as we don't make sure that the values are equal for the same index values (we only assume that
+    // this is true) - but this is how we have handled it in the past and it works with the setup we
+    // have.
+    const sharedColumnNames = intersection(
+        ...tables.map((table) => table.columnSlugs)
+    )
+
+    // Quickly check whether all tables to be merged have the exact same indexes, in the same order.
+    // That's often the case for multiple variables coming from the same dataset, e.g. used for stacked charts.
+    // When it is, then we can just very efficiently concatenate the various columns together and are done already.
+    const tablesWithIdenticalIndex = attemptToJoinTablesWithIdenticalIndex(
+        tables,
+        indexColumnNames,
+        sharedColumnNames
+    )
+    if (tablesWithIdenticalIndex) return tablesWithIdenticalIndex
+
     // Get all the index values per table and then figure out the full set of all stringified index values
     const indexValuesPerTable: Map<string, number[]>[] = tables.map((table) =>
         // When we get a mergeFallbackLookupColumn then it can happen that a table does not have all the
@@ -422,19 +565,10 @@ const fullJoinTables = (
           )
         : undefined
 
-    // Figure out which column names are shared. Shared columns (the index columns but also in our
-    // data model stuff like entityCode and entityName that we usually have in addition to entityId)
-    // will end up only once in the final table. This is a bit of a footgun for arbitrary data models
-    // as we don't make sure that the values are equal for the same index values (we only assume that
-    // this is true) - but this is how we have handled it in the past and it works with the setup we
-    // have.
-    const sharedColumnNames = intersection(
-        ...tables.map((table) => table.columnSlugs)
-    )
-    const allIndexValuesArray = indexValuesPerTable.flatMap((index) => [
-        ...index.keys(),
-    ])
-    const allIndexValues = new Set(allIndexValuesArray)
+    // Insertion order matters: index values of the first table come first
+    const allIndexValues = new Set<string>()
+    for (const indexValues of indexValuesPerTable)
+        for (const key of indexValues.keys()) allIndexValues.add(key)
 
     // Now identify for each table which columns should be copied (i.e. all non-index columns).
     const columnsToAddPerTable = tables.map((table) =>
@@ -463,110 +597,129 @@ const fullJoinTables = (
                         return def
                     }) as OwidColumnDef[]
         )
+    // The loop below touches every cell, so resolve the source and target
+    // arrays of every column up front. Going through the memoized
+    // `table.columnStore` getter for each cell is slow.
+    const sharedDefTargets = defsToAddPerTable[0].map((def) => def.values!)
+    // sharedDefSourcesPerTable[tableIndex][defIndex]
+    const sharedDefSourcesPerTable = tables.map((table) =>
+        defsToAddPerTable[0].map((def) => table.columnStore[def.slug])
+    )
+    const valueDefTargetsPerTable = tables.map((_table, i) =>
+        defsToAddPerTable[i + 1].map((def) => def.values!)
+    )
+    const valueDefSourcesPerTable = tables.map((table, i) =>
+        defsToAddPerTable[i + 1].map((def) => table.columnStore[def.slug])
+    )
+    const fallbackKeyFns = mergeFallbackLookupColumns?.map((columnSet) =>
+        makeKeyFn(tables[0].columnStore, columnSet)
+    )
+
     // Now loop over all unique index values and for each assemble as full a row as we can manage by looking
     // up the values in the different source tables
-    for (const index of allIndexValues.values()) {
-        // First we handle the unique/index columns (defsToAddPerTable[0])
-        for (const def of defsToAddPerTable[0]) {
-            // The index columns are special - the first table might not have a value for each of the index columns
-            // at the current index (e.g. a year that does not exist in the first table). We therefore have to keep
-            // looking in the other tables until we find a table that has the values. Because the index values were
-            // generated from the combined set of all index values we are guaranteed to find a value eventually before
-            // we exceed the length of the tables array
-            let tableIndex = 0
-            let indexHits = indexValuesPerTable[tableIndex].get(index)
-            while (indexHits === undefined) {
-                tableIndex++
-                indexHits = indexValuesPerTable[tableIndex].get(index)
-            }
-            def.values?.push(
-                tables[tableIndex].columnStore[def.slug][indexHits[0]]
-            )
+    for (const index of allIndexValues) {
+        // First we handle the unique/index columns (defsToAddPerTable[0]).
+        // The index columns are special - the first table might not have a value for each of the index columns
+        // at the current index (e.g. a year that does not exist in the first table). We therefore have to keep
+        // looking in the other tables until we find a table that has the values. Because the index values were
+        // generated from the combined set of all index values we are guaranteed to find a value eventually before
+        // we exceed the length of the tables array
+        let sharedTableIndex = 0
+        let sharedIndexHits = indexValuesPerTable[0].get(index)
+        while (sharedIndexHits === undefined) {
+            sharedTableIndex++
+            sharedIndexHits = indexValuesPerTable[sharedTableIndex].get(index)
         }
+        const sharedRow = sharedIndexHits[0]
+        const sharedDefSources = sharedDefSourcesPerTable[sharedTableIndex]
+        for (let d = 0; d < sharedDefTargets.length; d++)
+            sharedDefTargets[d].push(sharedDefSources[d][sharedRow])
+
         // Now figure out the fallback merge lookup index value from the first table.
         // This is the fallback index we use when looking up values and we don't find a value in the normal index.
         // This is the case when we join year and day variables and then use day+entityid as the key but the year
         // variables don't have those - so for the year variables we then check if there is a match using year+entityId
         // where the year to use comes from the first table that by convention HAS TO contain a year column with the
         // value to merge years on.
-        const indexHits = indexValuesPerTable[0].get(index)
+        const firstTableIndexHits =
+            sharedTableIndex === 0 ? sharedIndexHits : undefined
         const fallbackMergeIndices =
-            mergeFallbackLookupColumns && indexHits
-                ? mergeFallbackLookupColumns.map((columnSet) =>
-                      makeKeyFn(tables[0].columnStore, columnSet)(indexHits[0])
-                  )
+            fallbackKeyFns && firstTableIndexHits
+                ? fallbackKeyFns.map((keyFn) => keyFn(firstTableIndexHits[0]))
                 : undefined
+
         // now add all the nonindex value columns. We now loop over all tables and for each non-shared column
         // we look up the value for the current row. We find the value for the current row by first trying to
         // look up a match based on the shared index values, indexValuesPerTable[i]. If we don't have a hit
         // for this row in this table then we try the fallbackMergeIndices in turn to see if we can merge
         // based on these fallback indexes. If no option leads to a match we store ErrorValueTypes.NoMatchingValueAfterJoin
         // in the cell.
-
-        // note that defsToAddPerTable has one more element than tables (the one duplicate of the
-        // first table that we added in the beginning that we use as the primary source for the shared columns)
         for (let i = 0; i < tables.length; i++) {
+            const targets = valueDefTargetsPerTable[i]
+            const sources = valueDefSourcesPerTable[i]
             let indexHits = indexValuesPerTable[i].get(index)
 
-            if (indexHits !== undefined && indexHits.length > 1)
-                // This case should be rare but it can come up. The old algorithm ran into this often because it
-                // joined a lot more stuff on entity only and then when you look up by entity into a table that has
-                // several years you end up with multiple matches. The old algorithm used to just pick one value.
-                // We still do this ultimately but because we try to match even day and year variables by year+entity
-                // first we should usually be able to find a unique match. The error output is here so that when
-                // something is weird in an edge case then this shows up as a debugging hint in the console.
-                console.error(
-                    `Found more than one matching row in table ${tables[i].tableSlug}`
-                )
-            for (const def of defsToAddPerTable[i + 1]) {
-                // If the main index led to a hit then we just copy the value into the new row from the source table
-                if (indexHits !== undefined)
-                    def.values?.push(
-                        tables[i].columnStore[def.slug][indexHits[0]]
+            if (indexHits !== undefined) {
+                if (indexHits.length > 1)
+                    // This case should be rare but it can come up. The old algorithm ran into this often because it
+                    // joined a lot more stuff on entity only and then when you look up by entity into a table that has
+                    // several years you end up with multiple matches. The old algorithm used to just pick one value.
+                    // We still do this ultimately but because we try to match even day and year variables by year+entity
+                    // first we should usually be able to find a unique match. The error output is here so that when
+                    // something is weird in an edge case then this shows up as a debugging hint in the console.
+                    console.error(
+                        `Found more than one matching row in table ${tables[i].tableSlug}`
                     )
-                else {
-                    // If the main index did not lead to a hit then we try the fallback indices in turn
-                    indexHits = undefined
-                    for (
-                        let fallbackIndex = 0;
-                        fallbackMergeIndices &&
-                        mergeFallbackLookupValuesPerTable &&
-                        indexHits === undefined &&
-                        fallbackIndex < fallbackMergeIndices.length;
-                        fallbackIndex++
-                    ) {
-                        indexHits = mergeFallbackLookupValuesPerTable[
-                            fallbackIndex
-                        ][i].get(fallbackMergeIndices[fallbackIndex])
-                    }
-                    if (indexHits !== undefined)
-                        // If any of the fallbacks led to a hit then we use this hit
-                        // Note that we choose the last of the indexHits entries to look up the row in the columnstore here.
-                        // In the usual case the fallback index should still have enough information to match just one row (e.g.
-                        // year+entity). But for cases when we join day and year variables we have as the ultimate fallback a match
-                        // by entity only and this can then of course result in many indexHits when looking up an entity like Germany
-                        // in e.g. the population variable. If this join here were properly time and tolerance aware then we could
-                        // avoid matching on entity alone as the ultimate fallback but for  now this function is not that clever.
-                        // For the cases when we do get multiple hits for an index we could thus choose any data point. Pre July 2022
-                        // the old code always chose the first datapoint, which is often the first year that the variable has data for
-                        // for the given entity. This is not great, e.g. when using a covid date based variable and joining it to
-                        // population or similar. What we do here now is to use indexHits.length - 1 as the index, i.e. the last
-                        // row that this variable has data for for this entity. This could in theory be pretty wrong as well but in
-                        // practice it often means a very close match.
-                        // The proper solution as mentioned above would be to never fall back to entity matches only and move
-                        // the tolerance matching into this function as well instead.
-                        def.values?.push(
-                            tables[i].columnStore[def.slug][
-                                indexHits[indexHits.length - 1]
-                            ]
-                        )
-                    // If none of the fallback values worked either we write ErrorValueTypes.NoMatchingValueAfterJoin into the cell
-                    else
-                        def.values?.push(
-                            ErrorValueTypes.NoMatchingValueAfterJoin
-                        )
-                }
+                // If the main index led to a hit then we just copy the values into the new row from the source table
+                const row = indexHits[0]
+                for (let d = 0; d < targets.length; d++)
+                    targets[d].push(sources[d][row])
+                continue
             }
+            if (targets.length === 0) continue
+
+            // If the main index did not lead to a hit then we try the fallback indices in turn
+            for (
+                let fallbackIndex = 0;
+                fallbackMergeIndices &&
+                mergeFallbackLookupValuesPerTable &&
+                indexHits === undefined &&
+                fallbackIndex < fallbackMergeIndices.length;
+                fallbackIndex++
+            ) {
+                indexHits = mergeFallbackLookupValuesPerTable[fallbackIndex][
+                    i
+                ].get(fallbackMergeIndices[fallbackIndex])
+            }
+
+            // If none of the fallback values worked either we write ErrorValueTypes.NoMatchingValueAfterJoin into the cells
+            if (indexHits === undefined) {
+                for (const target of targets)
+                    target.push(ErrorValueTypes.NoMatchingValueAfterJoin)
+                continue
+            }
+
+            // If any of the fallbacks led to a hit then we use this hit.
+            // Note that we choose the last of the indexHits entries to look up the row in the columnstore here.
+            // In the usual case the fallback index should still have enough information to match just one row (e.g.
+            // year+entity). But for cases when we join day and year variables we have as the ultimate fallback a match
+            // by entity only and this can then of course result in many indexHits when looking up an entity like Germany
+            // in e.g. the population variable. If this join here were properly time and tolerance aware then we could
+            // avoid matching on entity alone as the ultimate fallback but for  now this function is not that clever.
+            // For the cases when we do get multiple hits for an index we could thus choose any data point. Pre July 2022
+            // the old code always chose the first datapoint, which is often the first year that the variable has data for
+            // for the given entity. This is not great, e.g. when using a covid date based variable and joining it to
+            // population or similar. What we do here now is to use indexHits.length - 1 as the index, i.e. the last
+            // row that this variable has data for for this entity. This could in theory be pretty wrong as well but in
+            // practice it often means a very close match.
+            // The proper solution as mentioned above would be to never fall back to entity matches only and move
+            // the tolerance matching into this function as well instead.
+            //
+            // All of the table's columns read that same row, so e.g. a value
+            // and its originalTime always come from one source row.
+            const row = indexHits[indexHits.length - 1]
+            for (let d = 0; d < targets.length; d++)
+                targets[d].push(sources[d][row])
         }
     }
     return new OwidTable(
@@ -671,6 +824,8 @@ const columnDefFromOwidVariable = (
             ? getSortFromDimensions(variable.dimensions)
             : undefined
 
+    const annotations = parseIndicatorAnnotations(variable)
+
     return {
         name,
         slug,
@@ -695,6 +850,7 @@ const columnDefFromOwidVariable = (
         additionalInfo: source?.additionalInfo,
         timespan,
         origins,
+        annotations,
         presentation,
         catalogPath,
         updatePeriodDays,
@@ -789,27 +945,6 @@ const convertLegacyYears = (years: number[], zeroDay: string): number[] => {
     return years.map((y) => y + diff)
 }
 
-const annotationMapAndDefFromOwidVariable = (
-    variable: OwidVariableWithSourceAndDimension
-): [Map<string, string>, OwidColumnDef] | [] => {
-    if (variable.display?.entityAnnotationsMap) {
-        const slug = variable.id.toString()
-        const annotationsSlug = makeAnnotationsSlug(slug)
-        const annotationMap = annotationsToMap(
-            variable.display.entityAnnotationsMap
-        )
-        const columnDef: OwidColumnDef = {
-            slug: annotationsSlug,
-            type: ColumnTypeNames.SeriesAnnotation,
-            name: annotationsSlug,
-            display: { includeInTable: false },
-            derivedFrom: { columnSlug: slug, relationship: "annotations" },
-        }
-        return [annotationMap, columnDef]
-    }
-    return []
-}
-
 const annotationsToMap = (annotations: string): Map<string, string> => {
     // Todo: let's delete this and switch to traditional columns
     const entityAnnotationsMap = new Map<string, string>()
@@ -819,4 +954,107 @@ const annotationsToMap = (annotations: string): Map<string, string> => {
         entityAnnotationsMap.set(key.trim(), words.join(delimiter).trim())
     })
     return entityAnnotationsMap
+}
+
+const parseIndicatorAnnotations = (
+    variable: OwidVariableWithSourceAndDimension
+): IndicatorAnnotation[] | undefined => {
+    const legacyAnnotations = parseLegacyEntityAnnotations(
+        variable.display?.entityAnnotationsMap
+    )
+    if (!variable.annotations?.length && !legacyAnnotations.length)
+        return undefined
+
+    const annotations = (variable.annotations ?? []).flatMap((annotation) => {
+        const parsed = parseIndicatorAnnotation(annotation, variable)
+        return parsed ? [parsed] : []
+    })
+    return [...annotations, ...legacyAnnotations]
+}
+
+const parseLegacyEntityAnnotations = (
+    entityAnnotationsMap: string | undefined
+): IndicatorAnnotation[] =>
+    [...annotationsToMap(entityAnnotationsMap ?? "")].flatMap(
+        ([entityName, text]) =>
+            entityName && text
+                ? [{ text, entityNames: [entityName], timeScope: "all" }]
+                : []
+    )
+
+const parseIndicatorAnnotation = (
+    annotation: OwidVariableAnnotation,
+    variable: OwidVariableWithSourceAndDimension
+): IndicatorAnnotation | undefined => {
+    const { text, entities } = annotation
+    const timeScope = parseTimeScope(annotation, variable)
+    if (!timeScope) return undefined
+
+    const [firstEntityName, ...otherEntityNames] = entities ?? []
+    return firstEntityName === undefined
+        ? { text, ...timeScope }
+        : {
+              text,
+              entityNames: [firstEntityName, ...otherEntityNames],
+              ...timeScope,
+          }
+}
+
+const parseTimeScope = (
+    annotation: OwidVariableAnnotation,
+    variable: OwidVariableWithSourceAndDimension
+): AnnotationTimeScope | undefined => {
+    if (annotation.time === undefined) {
+        if (annotation.timeEnd === undefined) return { timeScope: "all" }
+        console.warn(
+            `Dropping annotation of variable ${variable.id} with a timeEnd but no time: ${annotation.timeEnd}`
+        )
+        return undefined
+    }
+
+    const interval = getTimeInterval(variable.display)
+    const parsedTime = parseAnnotationTime(annotation.time, interval)
+    const parsedTimeEnd =
+        annotation.timeEnd === undefined
+            ? undefined
+            : parseAnnotationTime(annotation.timeEnd, interval)
+
+    if (parsedTime === undefined) {
+        console.warn(
+            `Dropping annotation of variable ${variable.id} with an invalid time: ${annotation.time}`
+        )
+        return undefined
+    }
+
+    if (annotation.timeEnd !== undefined && parsedTimeEnd === undefined) {
+        console.warn(
+            `Dropping annotation of variable ${variable.id} with an invalid timeEnd: ${annotation.timeEnd}`
+        )
+        return undefined
+    }
+
+    if (parsedTimeEnd === undefined || parsedTimeEnd === parsedTime)
+        return { timeScope: "point", time: parsedTime }
+
+    if (parsedTimeEnd < parsedTime) {
+        console.warn(
+            `Dropping annotation of variable ${variable.id} with end time ${annotation.timeEnd} before start time ${annotation.time}`
+        )
+        return undefined
+    }
+
+    return { timeScope: "range", startTime: parsedTime, endTime: parsedTimeEnd }
+}
+
+const parseAnnotationTime = (
+    value: Time | string,
+    interval: TimeInterval
+): Time | undefined => {
+    if (!isSubYearly(interval))
+        return typeof value === "number" ? value : undefined
+
+    if (typeof value !== "string") return undefined
+    const date = dayjs.utc(value)
+    if (!date.isValid() || date.format("YYYY-MM-DD") !== value) return undefined
+    return snapToIntervalStart(convertDateToDaysSinceEpoch(date), interval)
 }

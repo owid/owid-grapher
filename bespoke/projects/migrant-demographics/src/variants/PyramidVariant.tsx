@@ -322,5 +322,5 @@ function chartTitle(country: string, year: number): string {
 
 function chartSubtitle(country: string, total: number): string {
     const count = formatCountLong(total)
-    return `The age and sex profile of the ${count} people living in ${formatEntityNameForSentence(country)} who were born elsewhere.`
+    return `Age and sex profile of the ${count} people living in ${formatEntityNameForSentence(country)} who were born elsewhere.`
 }

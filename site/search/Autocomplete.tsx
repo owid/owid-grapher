@@ -31,6 +31,8 @@ import { getAutocompleteSearchClient } from "./searchClients.js"
 import {
     PAGES_INDEX,
     CHARTS_INDEX,
+    AUTOCOMPLETE_PAGES_FILTER,
+    getFeaturedVizFilters,
     suggestFiltersFromQuerySuffix,
     getFilterIcon,
     getItemUrlForFilter,
@@ -48,7 +50,7 @@ import { SiteAnalytics } from "../SiteAnalytics.js"
 import * as Sentry from "@sentry/react"
 import { match } from "ts-pattern"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
-import { buildSynonymMap } from "./synonymUtils.js"
+import { getSynonymMap } from "./synonymUtils.js"
 import { SearchFilterPill } from "./SearchFilterPill.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faLineChart, faSearch } from "@fortawesome/free-solid-svg-icons"
@@ -291,7 +293,35 @@ const createAlgoliaPagesSource = (
                         query,
                         hitsPerPage: 2,
                         distinct: true,
-                        filters: `NOT type:${OwidGdocType.Profile}`,
+                        filters: AUTOCOMPLETE_PAGES_FILTER,
+                        ...ALGOLIA_PAGES_ITEM_PARAMS,
+                    },
+                },
+            ],
+        })
+    },
+    templates: algoliaItemTemplate,
+})
+
+const createFeaturedVizSource = (
+    searchSource?: string
+): AutocompleteSource<BaseItem> => ({
+    sourceId: "autocomplete-featured-viz",
+    onSelect: makeAlgoliaOnSelect(searchSource),
+    getItemUrl: algoliaGetItemUrl,
+    getItems({ query }) {
+        const filters = getFeaturedVizFilters(query)
+        if (!liteSearchClient || !filters) return []
+
+        return getAlgoliaResults<BaseItem>({
+            searchClient: liteSearchClient,
+            queries: [
+                {
+                    indexName: PAGES_INDEX,
+                    params: {
+                        query: "",
+                        hitsPerPage: 1,
+                        ...filters,
                         ...ALGOLIA_PAGES_ITEM_PARAMS,
                     },
                 },
@@ -496,7 +526,7 @@ export function Autocomplete({
     })
     const { allTopics } = useTagGraphTopics(topicTagGraph)
 
-    const synonymMap = useMemo(() => buildSynonymMap(), [])
+    const synonymMap = getSynonymMap()
     const recentSearchesPlugin = useMemo(() => buildRecentSearchesPlugin(), [])
     const debouncedResolveSources = useMemo(
         () =>
@@ -596,6 +626,7 @@ export function Autocomplete({
                             searchSource
                         ),
                         createAlgoliaPagesSource(searchSource),
+                        createFeaturedVizSource(searchSource),
                         createAlgoliaChartsSource(searchSource)
                     )
                 } else {

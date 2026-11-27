@@ -28,11 +28,23 @@ import { ArchiveContext } from "@ourworldindata/types"
 import { cachedGetGrapherConfigByUuid } from "./api.js"
 import MultiDimEmbedSettingsPanel from "./MultiDimEmbedSettingsPanel.js"
 import { useBaseGrapherConfig, useMultiDimAnalytics } from "./hooks.js"
+import { useMobxStateToReactState } from "../hooks.js"
 import {
     BAKED_GRAPHER_URL,
     CATALOG_URL,
     DATA_API_URL,
 } from "../../settings/clientSettings.mjs"
+
+/**
+ * The query params the next view starts from, set by whatever changed the view.
+ * The first view reads the URL: the grapher's changedParams leave out one-shot
+ * params such as `peerCountries`. A view switch carries over the reader's
+ * changes, and a guided chart link brings its own params, so that params it
+ * omits, such as `country`, don't stick around from the previous view.
+ */
+type ViewParams =
+    | { source: "url" }
+    | { source: "viewSwitch" | "guidedChart"; params: GrapherQueryParams }
 
 export default function MultiDim({
     config,
@@ -41,6 +53,7 @@ export default function MultiDim({
     queryStr,
     archiveContext,
     isPreviewing,
+    explorerTitle,
 }: {
     config: MultiDimDataPageConfig
     localGrapherConfig?: GrapherProgrammaticInterface
@@ -48,6 +61,10 @@ export default function MultiDim({
     queryStr: string
     archiveContext?: ArchiveContext
     isPreviewing?: boolean
+    // Shown next to the controls, e.g. "Explore data on COVID-19". Only set
+    // for data explorers embedded on other sites, where nothing else around
+    // the embed says which explorer it is.
+    explorerTitle?: string
 }) {
     const assetMap =
         archiveContext?.type === "archive-page"
@@ -71,7 +88,12 @@ export default function MultiDim({
     /* oxlint-enable react/refs */
 
     const grapherDataLoader = useRef(
-        getCachingInputTableFetcher(DATA_API_URL, archiveContext, isPreviewing)
+        getCachingInputTableFetcher({
+            dataApiUrl: DATA_API_URL,
+            archiveContext,
+            noCache: isPreviewing,
+            slug: slug ?? undefined,
+        })
     )
     const grapherContainerRef = useRef<HTMLDivElement>(null)
     const bounds = useElementBounds(grapherContainerRef)
@@ -85,6 +107,7 @@ export default function MultiDim({
         [queryStr]
     )
     const hasControls = searchParams.get("hideControls") !== "true"
+    const hasHeader = Boolean(explorerTitle) || hasControls
 
     const [settings, setSettings] = useState(() => {
         const choices = extractMultiDimChoicesFromSearchParams(
@@ -93,8 +116,7 @@ export default function MultiDim({
         )
         return config.filterToAvailableChoices(choices).selectedChoices
     })
-    const [guidedQueryParams, setGuidedQueryParams] =
-        useState<GrapherQueryParams | null>(null)
+    const [viewParams, setViewParams] = useState<ViewParams>({ source: "url" })
 
     const handleBaseSettingsChange = useCallback(
         (settings: MultiDimDimensionChoices) => {
@@ -108,9 +130,19 @@ export default function MultiDim({
     const handleSettingsChange = useCallback(
         (settings: MultiDimDimensionChoices) => {
             handleBaseSettingsChange(settings)
-            setGuidedQueryParams(null)
+            const grapherState = grapherStateRef.current
+            // Until a view has loaded there are no reader changes to carry
+            // over, and the URL still has to be applied
+            setViewParams((prev) =>
+                grapherState.isConfigReady
+                    ? {
+                          source: "viewSwitch",
+                          params: grapherState.changedParams,
+                      }
+                    : prev
+            )
         },
-        [handleBaseSettingsChange]
+        [handleBaseSettingsChange, grapherStateRef]
     )
 
     const handleGuidedChartSettingsChange = useCallback(
@@ -119,7 +151,7 @@ export default function MultiDim({
             queryParams: GrapherQueryParams
         ) => {
             handleBaseSettingsChange(settings)
-            setGuidedQueryParams(queryParams)
+            setViewParams({ source: "guidedChart", params: queryParams })
         },
         [handleBaseSettingsChange]
     )
@@ -168,20 +200,15 @@ export default function MultiDim({
         manager.current.adminCreateNarrativeChartPath = `narrative-charts/create?type=multiDim&chartConfigId=${newView.fullConfigId}`
         if (slug) manager.current.baseUrl = `${BAKED_GRAPHER_URL}/${slug}`
 
-        const isGuidedChartUpdate = guidedQueryParams !== null
-        // Guided chart links should not inherit query params from the
-        // previously selected view. Otherwise omitted params, such as
-        // `country`, can stick around after clicking a different guided link.
-        const queryParams = isGuidedChartUpdate
-            ? guidedQueryParams
-            : grapherState.changedParams
         const newGrapherParams: GrapherQueryParams = {
-            ...queryParams,
+            ...(viewParams.source === "url"
+                ? Object.fromEntries(searchParams.entries())
+                : viewParams.params),
             ...settings,
         }
         // We want to preserve the grapher tab when switching between views,
         // except when the switch happens via a guided chart link.
-        if (!isGuidedChartUpdate) {
+        if (viewParams.source !== "guidedChart") {
             // If the grapher has data, preserve the active tab in the new view,
             // otherwise use the tab from the URL.
             newGrapherParams.tab = grapherState.hasData
@@ -242,9 +269,14 @@ export default function MultiDim({
                     // we call adjustStateForTab to make adjustments that ensure the new view
                     // is sensible (e.g. updating the time selection when switching from a
                     // single-time chart like a discrete bar chart to a multi-time chart like
-                    // a line chart).
+                    // a line chart). Guided updates skip this: their state is the view's
+                    // config plus the link's params, with nothing carried over from the
+                    // previous tab.
                     const currentTab = grapherState.activeTab
-                    if (previousTab !== currentTab)
+                    if (
+                        viewParams.source !== "guidedChart" &&
+                        previousTab !== currentTab
+                    )
                         grapherState.adjustStateForTab(currentTab)
                 })
             })
@@ -260,7 +292,7 @@ export default function MultiDim({
         searchParams,
         settings,
         slug,
-        guidedQueryParams,
+        viewParams,
         baseGrapherConfig,
         manager,
         grapherStateRef,
@@ -274,15 +306,53 @@ export default function MultiDim({
         }
     }, [bounds, grapherStateRef])
 
+    // The full page at the current view: grapher's canonical URL is the
+    // mdim page (manager.baseUrl) plus its changed params and the dimension
+    // choices, which it keeps as external query params. No `enabled` check
+    // needed: the GrapherState exists from the first render and is never
+    // replaced.
+    const fullPageUrl = useMobxStateToReactState(
+        useCallback(
+            () => grapherStateRef.current?.canonicalUrl,
+            [grapherStateRef]
+        )
+    )
+
     return (
         <div className="multi-dim-container full-width-on-mobile">
-            {hasControls && (
-                <MultiDimEmbedSettingsPanel
-                    className="multi-dim-settings"
-                    config={config}
-                    settings={settings}
-                    onChange={handleSettingsChange}
-                />
+            {hasHeader && (
+                <div className="multi-dim-embed-header">
+                    {explorerTitle && (
+                        <div className="multi-dim-embed-header__explorer">
+                            <span className="multi-dim-embed-header__eyebrow h6-black-caps">
+                                Explore data on
+                            </span>
+                            {fullPageUrl ? (
+                                <a
+                                    className="multi-dim-embed-header__title body-1-bold"
+                                    href={fullPageUrl}
+                                    target="_blank"
+                                    rel="noopener"
+                                    data-track-note="multi-dim-embed-explorer-title"
+                                >
+                                    {explorerTitle}
+                                </a>
+                            ) : (
+                                <span className="multi-dim-embed-header__title body-1-bold">
+                                    {explorerTitle}
+                                </span>
+                            )}
+                        </div>
+                    )}
+                    {hasControls && (
+                        <MultiDimEmbedSettingsPanel
+                            className="multi-dim-settings"
+                            config={config}
+                            settings={settings}
+                            onChange={handleSettingsChange}
+                        />
+                    )}
+                </div>
             )}
             <div
                 className="multi-dim-grapher-container"

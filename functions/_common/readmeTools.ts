@@ -100,7 +100,7 @@ export function* getKeyDataLines(
     if (lastUpdated)
         yield (
             `Last updated: ${formatSourceDate(lastUpdated, "MMMM D, YYYY")}` +
-                markdownNewlineEnding
+            markdownNewlineEnding
         )
 
     // "Next expected update", not "Next update": the date is the producer's stated
@@ -109,7 +109,7 @@ export function* getKeyDataLines(
     if (nextUpdate)
         yield (
             `Next expected update: ${formatSourceDate(nextUpdate, "MMMM YYYY")}` +
-                markdownNewlineEnding
+            markdownNewlineEnding
         )
 
     const dateRange = def.timespan ? getDateRange(def.timespan) : undefined
@@ -125,7 +125,7 @@ export function* getKeyDataLines(
     if (unitConversionFactor)
         yield (
             `Unit conversion factor: ${unitConversionFactor}` +
-                markdownNewlineEnding
+            markdownNewlineEnding
         )
 }
 

@@ -33,6 +33,7 @@ import {
     AxisConfigInterface,
     ChartErrorInfo,
     GrapherVariant,
+    ChartLabelMode,
     TickFormattingOptions,
 } from "@ourworldindata/types"
 import { ChartComponent, makeChartInstance } from "../chart/ChartTypeMap"
@@ -47,6 +48,7 @@ import {
 } from "./FacetChartConstants"
 import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
 import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
+import { getVisibleLabels } from "../chart/VisibleChartLabels"
 import { SelectionArray } from "../selection/SelectionArray"
 import { AxisConfig } from "../axis/AxisConfig"
 import { HorizontalAxis, VerticalAxis } from "../axis/Axis"
@@ -259,10 +261,6 @@ export class FacetChart
         }
     }
 
-    @computed private get hideFacetLegends(): boolean {
-        return true
-    }
-
     // Passing this color map is important to ensure that all facets use the same entity colors
     seriesColorMap: SeriesColorMap = this.manager?.seriesColorMap ?? new Map()
 
@@ -339,20 +337,14 @@ export class FacetChart
         // all possible color values from `inputTable`.
         const colorScaleColumnOverride = this.inputTable.get(colorColumnSlug)
 
-        // Hide the legends in all facets
-        const showLegend = !this.hideFacetLegends
-
-        // Show start and end value labels for line chart thumbnails
-        const useMinimalLabeling = this.variant === GrapherVariant.Thumbnail
+        const labelMode = toFacetLabelMode(this.manager.labelMode, this.variant)
         // Hide the start value label only when facets are auto-switched to
         // thumbnail mode because they are small (not when the whole chart
         // is explicitly rendered as a thumbnail).
         const hideStartValueLabel =
             this.variant === GrapherVariant.Thumbnail &&
             this.manager.variant !== GrapherVariant.Thumbnail
-        const showSeriesLabels = useMinimalLabeling
-            ? true
-            : !this.hideFacetLegends
+        const showSeriesLabels = labelMode === ChartLabelMode.Values
 
         return series.map((series, index) => {
             const { bounds } = gridBoundsArr[index]
@@ -365,7 +357,7 @@ export class FacetChart
             const manager: ChartManager = {
                 table,
                 fontSize,
-                showLegend,
+                showLegend: false,
                 showSeriesLabels,
                 hidePoints,
                 yColumnSlug,
@@ -390,7 +382,7 @@ export class FacetChart
                 tooltip,
                 shouldPinTooltipToBottom,
                 externalLegendHoverBin: legendHoverBin,
-                useMinimalLabeling,
+                labelMode,
                 hideStartValueLabel,
                 // Allow labels in line chart thumbnails to overflow facet bounds
                 chartAreaPadding: Infinity,
@@ -618,7 +610,10 @@ export class FacetChart
                 })
             }
             // Reserve space for the facet label at the top of the cell
-            bounds = bounds.padTop(this.facetLabelFontSize + this.labelPadding)
+            if (this.shouldShowFacetTitles)
+                bounds = bounds.padTop(
+                    this.facetLabelFontSize + this.labelPadding
+                )
             // NOTE: The order of overrides is important!
             // We need to preserve most config coming in.
             const manager = {
@@ -679,8 +674,20 @@ export class FacetChart
                 selection: [seriesName],
                 seriesStrategy: SeriesStrategy.column,
             }
+            if (this.focusArray.has(seriesName))
+                manager.focusArray = this.columnFocusArray
             return { seriesName, manager }
         })
+    }
+
+    /** The focus without its entity names, for the facets of focused entities */
+    @computed private get columnFocusArray(): FocusArray {
+        const { selectedSet } = this.selectionArray
+        return new FacetFocusArray(this.focusArray).add(
+            ...this.focusArray.seriesNames.filter(
+                (name) => !selectedSet.has(name)
+            )
+        )
     }
 
     @computed private get columnFacets(): FacetSeries[] {
@@ -731,10 +738,14 @@ export class FacetChart
         )
     }
 
+    @computed private get shouldShowFacetTitles(): boolean {
+        return getVisibleLabels(this.manager.labelMode).rowLabelNames
+    }
+
     @computed private get showLegend(): boolean {
         const { isNumericLegend, categoricalLegendData, numericLegendData } =
             this
-        if (this.manager.useMinimalLabeling) return false
+        if (!getVisibleLabels(this.manager.labelMode).legends) return false
         const hasBins =
             categoricalLegendData.length > 0 || numericLegendData.length > 0
         if (!hasBins) return false
@@ -830,7 +841,7 @@ export class FacetChart
     }
 
     @computed get numericLegendData(): ColorScaleBin[] {
-        if (!this.isNumericLegend || !this.hideFacetLegends) return []
+        if (!this.isNumericLegend) return []
         const allBins: ColorScaleBin[] = this.externalLegends.flatMap(
             (legend) => [
                 ...(legend.numericLegendData ?? []),
@@ -846,7 +857,7 @@ export class FacetChart
     }
 
     @computed get categoricalLegendData(): CategoricalBin[] {
-        if (this.isNumericLegend || !this.hideFacetLegends) return []
+        if (this.isNumericLegend) return []
 
         const allBins: CategoricalBin[] = this.externalLegends
             .flatMap((legend) => [
@@ -1032,15 +1043,17 @@ export class FacetChart
 
                     return (
                         <React.Fragment key={index}>
-                            <SeriesLabel
-                                state={seriesLabelState}
-                                x={contentBounds.x + contentLeftOffset}
-                                y={
-                                    contentBounds.top -
-                                    seriesLabelState.height -
-                                    labelPadding
-                                }
-                            />
+                            {this.shouldShowFacetTitles && (
+                                <SeriesLabel
+                                    state={seriesLabelState}
+                                    x={contentBounds.x + contentLeftOffset}
+                                    y={
+                                        contentBounds.top -
+                                        seriesLabelState.height -
+                                        labelPadding
+                                    }
+                                />
+                            )}
                             <g id={makeFigmaId(seriesName)}>
                                 <ChartComponent
                                     manager={facetChart.manager}
@@ -1054,5 +1067,31 @@ export class FacetChart
                 })}
             </React.Fragment>
         )
+    }
+}
+
+function toFacetLabelMode(
+    parentLabelMode: ChartLabelMode = ChartLabelMode.All,
+    facetVariant: GrapherVariant
+): ChartLabelMode {
+    if (
+        parentLabelMode === ChartLabelMode.Names ||
+        parentLabelMode === ChartLabelMode.None
+    )
+        return ChartLabelMode.None
+    return facetVariant === GrapherVariant.Thumbnail
+        ? ChartLabelMode.Values
+        : ChartLabelMode.All
+}
+
+/** A facet's own focus whose clear also clears the shared focus */
+class FacetFocusArray extends FocusArray {
+    constructor(private readonly sharedFocusArray: FocusArray) {
+        super()
+    }
+
+    @action.bound override clear(): void {
+        super.clear()
+        this.sharedFocusArray.clear()
     }
 }

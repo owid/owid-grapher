@@ -23,6 +23,7 @@ import {
     GrapherChartType,
     RelatedChartsTableName,
     type LiteralsOnly,
+    UNLISTED_TAG_NAME,
 } from "@ourworldindata/types"
 import { parseAndMigrateChartConfig } from "./ChartConfigs.js"
 import type Anthropic from "@anthropic-ai/sdk"
@@ -675,7 +676,7 @@ export const getRelatedChartsForVariable = async (
             AND NOT EXISTS (
                 SELECT 1 FROM chart_tags ct
                 JOIN tags t ON ct.tagId = t.id
-                WHERE ct.chartId = charts.id AND t.name = 'Unlisted'
+                WHERE ct.chartId = charts.id AND t.name = '${UNLISTED_TAG_NAME}'
             )`
         : ""
 
@@ -728,7 +729,7 @@ export const getRelatedChartsForChart = async (
                 AND NOT EXISTS (
                     SELECT 1 FROM chart_tags ct
                     JOIN tags t ON ct.tagId = t.id
-                    WHERE ct.chartId = charts.id AND t.name = 'Unlisted'
+                    WHERE ct.chartId = charts.id AND t.name = '${UNLISTED_TAG_NAME}'
                 )
             ORDER BY rc.score DESC
             LIMIT ?

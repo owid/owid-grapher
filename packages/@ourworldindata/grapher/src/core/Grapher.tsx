@@ -9,6 +9,7 @@ import {
     reaction,
     makeObservable,
     comparer,
+    when,
 } from "mobx"
 import {
     bind,
@@ -16,7 +17,6 @@ import {
     sampleFrom,
     exposeInstanceOnWindow,
     QueryParams,
-    MultipleOwidVariableDataDimensionsMap,
     Bounds,
     strToQueryParams,
     queryParamsToStr,
@@ -28,12 +28,12 @@ import {
     ScaleType,
     AnnotationFieldsInTitle,
     GrapherInterface,
-    LegacyGrapherInterface,
     GrapherTooltipAnchor,
     NarrativeChartInfo,
     ArchiveContext,
     AdditionalGrapherDataFetchFn,
     GrapherVariant,
+    ChartLabelMode,
     Time,
 } from "@ourworldindata/types"
 import { OwidTable } from "@ourworldindata/core-table"
@@ -50,7 +50,6 @@ import { SourcesModal } from "../modal/SourcesModal"
 import { Command, CommandPalette } from "../controls/CommandPalette"
 import { EmbedModal } from "../modal/EmbedModal"
 import { SelectionArray } from "../selection/SelectionArray"
-import { legacyToOwidTableAndDimensions } from "./LegacyToOwidTable"
 import classnames from "clsx"
 import { SidePanel } from "../sidePanel/SidePanel"
 import { EntitySelector } from "../entitySelector/EntitySelector"
@@ -97,9 +96,11 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     /** @internal */
     staticBounds?: Bounds
     /** @internal */
+    isStaticLayoutResponsive?: boolean
+    /** @internal */
     variant?: GrapherVariant
     /** @internal */
-    useMinimalLabeling?: boolean
+    labelMode?: ChartLabelMode
 
     /** Hide the title. */
     hideTitle?: boolean
@@ -204,9 +205,6 @@ export class Grapher extends React.Component<GrapherProps> {
 
     // stored on Grapher so state is preserved when switching to full-screen mode
 
-    private readonly legacyVariableDataJson:
-        | MultipleOwidVariableDataDimensionsMap
-        | undefined = undefined
     private hasLoggedGAViewEvent = false
     private hasBeenVisible = false
     private uncaughtError: Error | undefined = undefined
@@ -214,11 +212,7 @@ export class Grapher extends React.Component<GrapherProps> {
     constructor(props: { grapherState: GrapherState }) {
         super(props)
 
-        makeObservable<
-            Grapher,
-            "legacyVariableDataJson" | "hasBeenVisible" | "uncaughtError"
-        >(this, {
-            legacyVariableDataJson: observable,
+        makeObservable<Grapher, "hasBeenVisible" | "uncaughtError">(this, {
             hasBeenVisible: observable,
             uncaughtError: observable,
         })
@@ -227,35 +221,6 @@ export class Grapher extends React.Component<GrapherProps> {
     // Convenience method for debugging
     windowQueryParams(str = location.search): QueryParams {
         return strToQueryParams(str)
-    }
-
-    @action.bound private _setInputTable(
-        json: MultipleOwidVariableDataDimensionsMap,
-        legacyConfig: Partial<LegacyGrapherInterface>
-    ): void {
-        // TODO grapher model: switch this to downloading multiple data and metadata files
-
-        const startMark = performance.now()
-        const tableWithColors = legacyToOwidTableAndDimensions(
-            json,
-            legacyConfig.dimensions ?? [],
-            legacyConfig.selectedEntityColors
-        )
-        this.grapherState.createPerformanceMeasurement(
-            "legacyToOwidTableAndDimensions",
-            startMark
-        )
-
-        this.grapherState.inputTable = tableWithColors
-    }
-
-    @action rebuildInputOwidTable(): void {
-        // TODO grapher model: switch this to downloading multiple data and metadata files
-        if (!this.legacyVariableDataJson) return
-        this._setInputTable(
-            this.legacyVariableDataJson,
-            this.grapherState.legacyConfigAsAuthored
-        )
     }
 
     // Keeps a running cache of series colors at the Grapher level.
@@ -772,24 +737,31 @@ export class Grapher extends React.Component<GrapherProps> {
     }
 
     private clearFocusMode(): void {
-        // Make it easy to exit focus mode by clearing it when the selection
-        // or view changes. This is disabled in the admin to avoid clearing
-        // focus when authors are editing the chart
-        if (!this.grapherState.isAdmin) {
-            this.grapherState.disposers.push(
-                reaction(
-                    () => [
-                        this.grapherState.facetStrategy,
-                        this.grapherState.selection.selectedEntityNames,
-                        this.grapherState.activeTab,
-                    ],
-                    () => this.grapherState.focusArray.clear(),
-                    // Use structural comparison to detect changes in array
-                    // contents, not just reference
-                    { equals: comparer.structural }
-                )
+        if (this.grapherState.isAdmin) return
+
+        this.grapherState.disposers.push(
+            when(
+                () =>
+                    this.grapherState.isReady &&
+                    !this.grapherState.shouldApplyPeerCountries,
+                () => {
+                    this.grapherState.removeInvalidFocusedSeriesNames()
+                    this.grapherState.disposers.push(
+                        reaction(
+                            () => [
+                                this.grapherState.facetStrategy,
+                                this.grapherState.selection.selectedEntityNames,
+                                this.grapherState.activeTab,
+                            ],
+                            () => this.grapherState.focusArray.clear(),
+                            // Use structural comparison to detect changes in array
+                            // contents, not just reference
+                            { equals: comparer.structural }
+                        )
+                    )
+                }
             )
-        }
+        )
     }
 
     override componentDidMount(): void {

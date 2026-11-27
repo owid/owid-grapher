@@ -416,26 +416,26 @@ function FeaturedMetricsExplainer() {
                 },
                 {
                     key: "explorers",
-                    label: "How do I set an Explorer Featured Metric?",
+                    label: "How do I set an Explorer or multidim Featured Metric?",
                     children: (
                         <>
                             <p>
-                                Explorer Featured Metrics require the whole
-                                explorer's query string, minus any query
+                                Explorer and multidim Featured Metrics require
+                                the view's whole query string, minus any query
                                 parameters that customize the grapher chart
                                 (country, tab, etc...)
                             </p>
                             <p>e.g.</p>
                             <p>
                                 <span>
-                                    https://ourworldindata.org/explorers/monkeypox?Metric=Confirmed+cases&Frequency=7-day+average&Relative+to+population=false
+                                    https://ourworldindata.org/grapher/monkeypox?metric=confirmed_cases&frequency=_7_day_average&scale=absolute
                                 </span>
                             </p>
                             <p>
-                                If the default view of the explorer is the one
-                                you want, you can get its full query string
-                                representation by clicking another view, and
-                                then navigating back to the default.
+                                If the default view is the one you want, you can
+                                get its full query string representation by
+                                clicking another view, and then navigating back
+                                to the default.
                             </p>
                         </>
                     ),

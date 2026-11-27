@@ -118,6 +118,8 @@ export class Admin {
             onFailure?: "show" | "continue"
             /** Skips the full-screen loading indicator */
             isBackground?: boolean
+            /** Aborts the request, e.g. when React Query cancels its query */
+            signal?: AbortSignal
         } = {}
     ): Promise<T> {
         const onFailure = opts.onFailure || "show"
@@ -133,6 +135,12 @@ export class Admin {
         let text: string | undefined
         let json: T
         const abortController = new AbortController()
+        if (opts.signal?.aborted) abortController.abort(opts.signal.reason)
+        opts.signal?.addEventListener(
+            "abort",
+            () => abortController.abort(opts.signal?.reason),
+            { once: true }
+        )
 
         let request: Promise<Response> | undefined
         try {
@@ -152,6 +160,15 @@ export class Admin {
             json = JSON.parse(text)
             if (json.error) {
                 throw new JsonError(json.error.message, json.error.status)
+            }
+            // A proxy in front of the admin (e.g. a 502 while it restarts)
+            // can answer with JSON that has no `error` key; callers would
+            // otherwise read fields off it as if the request had worked
+            if (!response.ok) {
+                throw new JsonError(
+                    `${response.status} ${response.statusText}`.trim(),
+                    response.status
+                )
             }
         } catch (err) {
             if (onFailure === "show")

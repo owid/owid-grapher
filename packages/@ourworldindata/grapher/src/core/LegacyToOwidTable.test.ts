@@ -2,6 +2,7 @@ import { expect, it, describe } from "vitest"
 
 import {
     GRAPHER_CHART_TYPES,
+    IndicatorAnnotation,
     OwidTableSlugs,
     StandardOwidColumnDefs,
     LegacyGrapherInterface,
@@ -13,11 +14,17 @@ import {
     ErrorValueTypes,
     OwidTable,
 } from "@ourworldindata/core-table"
-import { legacyToOwidTableAndDimensions } from "./LegacyToOwidTable"
+import {
+    hasEntityRunsWithIncreasingTimes,
+    hasUniqueIndexValues,
+    legacyToOwidTableAndDimensions,
+} from "./LegacyToOwidTable"
 import {
     MultipleOwidVariableDataDimensionsMap,
     OwidVariableDataMetadataDimensions,
     DimensionProperty,
+    convertDateToDaysSinceEpoch,
+    dayjs,
 } from "@ourworldindata/utils"
 
 describe(legacyToOwidTableAndDimensions, () => {
@@ -141,6 +148,190 @@ describe(legacyToOwidTableAndDimensions, () => {
                 name: "Indicator name",
                 unit: "kg",
             })
+        })
+    })
+
+    describe("annotations", () => {
+        const getAnnotations = (
+            metadata: Partial<OwidVariableDataMetadataDimensions["metadata"]>
+        ): IndicatorAnnotation[] | undefined =>
+            legacyToOwidTableAndDimensions(
+                new Map([
+                    [
+                        2,
+                        {
+                            ...legacyVariableEntry,
+                            metadata: {
+                                ...legacyVariableEntry.metadata,
+                                ...metadata,
+                            },
+                        },
+                    ],
+                ]),
+                [{ variableId: 2, property: DimensionProperty.y }],
+                undefined
+            ).get("2").def.annotations
+
+        it("maps the annotations field to time scopes", () => {
+            const annotations = getAnnotations({
+                annotations: [
+                    {
+                        text: "Range",
+                        entities: ["World"],
+                        time: 2000,
+                        timeEnd: 2010,
+                    },
+                    {
+                        text: "Point",
+                        entities: ["France", "Spain"],
+                        time: 2005,
+                    },
+                    { text: "Always" },
+                ],
+            })
+
+            expect(annotations).toEqual([
+                {
+                    text: "Range",
+                    entityNames: ["World"],
+                    timeScope: "range",
+                    startTime: 2000,
+                    endTime: 2010,
+                },
+                {
+                    text: "Point",
+                    entityNames: ["France", "Spain"],
+                    timeScope: "point",
+                    time: 2005,
+                },
+                { text: "Always", timeScope: "all" },
+            ])
+        })
+
+        it("treats an empty entity list as no entity scope", () => {
+            const annotations = getAnnotations({
+                annotations: [{ text: "Note", entities: [] }],
+            })
+
+            expect(annotations).toEqual([{ text: "Note", timeScope: "all" }])
+        })
+
+        it("turns each legacy entityAnnotationsMap line into an all-time note for one entity", () => {
+            const annotations = getAnnotations({
+                display: {
+                    entityAnnotationsMap: "France: Note A\nSpain: Note B",
+                },
+            })
+
+            expect(annotations).toEqual([
+                { text: "Note A", entityNames: ["France"], timeScope: "all" },
+                { text: "Note B", entityNames: ["Spain"], timeScope: "all" },
+            ])
+        })
+
+        it("keeps the last legacy line for a repeated entity and skips lines with an empty entity or text", () => {
+            const annotations = getAnnotations({
+                display: {
+                    entityAnnotationsMap:
+                        "France: First\nFrance: Second\nSpain\n: No entity\nItaly:",
+                },
+            })
+
+            expect(annotations).toEqual([
+                { text: "Second", entityNames: ["France"], timeScope: "all" },
+            ])
+        })
+
+        it("drops a lone timeEnd, turns equal-end ranges into points and drops backwards ranges", () => {
+            expect(
+                getAnnotations({
+                    annotations: [
+                        { text: "End only", timeEnd: 2010 },
+                        { text: "Same", time: 2005, timeEnd: 2005 },
+                        { text: "Backwards", time: 2010, timeEnd: 2000 },
+                    ],
+                })
+            ).toEqual([{ text: "Same", timeScope: "point", time: 2005 }])
+        })
+
+        describe("on sub-yearly data", () => {
+            const toDay = (date: string): number =>
+                convertDateToDaysSinceEpoch(dayjs.utc(date))
+
+            it("converts dates to days since the epoch, whatever the zeroDay", () => {
+                expect(
+                    getAnnotations({
+                        display: {
+                            timeInterval: TimeInterval.Day,
+                            zeroDay: "2000-01-01",
+                        },
+                        annotations: [{ text: "Point", time: "2020-03-15" }],
+                    })
+                ).toEqual([
+                    {
+                        text: "Point",
+                        timeScope: "point",
+                        time: toDay("2020-03-15"),
+                    },
+                ])
+            })
+
+            it("snaps dates to the start of their period", () => {
+                expect(
+                    getAnnotations({
+                        display: { timeInterval: TimeInterval.Month },
+                        annotations: [
+                            {
+                                text: "Range",
+                                time: "2020-03-15",
+                                timeEnd: "2020-06-30",
+                            },
+                            {
+                                text: "Same month",
+                                time: "2020-03-01",
+                                timeEnd: "2020-03-31",
+                            },
+                        ],
+                    })
+                ).toEqual([
+                    {
+                        text: "Range",
+                        timeScope: "range",
+                        startTime: toDay("2020-03-01"),
+                        endTime: toDay("2020-06-01"),
+                    },
+                    {
+                        text: "Same month",
+                        timeScope: "point",
+                        time: toDay("2020-03-01"),
+                    },
+                ])
+            })
+
+            it("drops years and invalid dates", () => {
+                expect(
+                    getAnnotations({
+                        display: { timeInterval: TimeInterval.Day },
+                        annotations: [
+                            { text: "Year", time: 2020 },
+                            { text: "Invalid", time: "2020-02-30" },
+                            {
+                                text: "Invalid end",
+                                time: "2020-02-01",
+                                timeEnd: "2020-3-1",
+                            },
+                        ],
+                    })
+                ).toEqual([])
+            })
+        })
+
+        it("drops dates on yearly data", () => {
+            expect(
+                getAnnotations({
+                    annotations: [{ text: "Date", time: "2020-03-15" }],
+                })
+            ).toEqual([])
         })
     })
 
@@ -360,6 +551,105 @@ describe(legacyToOwidTableAndDimensions, () => {
             )
             expect(table.rows.length).toEqual(5)
             expect(highIncomeRows.length).toEqual(1)
+        })
+    })
+
+    describe("variables with the same entity-years", () => {
+        const makeVariable = (
+            id: number,
+            data: { entities: number[]; years: number[]; values: number[] }
+        ): OwidVariableDataMetadataDimensions => ({
+            data,
+            metadata: {
+                id,
+                dimensions: {
+                    entities: {
+                        values: [
+                            { name: "World", code: "OWID_WRL", id: 1 },
+                            { name: "High-income", id: 2 },
+                        ],
+                    },
+                    years: {
+                        values: [...new Set(data.years)].map((year) => ({
+                            id: year,
+                        })),
+                    },
+                },
+            },
+        })
+        const joinVariables = (
+            ...variables: OwidVariableDataMetadataDimensions[]
+        ): OwidTable =>
+            legacyToOwidTableAndDimensions(
+                new Map(variables.map((v) => [v.metadata.id, v])),
+                variables.map((v) => ({
+                    variableId: v.metadata.id,
+                    property: DimensionProperty.y,
+                })),
+                undefined
+            )
+        const pickValues = (table: OwidTable): unknown[][] =>
+            table.rows.map((row) => [
+                row.entityName,
+                row.year,
+                row["2"],
+                row["3"],
+            ])
+
+        it("puts the values of each entity-year on one row", () => {
+            const entities = [1, 1, 2]
+            const years = [2020, 2021, 2020]
+            const table = joinVariables(
+                makeVariable(2, { entities, years, values: [8, 9, 10] }),
+                makeVariable(3, { entities, years, values: [20, 21, 22] })
+            )
+            expect(pickValues(table)).toEqual([
+                ["World", 2020, 8, 20],
+                ["World", 2021, 9, 21],
+                ["High-income", 2020, 10, 22],
+            ])
+        })
+
+        it("keeps the row order when an entity's rows aren't contiguous", () => {
+            const entities = [1, 2, 1]
+            const years = [2020, 2020, 2021]
+            const table = joinVariables(
+                makeVariable(2, { entities, years, values: [8, 9, 10] }),
+                makeVariable(3, { entities, years, values: [20, 21, 22] })
+            )
+            expect(pickValues(table)).toEqual([
+                ["World", 2020, 8, 20],
+                ["High-income", 2020, 9, 21],
+                ["World", 2021, 10, 22],
+            ])
+        })
+
+        it("keeps only the first row of an entity-year repeated further down", () => {
+            const entities = [1, 2, 1]
+            const years = [2020, 2020, 2020]
+            const table = joinVariables(
+                makeVariable(2, { entities, years, values: [8, 9, 10] }),
+                makeVariable(3, { entities, years, values: [20, 21, 22] })
+            )
+            expect(pickValues(table)).toEqual([
+                ["World", 2020, 8, 20],
+                ["High-income", 2020, 9, 21],
+            ])
+        })
+
+        it("keeps only the first row of a repeated entity-year", () => {
+            // Both variables list World 2020 twice. Joining keys rows by
+            // entity-year, so only the first of the two rows is kept
+            const entities = [1, 1, 2]
+            const years = [2020, 2020, 2020]
+            const table = joinVariables(
+                makeVariable(2, { entities, years, values: [8, 9, 10] }),
+                makeVariable(3, { entities, years, values: [20, 21, 22] })
+            )
+            expect(pickValues(table)).toEqual([
+                ["World", 2020, 8, 20],
+                ["High-income", 2020, 10, 22],
+            ])
         })
     })
 
@@ -1160,7 +1450,6 @@ describe("creating a table from legacy", () => {
         expect(table.columnSlugs).toEqual([
             "entityName",
             "entityId",
-            "entityCode",
             "year",
             "3512",
             "time", // todo: what is the best design here?
@@ -1170,7 +1459,6 @@ describe("creating a table from legacy", () => {
         expect(table.columnNames).toEqual([
             "Entity",
             "entityId",
-            "Code",
             "Year",
             name,
             "time",
@@ -1198,10 +1486,10 @@ describe("creating a table from legacy", () => {
     })
 
     it("can export legacy to CSV", () => {
-        const expected = `Entity,Code,Year,Some Display Name,Year,entityColor
-Cape Verde,CPV,1985,4.2,1985,blue
-Kiribati,KIR,1985,12.6,1985,
-Papua New Guinea,PNG,1983,5.5,1983,`
+        const expected = `Entity,Year,Some Display Name,Year,entityColor
+Cape Verde,1985,4.2,1985,blue
+Kiribati,1985,12.6,1985,
+Papua New Guinea,1983,5.5,1983,`
         expect(table.toPrettyCsv()).toEqual(expected)
     })
 
@@ -1214,5 +1502,121 @@ Papua New Guinea,PNG,1983,5.5,1983,`
             config.selectedEntityColors
         ).get("3512").def
         expect(columnDef.nonRedistributable).toEqual(true)
+    })
+})
+
+// The join's fast path for tables with identical indices may only run when the
+// index values are unique, because the general join keeps just the first row of
+// a repeated index value. hasUniqueIndexValues decides that, and tries the
+// cheaper hasEntityRunsWithIncreasingTimes first: a "true" from it must imply
+// uniqueness, while a "false" only means "couldn't tell this way".
+describe(hasEntityRunsWithIncreasingTimes, () => {
+    const HAITI = 10
+    const ARUBA = 20
+
+    it.each([
+        {
+            name: "each entity in one run with increasing times",
+            entities: [HAITI, HAITI, ARUBA, ARUBA],
+            times: [2022, 2024, 2020, 2021],
+        },
+        { name: "a single row", entities: [HAITI], times: [2020] },
+        { name: "no rows", entities: [], times: [] },
+        {
+            name: "negative times, e.g. days before the epoch",
+            entities: [HAITI, HAITI],
+            times: [-30, -1],
+        },
+    ])("accepts $name", ({ entities, times }) => {
+        expect(
+            hasEntityRunsWithIncreasingTimes(entities, times, entities.length)
+        ).toBe(true)
+    })
+
+    it.each([
+        {
+            name: "an entity that comes back after another one, even with unique times",
+            entities: [HAITI, ARUBA, HAITI],
+            times: [2020, 2020, 2021],
+        },
+        {
+            name: "a repeated time within a run",
+            entities: [HAITI, HAITI],
+            times: [2020, 2020],
+        },
+        {
+            name: "decreasing times within a run",
+            entities: [HAITI, HAITI],
+            times: [2021, 2020],
+        },
+        {
+            name: "a non-numeric entity, whose string key could match a number's",
+            entities: [HAITI, "10"],
+            times: [2020, 2021],
+        },
+        {
+            name: "a non-numeric time",
+            entities: [HAITI, HAITI],
+            times: [2020, "2021"],
+        },
+        {
+            name: "a missing time",
+            entities: [HAITI, HAITI],
+            times: [2020, undefined],
+        },
+        {
+            name: "a NaN time",
+            entities: [HAITI, HAITI],
+            times: [2020, NaN],
+        },
+    ])("refuses $name", ({ entities, times }) => {
+        expect(
+            hasEntityRunsWithIncreasingTimes(entities, times, entities.length)
+        ).toBe(false)
+    })
+})
+
+describe(hasUniqueIndexValues, () => {
+    const makeTable = (entityId: number[], year: number[]): OwidTable =>
+        new OwidTable({ entityId, year })
+    const YEAR_ENTITY = [OwidTableSlugs.Year, OwidTableSlugs.EntityId]
+
+    it("accepts entity runs with increasing years", () => {
+        const table = makeTable([1, 1, 2], [2020, 2021, 2020])
+        expect(hasUniqueIndexValues(table, YEAR_ENTITY)).toBe(true)
+    })
+
+    it("accepts the index columns in either order", () => {
+        const table = makeTable([1, 1, 2], [2020, 2021, 2020])
+        expect(
+            hasUniqueIndexValues(table, [
+                OwidTableSlugs.EntityId,
+                OwidTableSlugs.Year,
+            ])
+        ).toBe(true)
+    })
+
+    it("accepts unique values that don't form entity runs", () => {
+        // Entity 1 comes back after entity 2, so only the full check can tell
+        const table = makeTable([1, 2, 1], [2020, 2020, 2021])
+        expect(hasUniqueIndexValues(table, YEAR_ENTITY)).toBe(true)
+    })
+
+    it("rejects an entity-year repeated in adjacent rows", () => {
+        const table = makeTable([1, 1, 2], [2020, 2020, 2020])
+        expect(hasUniqueIndexValues(table, YEAR_ENTITY)).toBe(false)
+    })
+
+    it("rejects an entity-year repeated further down", () => {
+        const table = makeTable([1, 2, 1], [2020, 2020, 2020])
+        expect(hasUniqueIndexValues(table, YEAR_ENTITY)).toBe(false)
+    })
+
+    it("checks an index without an entity column by its values alone", () => {
+        const table = makeTable([1, 2, 3], [2020, 2021, 2020])
+        expect(hasUniqueIndexValues(table, [OwidTableSlugs.Year])).toBe(false)
+        expect(hasUniqueIndexValues(table, [OwidTableSlugs.EntityId])).toBe(
+            true
+        )
     })
 })

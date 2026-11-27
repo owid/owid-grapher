@@ -1,4 +1,4 @@
-import { countries, excludeUndefined } from "@ourworldindata/utils"
+import { countries, excludeUndefined, lazy } from "@ourworldindata/utils"
 import * as R from "remeda"
 import { SynonymMap } from "@ourworldindata/types"
 
@@ -391,6 +391,7 @@ export const synonyms = [
         "llm",
         "large language model",
     ],
+    ["compute", "computation", "computing", "computational"],
     ["internet", "broadband", "online"],
     [
         "mobile phone",
@@ -527,3 +528,5 @@ export function buildSynonymMap(): SynonymMap {
 
     return synonymMap
 }
+
+export const getSynonymMap = lazy(buildSynonymMap)

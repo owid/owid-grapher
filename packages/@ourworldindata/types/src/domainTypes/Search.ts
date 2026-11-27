@@ -1,5 +1,6 @@
 import { OwidGdocType } from "../gdocTypes/Gdoc.js"
 import { GrapherTabName } from "../grapherTypes/GrapherTypes.js"
+import { OwidVariableWithSourceAndDimension } from "../OwidVariable.js"
 import * as z from "zod/mini"
 
 // Structural copies of algoliasearch's HighlightResultOption and
@@ -46,6 +47,8 @@ export const PagesIndexRecordSchema = z.object({
     tags: z.optional(z.array(z.string())),
     thumbnailUrl: z.string(),
     availableEntities: z.optional(z.array(z.string())),
+    // Featured-viz pages only: the normalized searches this page is pinned for.
+    pinnedForSearches: z.optional(z.array(z.string())),
 })
 
 export type PageRecord = z.infer<typeof PagesIndexRecordSchema>
@@ -79,11 +82,13 @@ export interface ChartRecord {
     chartConfigId?: string
     slug: string
     queryParams?: string
+    isDataExplorer?: boolean
     title: string
     containerTitle?: string
     subtitle: string | undefined
     variantName: string
     titleVariant?: string
+    source?: string
     availableTabs: GrapherTabName[]
     keyChartForTags: string[]
     tags: string[]
@@ -136,6 +141,7 @@ interface BaseSearchChartHit {
     variantName?: string
     titleVariant?: string
     subtitle?: string
+    source?: string
     availableTabs: GrapherTabName[]
     /**
      * Required by react-instantsearch's `<Highlight>`/`<Snippet>` components:
@@ -151,7 +157,7 @@ interface BaseSearchChartHit {
     _snippetResult?: Record<string, SnippetResultOption>
 }
 
-type SearchChartViewHit = BaseSearchChartHit & {
+export type SearchChartViewHit = BaseSearchChartHit & {
     type: ChartRecordType.Chart
 }
 
@@ -161,10 +167,28 @@ type SearchExplorerViewHit = BaseSearchChartHit & {
     queryParams: string
 }
 
-type SearchMultiDimViewHit = BaseSearchChartHit & {
+export type SearchMultiDimViewHit = BaseSearchChartHit & {
     type: ChartRecordType.MultiDimView
     queryParams: string
     chartConfigId: string
+    isDataExplorer?: boolean
+}
+
+export type AllChartsBlockHit = SearchChartViewHit | SearchMultiDimViewHit
+
+export interface AllChartsBlockResultsPage {
+    hits: AllChartsBlockHit[]
+    nbHits: number
+    page: number
+    nbPages: number
+    query: string
+    countries: string[]
+}
+
+/** First page of the all-charts block's default results, fetched at bake time */
+export interface BakedAllChartsBlockResults {
+    page: AllChartsBlockResultsPage
+    fetchedAtMs: number
 }
 
 /**
@@ -245,6 +269,17 @@ export type ProfileHit = {
     type: OwidGdocType.Profile
     availableEntities: string[]
     objectID: string
+}
+
+/** The single featured-viz page shown at the top of the Data results. */
+export type FeaturedVizHit = {
+    objectID: string
+    type: OwidGdocType.FeaturedViz
+    title: string
+    slug: string
+    thumbnailUrl: string
+    authors?: string[]
+    excerpt?: string
 }
 
 export enum FilterType {
@@ -331,6 +366,10 @@ export type ChartViewsMap = {
     byGrapherSlug: Map<string, number>
 }
 
+export type IndicatorMetadataLoader = (
+    indicatorId: number
+) => Promise<OwidVariableWithSourceAndDimension>
+
 /**
  * Context object containing shared enrichment data needed for Algolia indexing of chart, explorer and multi-dim views.
  */
@@ -344,6 +383,7 @@ export interface IndexingContext {
         Array<Array<{ id: number; name: string; slug: string | null }>>
     >
     chartViewsMap: ChartViewsMap
+    loadIndicatorMetadata: IndicatorMetadataLoader
 }
 
 export type ChartsIndexingContext = IndexingContext & {

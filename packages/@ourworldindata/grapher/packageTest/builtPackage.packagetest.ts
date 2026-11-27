@@ -95,13 +95,13 @@ describe("npm build (dist/grapher.react.js)", () => {
         )
 
         const table = new OwidTable(
-            `entityName,entityCode,entityId,year,gdpPerCapita
-United States,USA,1,2000,36330
-United States,USA,1,2010,48468
-United States,USA,1,2020,63544
-Germany,DEU,2,2000,23705
-Germany,DEU,2,2010,41785
-Germany,DEU,2,2020,46468`,
+            `entityName,entityId,year,gdpPerCapita
+United States,1,2000,36330
+United States,1,2010,48468
+United States,1,2020,63544
+Germany,2,2000,23705
+Germany,2,2010,41785
+Germany,2,2020,46468`,
             [
                 {
                     slug: "gdpPerCapita",
@@ -144,9 +144,9 @@ Germany,DEU,2,2020,46468`,
 
         const loader = GrapherLoader.fromCsv({
             config: { title: "Population" },
-            csv: `entityName,entityCode,entityId,year,population
-France,FRA,1,2000,59000000
-France,FRA,1,2020,67000000`,
+            csv: `entityName,entityId,year,population
+France,1,2000,59000000
+France,1,2020,67000000`,
             columnDefs: [
                 {
                     slug: "population",

@@ -34,6 +34,7 @@ import {
     CoreColumnDef,
     OwidColumnDef,
     EntityName,
+    IndicatorAnnotation,
     OwidVariableRow,
     ErrorValue,
     OwidVariableRoundingMode,
@@ -107,6 +108,11 @@ export abstract class AbstractCoreColumn<
 
     @imemo get display(): OwidVariableDisplayConfigInterface | undefined {
         return this.def.display
+    }
+
+    @imemo get annotations(): IndicatorAnnotation[] {
+        if (!this.isOwidColumn()) return []
+        return this.def.annotations ?? []
     }
 
     @imemo get timeInterval(): TimeInterval {
@@ -370,20 +376,22 @@ export abstract class AbstractCoreColumn<
     }
 
     @imemo get validRowIndices(): number[] {
+        // Read the memoized getter once; going through it per element is slow
+        const allValues = this.valuesIncludingErrorValues
         const indices: number[] = []
-        for (let i = 0; i < this.valuesIncludingErrorValues.length; i++) {
-            const value = this.valuesIncludingErrorValues[i]
-            if (isNotErrorValue(value)) indices.push(i)
+        for (let i = 0; i < allValues.length; i++) {
+            if (isNotErrorValue(allValues[i])) indices.push(i)
         }
         return indices
     }
 
     @imemo get values(): JS_TYPE[] {
+        // Read the memoized getter once; going through it per element is slow
+        const allValues = this.valuesIncludingErrorValues
         const values: JS_TYPE[] = []
-
         // eslint-disable-next-line @typescript-eslint/prefer-for-of
-        for (let i = 0; i < this.valuesIncludingErrorValues.length; i++) {
-            const value = this.valuesIncludingErrorValues[i]
+        for (let i = 0; i < allValues.length; i++) {
+            const value = allValues[i]
             if (isNotErrorValue(value)) values.push(value as JS_TYPE)
         }
         return values
@@ -485,7 +493,7 @@ export abstract class AbstractCoreColumn<
         return _.uniq(this.allEntityNames)
     }
 
-    @imemo private get allEntityNames(): EntityName[] {
+    @imemo get allEntityNames(): EntityName[] {
         // Type guard: early return if not OwidColumn
         if (!this.isOwidColumn()) return []
 
@@ -629,10 +637,6 @@ class StringColumn<
     }
 }
 
-class SeriesAnnotationColumn<
-    TABLE_TYPE extends CoreTable = CoreTable,
-    DEF_TYPE extends CoreColumnDef = CoreColumnDef,
-> extends StringColumn<TABLE_TYPE, DEF_TYPE> {}
 class CategoricalColumn<
     TABLE_TYPE extends CoreTable = CoreTable,
     DEF_TYPE extends CoreColumnDef = CoreColumnDef,
@@ -1277,7 +1281,6 @@ class AgeColumn<
 
 export const ColumnTypeMap = {
     String: StringColumn,
-    SeriesAnnotation: SeriesAnnotationColumn,
     Categorical: CategoricalColumn,
     Ordinal: OrdinalColumn,
     Region: RegionColumn,

@@ -5,6 +5,8 @@
         "mrmlnc.vscode-scss",
         "vitest.explorer",
         "ms-playwright.playwright",
-        "cucumberopen.cucumber-official"
+        "cucumberopen.cucumber-official",
+        "typescriptteam.native-preview",
+        "renesaarsoo.sql-formatter-vsc"
     ]
 }

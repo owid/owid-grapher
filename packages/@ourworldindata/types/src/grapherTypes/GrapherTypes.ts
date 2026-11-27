@@ -79,10 +79,10 @@ export enum ScaleType {
 }
 
 export enum KeyChartLevel {
-    None = 0, // not a key chart, will not show in the all charts block of the related topic page
-    Bottom = 1, // chart will show at the bottom of the all charts block
-    Middle = 2, // chart will show in the middle of the all charts block
-    Top = 3, // chart will show at the top of the all charts block
+    None = 0,
+    Bottom = 1,
+    Middle = 2,
+    Top = 3,
 }
 
 /**
@@ -400,6 +400,9 @@ export interface AxisConfigInterface {
 
     /** Shorten the log-scale notice in the axis label to "log axis" */
     shortenLabelLogNotice?: boolean
+
+    /** Leave the unit out of the axis label */
+    hideLabelUnit?: boolean
 }
 
 export interface VerticalComparisonLineConfig {
@@ -766,6 +769,7 @@ export type GrapherQueryParams = {
     tableFilter?: string
     tableSearch?: string
     peerCountries?: string
+    peerCount?: string
 }
 
 export type LegacyGrapherQueryParams = GrapherQueryParams & {
@@ -808,6 +812,7 @@ const GRAPHER_ALL_QUERY_PARAMS: Required<LegacyGrapherQueryParams> = {
     tableFilter: "",
     tableSearch: "",
     peerCountries: "",
+    peerCount: "",
 }
 
 export const GRAPHER_QUERY_PARAM_KEYS = Object.keys(
@@ -902,6 +907,15 @@ export enum GrapherVariant {
      * Less noisy visualization, but should be understandable on its own
      */
     Thumbnail = "thumbnail",
+}
+
+/** Which labels a chart draws inside its chart area */
+export enum ChartLabelMode {
+    /** Every label, value and legend */
+    All = "all",
+    Values = "values",
+    Names = "names",
+    None = "none",
 }
 
 export interface ChartRedirect {

@@ -39,7 +39,6 @@ import {
     makeOriginalStartTimeSlugFromColumnSlug,
     timeColumnSlugFromColumnDef,
     toPercentageColumnDef,
-    makeAnnotationsSlug,
 } from "./OwidTableUtil.js"
 import {
     linearInterpolation,
@@ -52,7 +51,7 @@ import { CoreColumn, ColumnTypeMap, TimeColumn } from "./CoreTableColumns.js"
 
 export type OwidColumn = CoreColumn<OwidTable, OwidColumnDef>
 
-// An OwidTable is a subset of Table. An OwidTable always has EntityName, EntityCode, EntityId, and Time columns,
+// An OwidTable is a subset of Table. An OwidTable always has EntityName, EntityId, and Time columns,
 // and value column(s). Whether or not we need in the long run is uncertain and it may just be a stepping stone
 // to go from our Variables paradigm to the Table paradigm.
 export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
@@ -92,17 +91,6 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         return this.entityNameColumn.slug
     }
 
-    @imemo get entityCodeColumn(): OwidColumn {
-        return (
-            this.getFirstColumnWithType(ColumnTypeNames.EntityCode) ??
-            this.get(OwidTableSlugs.EntityCode)
-        )
-    }
-
-    @imemo get entityCodeSlug(): string {
-        return this.entityCodeColumn.slug
-    }
-
     @imemo get entityIdColumn(): OwidColumn {
         return (
             this.getFirstColumnWithType(ColumnTypeNames.EntityId) ??
@@ -135,19 +123,6 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
 
     @imemo get rowIndicesByEntityName(): Map<string, number[]> {
         return this.rowIndex([this.entityNameSlug])
-    }
-
-    getAnnotationColumnSlug(columnDef: OwidColumnDef): string | undefined {
-        return _.isEmpty(columnDef?.annotationsColumnSlug)
-            ? makeAnnotationsSlug(columnDef.slug)
-            : columnDef.annotationsColumnSlug
-    }
-
-    // todo: instead of this we should probably make annotations another property on charts—something like "annotationsColumnSlugs"
-    getAnnotationColumnForColumn(columnSlug: ColumnSlug): OwidColumn {
-        const def = this.get(columnSlug).def
-        const slug = this.getAnnotationColumnSlug(def)
-        return this.get(slug)
     }
 
     getTimesUniqSortedAscForColumns(columnSlugs: ColumnSlug[]): number[] {
@@ -783,15 +758,6 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
             if (def.display?.isProjection)
                 label += useShortNames ? "__projected" : " (Projected)"
 
-            if (col.def.derivedFrom?.relationship === "annotations") {
-                const dataSlug = col.def.derivedFrom.columnSlug
-                const dataColumn = this.get(dataSlug)
-                const suffix = useShortNames
-                    ? "__annotations"
-                    : " (Annotations)"
-                label = `${getLabelForColumn(dataColumn)}${suffix}`
-            }
-
             return label
         }
 
@@ -856,13 +822,6 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
 
     getColorForEntityName(entityName: EntityName): Color | undefined {
         return this.entityNameColorIndex.get(entityName)
-    }
-
-    @imemo get entityNameToCodeMap(): Map<EntityName, string> {
-        return this.valueIndex(this.entityNameSlug, this.entityCodeSlug) as Map<
-            EntityName,
-            string
-        >
     }
 
     @imemo get columnDisplayNameToColorMap(): Map<string, Color> {

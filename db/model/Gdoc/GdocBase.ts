@@ -23,6 +23,7 @@ import {
     formatDate,
     Url,
     getRegionByNameOrVariantName,
+    isMultiDimDataExplorer,
 } from "@ourworldindata/utils"
 import { docs as googleDocs, type docs_v1 } from "@googleapis/docs"
 import {
@@ -587,15 +588,6 @@ export class GdocBase implements OwidGdocBaseInterface {
                     componentType: block.type,
                 }),
             ])
-            .with({ type: "all-charts" }, (block) =>
-                block.top.map((item) =>
-                    createLinkFromUrl({
-                        url: item.url,
-                        sourceId: this.id,
-                        componentType: block.type,
-                    })
-                )
-            )
             .with({ type: "recirc" }, (block) => {
                 const links: DbInsertPostGdocLink[] = []
 
@@ -860,6 +852,7 @@ export class GdocBase implements OwidGdocBaseInterface {
                     type: P.union(
                         "additional-charts",
                         "align",
+                        "all-charts",
                         "aside",
                         "blockquote",
                         "callout",
@@ -1598,5 +1591,14 @@ export function makeMultiDimLinkedChart(
         resolvedUrl,
         tags: config.topicTags ?? [],
         archivedPageVersion,
+        // Same subtitle and thumbnail as the multi-dim's card on /explorers.
+        ...(isMultiDimDataExplorer(config) && {
+            subtitle: config.presentation.explorerSubtitle,
+            // Without a dynamic thumbnail URL (e.g. archive builds), omit the
+            // thumbnail so the default OWID thumbnail is shown instead.
+            ...(GRAPHER_DYNAMIC_THUMBNAIL_URL && {
+                thumbnail: `${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${slug}.png${queryStr ? `?${queryStr}` : ""}`,
+            }),
+        }),
     }
 }

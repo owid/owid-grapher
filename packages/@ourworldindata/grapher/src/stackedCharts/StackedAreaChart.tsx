@@ -43,6 +43,7 @@ import {
     isTargetOutsideElement,
     getHoverStateForSeries,
 } from "../chart/ChartUtils"
+import { getVisibleLabels } from "../chart/VisibleChartLabels"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig.js"
 import { LabelSeries } from "../verticalLabels/VerticalLabelsTypes"
 import { Emphasis, resolveEmphasis } from "../interaction/Emphasis"
@@ -54,7 +55,10 @@ import { ExternalColorLegendData } from "../legend/HorizontalColorLegendTypes"
 import { CategoricalBin } from "../color/ColorScaleBin"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
 import { InteractionState } from "../interaction/InteractionState"
-import { resolveCollision, toPlacedStackedAreaSeries } from "./StackedUtils"
+import {
+    compareStackedSeriesByImportance,
+    toPlacedStackedAreaSeries,
+} from "./StackedUtils"
 
 const STACKED_AREA_CHART_CLASS_NAME = "StackedArea"
 
@@ -207,7 +211,8 @@ export class StackedAreaChart
 
     @computed private get showLegend(): boolean {
         return (
-            !!this.manager.showSeriesLabels && !this.manager.useMinimalLabeling
+            !!this.manager.showSeriesLabels &&
+            getVisibleLabels(this.manager.labelMode).endLabelNames
         )
     }
 
@@ -232,7 +237,7 @@ export class StackedAreaChart
             yAxis,
             yRange: () => this.verticalLabelsYRange,
             seriesNamesSortedByImportance: this.seriesSortedByImportance,
-            showRegionTooltip: !this.isStatic,
+            isInteractive: !this.isStatic,
         })
     }
 
@@ -298,21 +303,7 @@ export class StackedAreaChart
 
     @computed private get seriesSortedByImportance(): string[] {
         return this.series
-            .toSorted(
-                (s1: StackedSeries<Time>, s2: StackedSeries<Time>): number => {
-                    const PREFER_S1 = -1
-                    const PREFER_S2 = 1
-
-                    if (!s1) return PREFER_S2
-                    if (!s2) return PREFER_S1
-
-                    const picked = resolveCollision(s1, s2)
-                    if (picked === s1) return PREFER_S1
-                    if (picked === s2) return PREFER_S2
-
-                    return 0
-                }
-            )
+            .toSorted(compareStackedSeriesByImportance)
             .map((s) => s.seriesName)
     }
 
@@ -616,7 +607,6 @@ export class StackedAreaChart
                 x={this.verticalLabelsX}
                 onMouseEnter={this.onVerticalLabelMouseEnter}
                 onMouseLeave={this.onVerticalLabelMouseLeave}
-                interactive={!this.isStatic}
             />
         )
     }

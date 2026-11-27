@@ -12,8 +12,6 @@ import {
     MissingColumn,
     makeOriginalTimeSlugFromColumnSlug,
     ErrorValueTypes,
-    isNotErrorValueOrEmptyCell,
-    makeAnnotationsSlug,
 } from "@ourworldindata/core-table"
 import {
     GrapherChartType,
@@ -55,6 +53,7 @@ import {
     SeriesStrategy,
     GRAPHER_MAP_TYPE,
     GrapherVariant,
+    ChartLabelMode,
     SeriesColorMap,
     OwidChartDimensionInterface,
     DimensionProperty,
@@ -67,6 +66,7 @@ import {
     GrapherWindowType,
     MapRegionName,
     OwidTableSlugs,
+    OwidEntityCodeColumnDef,
     PeerCountryStrategy,
 } from "@ourworldindata/types"
 import {
@@ -142,6 +142,7 @@ import {
     autoDetectYColumnSlugs,
     scaleFontSize,
 } from "../chart/ChartUtils.js"
+import { getVisibleLabels } from "../chart/VisibleChartLabels.js"
 import { DimensionSlot } from "../chart/DimensionSlot.js"
 import { GRAPHER_LIGHT_TEXT } from "../color/ColorConstants.js"
 import { ColorScaleConfig } from "../color/ColorScaleConfig.js"
@@ -197,6 +198,7 @@ import {
     GrapherManager,
 } from "./Grapher.js"
 import { GrapherAnalytics } from "./GrapherAnalytics.js"
+import { getEntityCodeByName } from "./EntityCodes.js"
 import {
     type GrapherAnalyticsContext,
     type EntitySelectorEvent,
@@ -243,7 +245,10 @@ import { FacetChartManager } from "../facet/FacetChartConstants.js"
 import { EntitySelectorModalManager } from "../modal/EntitySelectorModal.js"
 import { SettingsMenuManager } from "../controls/SettingsMenu.js"
 import { SlopeChartManager } from "../slopeCharts/SlopeChartConstants.js"
-import { selectPeerCountriesForGrapher } from "./PeerCountrySelection.js"
+import {
+    findPeerTargetTimeForGrapher,
+    selectPeersForGrapherWithGuards,
+} from "./PeerSelection.js"
 
 // The admin client sets `window.admin`. It's typed here locally instead of
 // via a `declare global` Window augmentation: that augmentation would end up
@@ -341,6 +346,9 @@ export class GrapherState
 
     /** Strategy for selecting peer countries for comparison */
     peerCountryStrategy: PeerCountryStrategy | undefined = undefined
+
+    /** Maximum number of peers to add to the selection */
+    peerCount: number | undefined = undefined
 
     /** Whether the user can change countries, add additional ones or neither */
     addCountryMode = EntitySelectionMode.MultipleEntities
@@ -552,17 +560,10 @@ export class GrapherState
     })
 
     variant = GrapherVariant.Default
+    labelMode: ChartLabelMode = ChartLabelMode.All
 
     /** Whether to hide a chart's legends */
     hideLegend: boolean | undefined = false
-
-    /**
-     * Minimal labeling is used in search when a thumbnail is embedded
-     * alongside a complementary table because the table already provides a lot
-     * of information, which is why the chart can be simplified to avoid
-     * redundancy and visual clutter
-     */
-    useMinimalLabeling = false
 
     // Bounds
     staticBounds: Bounds = DEFAULT_GRAPHER_BOUNDS
@@ -647,7 +648,7 @@ export class GrapherState
 
     slideShow: SlideShowController<any> | undefined = undefined
 
-    private shouldApplyPeerCountries: boolean = false
+    shouldApplyPeerCountries: boolean = false
 
     /**
      * Cached promise for peer country application to prevent duplicate operations.
@@ -709,6 +710,7 @@ export class GrapherState
             hideScatterLabels: observable.ref,
             scatterPointLabelStrategy: observable,
             peerCountryStrategy: observable.ref,
+            peerCount: observable.ref,
             compareEndPointsOnly: observable.ref,
             matchingEntitiesOnly: observable.ref,
             hideTotalValueLabel: observable.ref,
@@ -753,6 +755,7 @@ export class GrapherState
             entitySelectorState: observable,
             isConfigReady: observable,
             isDataReady: observable,
+            shouldApplyPeerCountries: observable.ref,
             canHideExternalControlsInEmbed: observable.ref,
             recommendedIframeEmbedHeight: observable.ref,
             hideExternalControlsInEmbedUrl: observable.ref,
@@ -789,7 +792,7 @@ export class GrapherState
             hideShareButton: observable,
             hideDonateButton: observable,
             hideExploreTheDataButton: observable,
-            useMinimalLabeling: observable,
+            labelMode: observable,
         })
 
         this.updateFromObject(options)
@@ -942,7 +945,7 @@ export class GrapherState
         if (this.shouldApplyPeerCountries) {
             void this.applyPeerCountriesIfNeeded().finally(() => {
                 // Ensure peer countries are only applied once on table load
-                this.shouldApplyPeerCountries = false
+                runInAction(() => (this.shouldApplyPeerCountries = false))
             })
         }
     }
@@ -1209,19 +1212,12 @@ export class GrapherState
             .map((ySlug) => makeOriginalTimeSlugFromColumnSlug(ySlug))
             .filter((slug) => table.has(slug))
 
-        // Annotation columns to include
-        const annotationSlugs = xySlugs
-            .map((slug) => makeAnnotationsSlug(slug))
-            .filter((slug) => table.has(slug))
-
         // Select only relevant columns (in the right order)
         table = table.select([
             table.entityNameSlug, // Entity name column
-            table.entityCodeSlug, // Entity code column
             timeSlug, // Time column
             ...dataSlugs, // Data columns
             ...originalTimeSlugs, // Original time columns
-            ...annotationSlugs, // Annotation columns
         ])
 
         // Drop rows without any x or y values
@@ -1252,35 +1248,28 @@ export class GrapherState
             originalTimeSlugs.filter((slug) => table.get(slug).numValues === 0)
         )
 
-        // Drop empty annotation columns
-        table = table.dropColumns(
-            annotationSlugs.filter((slug) => table.get(slug).numValues === 0)
-        )
-
-        // Fill in missing entity codes
-        if (table.entityCodeColumn.numErrorValues > 0) {
-            table = table.replaceCells(
-                [OwidTableSlugs.EntityCode],
-                (value, index) => {
-                    if (isNotErrorValueOrEmptyCell(value)) return value
-
-                    const entityName = table.entityNameColumn
-                        .valuesIncludingErrorValues[index] as string
-
-                    const entityCode =
-                        this.inputTable.entityNameToCodeMap.get(entityName)
-
-                    return entityCode ?? value
-                }
+        // Add entity codes, looked up by entity name from our list of regions.
+        // The column is omitted if none of the entities has a code.
+        const entityCodes =
+            table.entityNameColumn.valuesIncludingErrorValues.map(
+                (entityName) =>
+                    getEntityCodeByName(entityName as string) ??
+                    ErrorValueTypes.MissingValuePlaceholder
             )
-        }
-
-        // Drop entity code column if all values are empty (after backfilling)
-        const hasEntityCodes = table.entityCodeColumn.values.some(
-            (code) => code && code !== ""
+        const hasEntityCodes = entityCodes.some(
+            (code) => code !== ErrorValueTypes.MissingValuePlaceholder
         )
-        if (!hasEntityCodes) {
-            table = table.dropColumns([OwidTableSlugs.EntityCode])
+        if (hasEntityCodes) {
+            const { entityNameSlug, columnSlugs } = table
+            table = table
+                .appendColumns([
+                    { ...OwidEntityCodeColumnDef, values: entityCodes },
+                ])
+                .select([
+                    entityNameSlug,
+                    OwidTableSlugs.EntityCode,
+                    ...columnSlugs.filter((slug) => slug !== entityNameSlug),
+                ])
         }
 
         return table
@@ -1417,9 +1406,11 @@ export class GrapherState
         }
 
         // Peer countries
+        if (parsed.peerCount.status === "valid")
+            this.peerCount = parsed.peerCount.value
         if (parsed.peerCountries.status === "valid") {
             if (parsed.peerCountries.value === "auto") {
-                this.peerCountryStrategy ??= PeerCountryStrategy.Neighbors
+                this.peerCountryStrategy ??= PeerCountryStrategy.DataRange
             } else {
                 this.peerCountryStrategy = parsed.peerCountries.value
             }
@@ -1428,7 +1419,7 @@ export class GrapherState
             if (this.availableEntityNames.length > 0) {
                 this.shouldApplyPeerCountries = true
                 void this.applyPeerCountriesIfNeeded().finally(() => {
-                    this.shouldApplyPeerCountries = false
+                    runInAction(() => (this.shouldApplyPeerCountries = false))
                 })
             } else {
                 this.shouldApplyPeerCountries = true
@@ -1527,8 +1518,7 @@ export class GrapherState
     }
 
     @computed get showLegend(): boolean {
-        // Don't show any legends in minimal mode
-        if (this.useMinimalLabeling) return false
+        if (!getVisibleLabels(this.labelMode).legends) return false
 
         // Hide the legend for stacked bar charts if the legend only ever shows a single entity
         if (this.isOnStackedBarTab) {
@@ -1641,6 +1631,18 @@ export class GrapherState
         return this.chartSeriesNames
     }
 
+    @computed get invalidFocusedSeriesNames(): SeriesName[] {
+        if (!this.isReady) return []
+        return _.difference(
+            this.focusArray.seriesNames,
+            this.focusableSeriesNames
+        )
+    }
+
+    @action.bound removeInvalidFocusedSeriesNames(): void {
+        this.focusArray.remove(...this.invalidFocusedSeriesNames)
+    }
+
     @computed get isStatic(): boolean {
         return this.isExportingToSvgOrPng
     }
@@ -1712,6 +1714,9 @@ export class GrapherState
         const endMark = performance.now()
         // This runs inside computeds; keep performance metadata reads from becoming dependencies
         const detail = untracked(() => ({
+            // Top-level so Sentry's userTimingIntegration records it as its
+            // own span attribute
+            slug: this.slug,
             devtools: {
                 track: "Grapher",
                 properties: [
@@ -3144,6 +3149,8 @@ export class GrapherState
         if (this.shouldApplyPeerCountries)
             await this.applyPeerCountriesIfNeeded()
 
+        this.removeInvalidFocusedSeriesNames()
+
         // Temporarily set isExportingToSvgOrPng to true
         const _isExportingToSvgOrPng = this.isExportingToSvgOrPng
         runInAction(() => (this.isExportingToSvgOrPng = true))
@@ -3512,10 +3519,7 @@ export class GrapherState
     @computed private get canApplyPeerCountries(): boolean {
         return (
             this.peerCountryStrategy !== undefined &&
-            this.availableEntityNames.length > 0 &&
-            // Only apply peer countries if it's unambiguous
-            // which entity is the target entity
-            this.selection.numSelectedEntities === 1
+            this.availableEntityNames.length > 0
         )
     }
 
@@ -3538,7 +3542,8 @@ export class GrapherState
         // Create and cache the promise immediately so that concurrent calls
         // will find and wait for this same promise
         this.peerCountriesPromise = (async (): Promise<void> => {
-            const peerCountries = await selectPeerCountriesForGrapher(this)
+            this.moveEndHandleToPeerTargetTime()
+            const peerCountries = await selectPeersForGrapherWithGuards(this)
             this.selection.addToSelection(peerCountries)
         })()
 
@@ -3549,6 +3554,11 @@ export class GrapherState
             // so future calls will trigger a new operation if needed
             this.peerCountriesPromise = undefined
         }
+    }
+
+    @action.bound private moveEndHandleToPeerTargetTime(): void {
+        const targetTime = findPeerTargetTimeForGrapher(this)
+        if (targetTime !== undefined) this.endHandleTimeBound = targetTime
     }
 
     @computed get regionGroups(): RegionGroup[] {
@@ -3744,18 +3754,25 @@ export class GrapherState
     }
 
     @computed get baseFontSize(): number {
-        if (this.isStatic && this.initialOptions.baseFontSize)
-            return this.initialOptions.baseFontSize
+        if (this.explicitBaseFontSize !== undefined)
+            return this.explicitBaseFontSize
+        if (!this.isLayoutFixed) {
+            return this.computeBaseFontSizeFromWidth(this.captionedChartBounds)
+        }
         if (this.isStaticAndSmall) {
             return this.computeBaseFontSizeFromHeight(this.staticBounds)
         }
-        if (this.isStatic) return 18
-        return this.computeBaseFontSizeFromWidth(this.captionedChartBounds)
+        return 18
     }
 
     // The header and footer don't rely on the base font size unless explicitly specified
     @computed get useBaseFontSize(): boolean {
-        return this.initialOptions.baseFontSize !== undefined
+        return this.explicitBaseFontSize !== undefined
+    }
+
+    /** The baseFontSize option, which only static exports honor */
+    @computed private get explicitBaseFontSize(): number | undefined {
+        return this.isStatic ? this.initialOptions.baseFontSize : undefined
     }
 
     private computeBaseFontSizeFromHeight(bounds: Bounds): number {
@@ -3775,13 +3792,17 @@ export class GrapherState
         return this.baseFontSize
     }
 
+    @computed get isLayoutFixed(): boolean {
+        return this.isStatic && !this.initialOptions.isStaticLayoutResponsive
+    }
+
     @computed get isNarrow(): boolean {
-        if (this.isStatic) return false
+        if (this.isLayoutFixed) return false
         return this.frameBounds.width <= 420
     }
 
     @computed get isSemiNarrow(): boolean {
-        if (this.isStatic) return false
+        if (this.isLayoutFixed) return false
         return this.frameBounds.width <= 550
     }
 
@@ -3790,7 +3811,7 @@ export class GrapherState
      * grid layout (e.g. side-by-side charts or charts in the All Charts block)
      */
     @computed get isSmall(): boolean {
-        if (this.isStatic) return false
+        if (this.isLayoutFixed) return false
         return this.frameBounds.width <= 740
     }
 
@@ -3799,12 +3820,12 @@ export class GrapherState
      * grid layout (e.g. stand-alone charts in the main text of an article)
      */
     @computed get isMedium(): boolean {
-        if (this.isStatic) return false
+        if (this.isLayoutFixed) return false
         return this.frameBounds.width <= 845
     }
 
     @computed get isStaticAndSmall(): boolean {
-        if (!this.isStatic) return false
+        if (!this.isLayoutFixed) return false
         return this.areStaticBoundsSmall
     }
 
@@ -3816,7 +3837,7 @@ export class GrapherState
     }
 
     @computed get patternScale(): number {
-        if (!this.isStatic) return 1
+        if (!this.isLayoutFixed) return 1
         const { defaultBounds, staticBounds } = this
         const sizeRatio = Math.min(
             staticBounds.width / defaultBounds.width,
@@ -3902,6 +3923,12 @@ export class GrapherState
         this.dataTableConfig.search = authorsVersion.dataTableConfig.search
         this.dataTableSort = undefined
         this.mapConfig.globe.isActive = authorsVersion.mapConfig.globe.isActive
+        this.mapConfig.globe.rotation = authorsVersion.mapConfig.globe.rotation
+        this.mapConfig.globe.zoom = authorsVersion.mapConfig.globe.zoom
+        this.selectedFacetStrategy = authorsVersion.selectedFacetStrategy
+        this.yAxis.facetDomain = authorsVersion.yAxis.facetDomain
+        this.peerCountryStrategy = authorsVersion.peerCountryStrategy
+        this.peerCount = authorsVersion.peerCount
         this.clearSelection()
         this.clearFocus()
         this.mapConfig.selection.clearSelection()

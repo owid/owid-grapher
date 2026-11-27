@@ -8,8 +8,8 @@
         "directory": "packages/@ourworldindata/grapher-editor"
     },
     "type": "module",
-    "main": "src/editor.public.ts",
-    "types": "src/editor.public.ts",
+    "main": "src/editor.public.tsx",
+    "types": "src/editor.public.tsx",
     "publishConfig": {
         "registry": "https://packages.owid.io",
         "main": "dist/editor.standalone.min.js",
@@ -76,6 +76,7 @@
         "@ourworldindata/types": "workspace:^",
         "@ourworldindata/utils": "workspace:^",
         "@react-aria/optimize-locales-plugin": "^2.1.0",
+        "@tanstack/react-query": "^5.90.6",
         "@tsdown/css": "^0.23.0",
         "@types/react": "^19.3.0",
         "@types/react-dom": "^19.3.0",

@@ -38,7 +38,6 @@ const SynthesizeOwidTable = (
     const colSlugs = (
         [
             OwidTableSlugs.EntityName,
-            OwidTableSlugs.EntityCode,
             OwidTableSlugs.EntityId,
             OwidTableSlugs.Year,
         ] as ColumnSlug[]
@@ -62,9 +61,7 @@ const SynthesizeOwidTable = (
                         values[index] * (1 + def.growthRateGenerator!() / 100)
                     )
                 )
-                return [entity.name, entity.code, index, year, ...values].join(
-                    ","
-                )
+                return [entity.name, index, year, ...values].join(",")
             })
             .join("\n")
     })

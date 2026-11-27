@@ -24,7 +24,9 @@ export function DumbbellChartRow({
     y,
     range,
     valueLabelStyle,
-    onInfoTooltipShow,
+    showEntityLabel,
+    showBackgroundLine,
+    onTooltipShow,
 }: {
     series: RenderDumbbellSeries
     mode: DumbbellMode
@@ -32,7 +34,9 @@ export function DumbbellChartRow({
     y: number
     range: [number, number]
     valueLabelStyle: FontSettings
-    onInfoTooltipShow?: () => void
+    showEntityLabel: boolean
+    showBackgroundLine: boolean
+    onTooltipShow?: () => void
 }): React.ReactElement {
     const style = DUMBBELL_STYLE[series.emphasis]
     const { left: leftHead, right: rightHead } = toLeftRight(
@@ -48,27 +52,30 @@ export function DumbbellChartRow({
             style={{ pointerEvents: "none" }}
         >
             {/* Gray background line spanning the full chart width */}
-            <line
-                id={makeFigmaId("background-line")}
-                x1={roundForSvg(range[0])}
-                x2={roundForSvg(range[1])}
-                stroke={TICK_COLOR}
-                strokeDasharray={GRID_LINE_DASH_PATTERN}
-            />
+            {showBackgroundLine && (
+                <line
+                    id={makeFigmaId("background-line")}
+                    x1={roundForSvg(range[0])}
+                    x2={roundForSvg(range[1])}
+                    stroke={TICK_COLOR}
+                    strokeDasharray={GRID_LINE_DASH_PATTERN}
+                />
+            )}
 
             {/* Entity label */}
-            {series.label && (
+            {showEntityLabel && (
                 <SeriesLabel
                     state={series.label}
                     x={series.labelPosition.x}
                     y={series.labelPosition.yOffset}
                     color={{ name: style.labelColor }}
-                    onInfoTooltipShow={onInfoTooltipShow}
+                    onTooltipShow={onTooltipShow}
                 />
             )}
 
             {/* Entity annotation */}
-            {series.annotationTextWrap &&
+            {showEntityLabel &&
+                series.annotationTextWrap &&
                 series.annotationPosition !== undefined && (
                     <TextWrapSvg
                         textWrap={series.annotationTextWrap}

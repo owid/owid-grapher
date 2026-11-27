@@ -200,7 +200,7 @@ export async function getAllLinkedPublishedMultiDimDataPages(
             const queryStr = viewConfigId
                 ? buildQueryStrFromConfig(
                       viewConfigId,
-                      rest.config,
+                      enriched.config,
                       enriched.slug
                   )
                 : undefined
@@ -238,6 +238,22 @@ export async function getMultiDimDataPageById(
 ): Promise<DbEnrichedMultiDimDataPage | undefined> {
     const row = await knex<DbPlainMultiDimDataPage>(MultiDimDataPagesTableName)
         .where({ id })
+        .first()
+    return row ? enrichRow(row) : undefined
+}
+
+/**
+ * Gets a multi-dim and locks its row until the transaction ends. Every
+ * transaction that writes to a multi-dim locks its row first, before its view
+ * configs, so concurrent writers wait for each other instead of deadlocking.
+ */
+export async function getMultiDimDataPageByIdForUpdate(
+    knex: KnexReadWriteTransaction,
+    id: number
+): Promise<DbEnrichedMultiDimDataPage | undefined> {
+    const row = await knex<DbPlainMultiDimDataPage>(MultiDimDataPagesTableName)
+        .where({ id })
+        .forUpdate()
         .first()
     return row ? enrichRow(row) : undefined
 }

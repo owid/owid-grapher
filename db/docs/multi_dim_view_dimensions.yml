@@ -1,11 +1,14 @@
 metadata:
   description: |
-    Append-only mapping table that records the dimensions (query parameter key/value pairs)
-    for multi-dimensional data page views. Each row maps a chartConfigId to the exact
-    dimensions used to generate that view at creation time.
+    Mapping table that records the dimensions (query parameter key/value pairs) for
+    multi-dimensional data page views. Each row maps a chartConfigId to the view's
+    dimensions. Rows are never deleted, so the chart config ids of removed views still
+    resolve. A view keeps its chartConfigId when its slugified dimensions match, so a
+    choice rename like `Total` -> `total` updates the row's dimensions in place.
 
     Useful for analytics, since GA events include the chartConfigID and this table lets
-    us recover the associated multi-dim view dimensions.
+    us recover the associated multi-dim view dimensions. Multi-dim redirects also read
+    their target view's dimensions from here.
 fields:
   id:
     description: Unique identifier for the mapping row

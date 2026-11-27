@@ -1,5 +1,5 @@
 import * as React from "react"
-import { useDeferredValue } from "react"
+import { useDeferredValue, useState } from "react"
 import { observer } from "mobx-react"
 import {
     runInAction,
@@ -20,6 +20,7 @@ import {
     excludeUndefined,
     getWindowUrl,
     setWindowUrl,
+    slugify,
 } from "@ourworldindata/utils"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import {
@@ -34,6 +35,7 @@ import {
 } from "./TagGraphMetadata.js"
 import { highlightFunctionForSearchWords } from "../adminShared/search.js"
 import {
+    searchableChart,
     chartSearchFilter,
     chartSearchWordsToHighlight,
     countNames,
@@ -45,6 +47,7 @@ import { ChartSearchToolbar } from "./ChartSearchToolbar.js"
 import {
     Button,
     Dropdown,
+    Switch,
     Table,
     TableColumnsType,
     Tooltip,
@@ -60,7 +63,12 @@ import {
     BAKED_GRAPHER_URL,
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
 } from "../settings/clientSettings.mjs"
-import { deleteChart, References } from "./adminChartApi.js"
+import {
+    deleteChart,
+    makePublishConfirmMessage,
+    makeUnpublishConfirmMessage,
+    References,
+} from "./adminChartApi.js"
 import { getChartListItemEtlSource } from "./etlChartSync.js"
 
 // These properties are coming from OldChart.ts
@@ -102,7 +110,7 @@ export interface ChartListItem {
 
 const DEFAULT_PAGE_SIZE = 50
 
-type Highlighter = (
+export type Highlighter = (
     text: string | null | undefined
 ) => string | React.ReactElement
 
@@ -230,7 +238,25 @@ function timeAgo(time: string): string {
         .replace(/^an? (minute|hour|day|month|year) ago$/, "1 $1 ago")
 }
 
-function TimestampCell({
+export function TimestampCell({
+    time,
+    children,
+}: {
+    time: string | undefined
+    children?: React.ReactNode
+}): React.ReactElement {
+    if (!time) return <span className="text-muted">—</span>
+    return (
+        <div className="chart-list__timestamp">
+            <Tooltip title={dayjs(time).format("D MMM YYYY, HH:mm")}>
+                <span className="chart-list__time">{timeAgo(time)}</span>
+            </Tooltip>
+            {children}
+        </div>
+    )
+}
+
+function AuthoredTimestampCell({
     time,
     by,
     highlight,
@@ -241,12 +267,8 @@ function TimestampCell({
     highlight: Highlighter
     onAuthorClick: (author: string) => void
 }): React.ReactElement {
-    if (!time) return <span className="text-muted">—</span>
     return (
-        <div className="chart-list__timestamp">
-            <Tooltip title={dayjs(time).format("D MMM YYYY, HH:mm")}>
-                <span className="chart-list__time">{timeAgo(time)}</span>
-            </Tooltip>
+        <TimestampCell time={time}>
             {by && (
                 <div>
                     <button
@@ -259,11 +281,15 @@ function TimestampCell({
                     </button>
                 </div>
             )}
-        </div>
+        </TimestampCell>
     )
 }
 
-function CountCell({ count }: { count: number | null }): React.ReactElement {
+export function CountCell({
+    count,
+}: {
+    count: number | null
+}): React.ReactElement {
     if (!count) return <span className="text-muted">0</span>
     return <>{count.toLocaleString()}</>
 }
@@ -377,10 +403,17 @@ function ActionsCell({
                         />
                     </Tooltip>
                 </Dropdown>
-                <Tooltip title="Delete">
+                <Tooltip
+                    title={
+                        chart.isPublished
+                            ? "Unpublish it to delete it"
+                            : "Delete"
+                    }
+                >
                     <Button
                         size="small"
                         danger
+                        disabled={chart.isPublished}
                         aria-label="Delete"
                         icon={<FontAwesomeIcon icon={faTrashCan} />}
                         onClick={() => onDelete(chart)}
@@ -388,6 +421,48 @@ function ActionsCell({
                 </Tooltip>
             </div>
         </div>
+    )
+}
+
+function PublishedSwitch({
+    chart,
+    onToggle,
+}: {
+    chart: ChartListItem
+    onToggle: (chart: ChartListItem) => Promise<void>
+}): React.ReactElement {
+    const [isToggling, setIsToggling] = useState(false)
+    const isDisabled = !chart.isPublished && !chart.slug && !chart.title
+
+    const onChange = async (): Promise<void> => {
+        setIsToggling(true)
+        try {
+            await onToggle(chart)
+        } catch {
+            // Admin's error modal has already shown the failure
+        } finally {
+            setIsToggling(false)
+        }
+    }
+
+    return (
+        <Tooltip
+            title={
+                isDisabled
+                    ? "This draft has no title or slug, so publish it from the editor"
+                    : undefined
+            }
+        >
+            <span className="chart-list__publish-switch">
+                <Switch
+                    size="small"
+                    checked={!!chart.isPublished}
+                    disabled={isDisabled}
+                    loading={isToggling}
+                    onChange={onChange}
+                />
+            </span>
+        </Tooltip>
     )
 }
 
@@ -403,7 +478,7 @@ function inheritanceStatus(chart: ChartListItem): string {
 }
 
 /** A header whose explanation shows on hovering its dotted-underlined text */
-function HeaderWithHelp({
+export function HeaderWithHelp({
     title,
     help,
 }: {
@@ -425,6 +500,7 @@ function createColumns({
     showInheritanceColumn,
     onDelete,
     onAuthorClick,
+    onTogglePublished,
 }: {
     highlight: Highlighter
     highlightAuthor: Highlighter
@@ -433,6 +509,7 @@ function createColumns({
     showInheritanceColumn: boolean
     onDelete: (chart: ChartListItem) => void
     onAuthorClick: (author: string) => void
+    onTogglePublished: (chart: ChartListItem) => Promise<void>
 }): TableColumnsType<ChartListItem> {
     // Counts are most useful largest first
     const descendFirst: ("descend" | "ascend")[] = ["descend", "ascend"]
@@ -485,7 +562,7 @@ function createColumns({
             // the API lists charts most recently edited first
             defaultSortOrder: "descend",
             render: (_, chart) => (
-                <TimestampCell
+                <AuthoredTimestampCell
                     time={chart.lastEditedAt}
                     by={chart.lastEditedBy}
                     highlight={highlightAuthor}
@@ -499,12 +576,18 @@ function createColumns({
             sorter: (a, b) => compareTimes(a.publishedAt, b.publishedAt),
             sortDirections: descendFirst,
             render: (_, chart) => (
-                <TimestampCell
-                    time={chart.publishedAt}
-                    by={chart.publishedBy}
-                    highlight={highlightAuthor}
-                    onAuthorClick={onAuthorClick}
-                />
+                <div className="chart-list__published">
+                    <PublishedSwitch
+                        chart={chart}
+                        onToggle={onTogglePublished}
+                    />
+                    <AuthoredTimestampCell
+                        time={chart.publishedAt}
+                        by={chart.publishedBy}
+                        highlight={highlightAuthor}
+                        onAuthorClick={onAuthorClick}
+                    />
+                </div>
             ),
         },
         {
@@ -556,6 +639,7 @@ interface ChartListProps {
     autofocusSearchInput?: boolean
     loading?: boolean
     onDelete?: (chart: ChartListItem) => void
+    onPublishedChange?: (chart: ChartListItem) => Promise<void>
 }
 
 @observer
@@ -609,6 +693,54 @@ export class ChartList extends React.Component<ChartListProps> {
                     )
             },
         })
+    }
+
+    /** Publishes or unpublishes it as the editor does, with its warnings */
+    @bind async onTogglePublished(chart: ChartListItem) {
+        const { admin } = this.context
+        const shouldPublish = !chart.isPublished
+        // A draft may have no slug yet; the editor then derives it from the title
+        const slug = chart.slug || slugify(chart.title ?? "")
+        const message = shouldPublish
+            ? makePublishConfirmMessage(slug)
+            : makeUnpublishConfirmMessage(await this.fetchRefs(chart.id))
+        if (!window.confirm(message)) return
+
+        const patch: GrapherInterface = await admin.getJSON(
+            `/api/charts/${chart.id}.patchConfig.json`
+        )
+        await admin.requestJSON(
+            `/api/charts/${chart.id}`,
+            shouldPublish
+                ? {
+                      ...patch,
+                      isPublished: true,
+                      slug: patch.slug || slug,
+                  }
+                : lodash.omit(patch, "isPublished"),
+            "PUT"
+        )
+
+        const now = new Date().toISOString()
+        const updatedChart: ChartListItem = {
+            ...chart,
+            slug: shouldPublish ? slug : chart.slug,
+            isPublished: shouldPublish,
+            lastEditedAt: now,
+            lastEditedBy: admin.username,
+            ...(shouldPublish
+                ? { publishedAt: now, publishedBy: admin.username }
+                : {}),
+        }
+        if (this.props.onPublishedChange)
+            await this.props.onPublishedChange(updatedChart)
+        else
+            // A new row rather than an edit to it, so the table renders it again
+            runInAction(() => {
+                const { charts } = this.props
+                const index = charts.findIndex((c) => c.id === chart.id)
+                if (index !== -1) charts[index] = updatedChart
+            })
     }
 
     @bind async getTags() {
@@ -694,6 +826,7 @@ export class ChartList extends React.Component<ChartListProps> {
                     onPageChange={this.onPageChange}
                     onDelete={this.onDeleteChart}
                     onAuthorClick={this.onAuthorClick}
+                    onTogglePublished={this.onTogglePublished}
                 />
             </div>
         )
@@ -710,6 +843,7 @@ interface ChartTableProps {
     onPageChange: (page: number, pageSize: number) => void
     onDelete: (chart: ChartListItem) => void
     onAuthorClick: (author: string) => void
+    onTogglePublished: (chart: ChartListItem) => Promise<void>
 }
 
 function DeferredChartTable(props: ChartTableProps): React.ReactElement {
@@ -736,7 +870,9 @@ class ChartTable extends React.Component<ChartTableProps> {
                 charts,
                 result: computed(() =>
                     query.trim()
-                        ? charts.filter(chartSearchFilter(query, charts))
+                        ? charts.filter(
+                              chartSearchFilter(query, charts, searchableChart)
+                          )
                         : [...charts]
                 ),
             }
@@ -761,6 +897,7 @@ class ChartTable extends React.Component<ChartTableProps> {
             showInheritanceColumn,
             onDelete: this.props.onDelete,
             onAuthorClick: this.props.onAuthorClick,
+            onTogglePublished: this.props.onTogglePublished,
         })
 
         return (

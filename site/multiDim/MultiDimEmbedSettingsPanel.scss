@@ -12,14 +12,3 @@
         border-bottom: 0;
     }
 }
-
-.md-embed-settings__header {
-    display: none;
-    color: $blue-60;
-    margin-top: 0;
-    margin-bottom: 8px;
-
-    @include sm-only {
-        display: block;
-    }
-}

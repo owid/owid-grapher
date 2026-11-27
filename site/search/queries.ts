@@ -6,6 +6,9 @@ import {
     TagGraphRoot,
     SearchState,
     SearchChartHit,
+    type AllChartsBlockHit,
+    type AllChartsBlockResultsPage,
+    ChartRecordType,
     StackedArticleHit,
     TopicPageHit,
     FilterType,
@@ -14,6 +17,7 @@ import {
     PageChronologicalRecord,
     DataInsightHit,
     FlatArticleHit,
+    FeaturedVizHit,
 } from "@ourworldindata/types"
 import { type SearchResponse } from "algoliasearch"
 import { type LiteClient } from "algoliasearch/lite"
@@ -27,6 +31,9 @@ import {
     PAGES_CHRONOLOGICAL_INDEX,
     DATA_CATALOG_ATTRIBUTES,
     formatDisjunctiveFacetFilters,
+    getFeaturedVizFilters,
+    createCountryFilter,
+    createTopicFilter,
 } from "./searchUtils.js"
 import {
     buildChartsFacetFilters,
@@ -37,6 +44,7 @@ import {
     MAX_FACET_VALUES,
 } from "@ourworldindata/utils"
 import { RichDataComponentVariant } from "./SearchChartHitRichDataTypes.js"
+import { type AllChartsBlockQuery } from "./searchState.js"
 
 function makeStateForKey(state: SearchState) {
     return R.pick(state, ["query", "filters", "requireAllCountries"])
@@ -62,6 +70,21 @@ export const searchQueryKeys = {
         [PAGES_INDEX, "topics", makeStateForKey(state)] as const,
     profiles: (state: SearchState) =>
         [PAGES_INDEX, "profiles", makeStateForKey(state)] as const,
+    // Only what queryFeaturedViz depends on. Country filters and case changes
+    // don't change the result, so they shouldn't send a new uncached request.
+    featuredViz: (state: SearchState) =>
+        [
+            PAGES_INDEX,
+            "featured-viz",
+            getFeaturedVizFiltersForState(state),
+        ] as const,
+} as const
+
+export const allChartsBlockQueryKeys = {
+    charts: (topics: string[], query: AllChartsBlockQuery) =>
+        [CHARTS_INDEX, "all-charts-block", { topics, ...query }] as const,
+    topicVocabulary: () => ["topic-vocabulary"] as const,
+    userCountry: () => ["user-country"] as const,
 } as const
 
 export const latestPagesQueryKey = {
@@ -360,6 +383,49 @@ export async function queryProfiles(
     return searchSingleForHits<ProfileHit>(liteSearchClient, searchParams)
 }
 
+export function getFeaturedVizFiltersForState(
+    state: SearchState
+): ReturnType<typeof getFeaturedVizFilters> {
+    const [topic] = getFilterNamesOfType(state.filters, FilterType.TOPIC)
+    return getFeaturedVizFilters(state.query, topic)
+}
+
+/**
+ * The featured viz at the top of the Data results, or null. Country filters
+ * don't narrow it. When several pages match, as when two featured viz share
+ * a topic, the pages index's ranking picks the most viewed one, as in the
+ * autocomplete.
+ */
+export async function queryFeaturedViz(
+    liteSearchClient: LiteClient,
+    state: SearchState
+): Promise<FeaturedVizHit | null> {
+    const filters = getFeaturedVizFiltersForState(state)
+    if (!filters) return null
+
+    const searchParams = {
+        indexName: PAGES_INDEX,
+        query: "",
+        ...filters,
+        distinct: true,
+        hitsPerPage: 1,
+        attributesToRetrieve: [
+            "title",
+            "slug",
+            "type",
+            "thumbnailUrl",
+            "authors",
+            "excerpt",
+        ],
+    }
+
+    const response = await searchSingleForHits<FeaturedVizHit>(
+        liteSearchClient,
+        searchParams
+    )
+    return response.hits[0] ?? null
+}
+
 export interface LatestPagesResult {
     response: SearchResponse<PageChronologicalRecord>
     /** The type filter this page was fetched with. The UI judges displayed
@@ -523,4 +589,62 @@ export async function queryWritingTopics(
             totalCount: (articles.nbHits ?? 0) + (topicPages.nbHits ?? 0),
         }
     })
+}
+
+export async function queryAllChartsBlock(
+    liteSearchClient: LiteClient,
+    topics: string[],
+    { textQuery, countries }: AllChartsBlockQuery,
+    page: number
+): Promise<AllChartsBlockResultsPage> {
+    const facetFilters = [
+        ...buildChartsFacetFilters({
+            query: textQuery,
+            filters: [
+                ...topics.map(createTopicFilter),
+                ...countries.map(createCountryFilter),
+            ],
+            requireAllCountries: true,
+        }),
+        [
+            `type:${ChartRecordType.Chart}`,
+            `type:${ChartRecordType.MultiDimView}`,
+        ],
+    ]
+
+    const searchParams = {
+        indexName: CHARTS_INDEX,
+        query: textQuery,
+        facetFilters,
+        attributesToRetrieve: [
+            "title",
+            "slug",
+            "variantName",
+            "type",
+            "queryParams",
+            "availableTabs",
+            "source",
+            "isDataExplorer",
+        ],
+        attributesToHighlight: [],
+        attributesToSnippet: [],
+        hitsPerPage: 20,
+        page,
+    }
+
+    const response = await searchSingleForHits<AllChartsBlockHit>(
+        liteSearchClient,
+        searchParams
+    )
+    const searchedQuery = [textQuery, ...countries]
+        .filter((term) => term !== "")
+        .join(" ")
+    return {
+        hits: response.hits,
+        nbHits: response.nbHits ?? response.hits.length,
+        page: response.page ?? page,
+        nbPages: response.nbPages ?? 1,
+        query: searchedQuery,
+        countries,
+    }
 }

@@ -10,7 +10,6 @@ import {
     IReactionDisposer,
     makeObservable,
     comparer,
-    when,
 } from "mobx"
 import {
     Bounds,
@@ -58,7 +57,6 @@ import {
     ErrorMessagesForDimensions,
     FieldWithDetailReferences,
 } from "./ChartEditorTypes.js"
-import { EditorDatabase } from "./EditorDatabase.js"
 import { DetailsProvider } from "./editorProviders.js"
 
 export type DetailReferences = Record<FieldWithDetailReferences, string[]>
@@ -78,7 +76,6 @@ interface ChartEditorViewProps {
 
 @observer
 export class ChartEditorView extends React.Component<ChartEditorViewProps> {
-    database = EditorDatabase.empty()
     details: DetailDictionary = {}
     private cleanupDetailsOnDemand: (() => void) | undefined
     private latestDetailsLoad = 0
@@ -86,13 +83,15 @@ export class ChartEditorView extends React.Component<ChartEditorViewProps> {
     constructor(props: ChartEditorViewProps) {
         super(props)
 
-        makeObservable<ChartEditorView, "_isDbSet" | "isChartLoaded">(this, {
-            database: observable.ref,
-            details: observable,
-            simulateVisionDeficiency: observable,
-            _isDbSet: observable,
-            isChartLoaded: observable,
-        })
+        makeObservable<ChartEditorView, "isConfigApplied" | "isChartLoaded">(
+            this,
+            {
+                details: observable,
+                simulateVisionDeficiency: observable,
+                isConfigApplied: observable,
+                isChartLoaded: observable,
+            }
+        )
     }
 
     @computed get grapherState(): GrapherState {
@@ -105,18 +104,23 @@ export class ChartEditorView extends React.Component<ChartEditorViewProps> {
         return this.props.manager
     }
 
-    private _isDbSet = false
+    // The tabs arm reactions on the chart as they mount, and React mounts them
+    // before this view's componentDidMount, so they wait for the config
+    private isConfigApplied = false
     // Until the data arrives, an edit would be marked as saved
     private isChartLoaded = false
-    @computed get isReady(): boolean {
-        return this._isDbSet
-    }
 
-    @action.bound async loadInitialConfig(): Promise<void> {
-        const config = this.manager.editor.originalGrapherConfig
-        this.manager.editor.grapherState.updateFromObject(config)
-        // Also before the await, so loading never counts as an edit
-        this.manager.editor.markAsSaved()
+    async loadInitialConfig(): Promise<void> {
+        // Outside an action: creating the editor arms its reactions, which
+        // inside one would first run after the config is applied and so
+        // never report it through onChange
+        const { editor } = this.manager
+        runInAction(() => {
+            editor.grapherState.updateFromObject(editor.originalGrapherConfig)
+            this.isConfigApplied = true
+            // Also before the await, so loading never counts as an edit
+            editor.markAsSaved()
+        })
         try {
             await this.manager.editor.reloadGrapherData()
         } finally {
@@ -130,19 +134,6 @@ export class ChartEditorView extends React.Component<ChartEditorViewProps> {
         const { initialQueryParams } = this.manager
         if (initialQueryParams)
             this.grapherState.populateFromQueryParams(initialQueryParams)
-    }
-
-    @action.bound private setDb(database: EditorDatabase): void {
-        this.database = database
-        this._isDbSet = true
-    }
-
-    async fetchData(): Promise<void> {
-        const { catalog: indicators } = this.manager.editor.store
-        const catalog = indicators
-            ? await indicators.load()
-            : { namespaces: [], datasets: [] }
-        this.setDb(new EditorDatabase(catalog))
     }
 
     async fetchDetails(): Promise<void> {
@@ -309,25 +300,12 @@ export class ChartEditorView extends React.Component<ChartEditorViewProps> {
     }
 
     @computed get editor(): ConfigEditor | undefined {
-        if (!this.isReady) return undefined
+        if (!this.isConfigApplied) return undefined
 
         return this.manager.editor
     }
 
-    @action.bound refresh(): void {
-        void this.fetchDetails()
-        void this.fetchData()
-    }
-
     override componentDidMount(): void {
-        this.disposers.push(
-            when(
-                () => this.editor !== undefined,
-                () => {
-                    void this.loadInitialConfig()
-                }
-            )
-        )
         this.disposers.push(
             reaction(
                 () => this.editor && this.editor.previewMode,
@@ -350,7 +328,9 @@ export class ChartEditorView extends React.Component<ChartEditorViewProps> {
                 { equals: comparer.structural }
             )
         )
-        this.refresh()
+        // After the reactions, so the loaded config is the author's version
+        void this.loadInitialConfig()
+        void this.fetchDetails()
     }
 
     disposers: IReactionDisposer[] = []
@@ -426,7 +406,6 @@ export class ChartEditorView extends React.Component<ChartEditorViewProps> {
                         {activeTab === "basic" && (
                             <EditorBasicTab
                                 editor={editor}
-                                database={this.database}
                                 errorMessagesForDimensions={
                                     this.errorMessagesForDimensions
                                 }

@@ -1,0 +1,365 @@
+@use "sass:math";
+
+$all-charts-block-row-thumbnail-width: 158px;
+$all-charts-block-row-thumbnail-height: 84px;
+$all-charts-block-row-padding: 16px;
+$all-charts-block-row-accent-width: 3px;
+$all-charts-block-row-thumbnail-gap: 8px;
+$all-charts-block-row-thumbnails-margin-top: 12px;
+$all-charts-block-results-height: $grapher-height;
+$all-charts-block-results-inline-preview-height: 520px;
+
+@mixin all-charts-block-row-box {
+    padding: 8px $all-charts-block-row-padding 12px;
+    border-left: $all-charts-block-row-accent-width solid transparent;
+}
+
+.all-charts-block-results {
+    .all-charts-block-results__list-wrapper {
+        position: relative;
+        isolation: isolate;
+        height: $all-charts-block-results-height;
+
+        &::after {
+            content: "";
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            height: 143px;
+            @include fade-out-overlay(white, 0%);
+            pointer-events: none;
+        }
+
+        @include md-down {
+            height: auto;
+
+            &::after {
+                display: none;
+            }
+        }
+    }
+
+    .all-charts-block-results__list {
+        @include thin-scrollbar;
+        height: 100%;
+        margin: 0;
+        padding: 0 0 100px;
+        overflow-y: auto;
+        list-style: none;
+
+        @include md-down {
+            height: auto;
+            padding: 0;
+            overflow: visible;
+        }
+    }
+
+    .all-charts-block-results__item {
+        border-bottom: 1px solid $blue-10;
+        scroll-margin-top: $all-charts-block-sticky-nav-height +
+            $all-charts-block-search-height;
+
+        @include sm-only {
+            scroll-margin-top: $all-charts-block-sticky-nav-height-sm +
+                $all-charts-block-search-height;
+        }
+    }
+
+    .all-charts-block-results__item--selected {
+        @include md-down {
+            background: $blue-5;
+            box-shadow: inset $all-charts-block-row-accent-width 0 0 $blue-40;
+        }
+    }
+
+    .all-charts-block-results__sentinel {
+        height: 1px;
+
+        @include md-down {
+            display: none;
+        }
+    }
+
+    .all-charts-block-results__show-more {
+        display: none;
+
+        @include md-down {
+            display: flex;
+        }
+    }
+
+    .all-charts-block-results__preview {
+        height: $all-charts-block-results-height;
+    }
+
+    .all-charts-block-results__preview,
+    .all-charts-block-results__inline-preview {
+        .GrapherWithFallback,
+        .multi-dim-embed {
+            height: 100%;
+        }
+
+        figure.chart.grapher-component,
+        figure.chart.GrapherWithFallback__fallback {
+            @include figure-grapher-reset;
+            height: 100%;
+            margin: 0;
+        }
+    }
+
+    .all-charts-block-results__item--selected
+        .all-charts-block-results__inline-preview {
+        @include md-down {
+            height: $all-charts-block-results-inline-preview-height;
+            margin: 0 $all-charts-block-row-padding
+                $all-charts-block-row-padding
+                (
+                    $all-charts-block-row-accent-width +
+                        $all-charts-block-row-padding
+                );
+
+            .GrapherWithFallback.full-width-on-mobile {
+                margin: 0;
+            }
+        }
+    }
+
+    .all-charts-block-results__skeleton-row {
+        @include all-charts-block-row-box;
+
+        &:first-child {
+            background: $gray-5;
+        }
+    }
+
+    .all-charts-block-results__skeleton-title {
+        width: 70%;
+        height: 22px;
+        background: $gray-10;
+    }
+
+    .all-charts-block-results__skeleton-source {
+        width: 50%;
+        height: 16px;
+        margin: 4px 0 12px;
+        background: $gray-10;
+    }
+
+    .all-charts-block-results__skeleton-thumbnail {
+        width: $all-charts-block-row-thumbnail-width;
+        height: $all-charts-block-row-thumbnail-height;
+        background: $gray-10;
+
+        @include md-down {
+            width: calc(
+                (100% - 2 * #{$all-charts-block-row-thumbnail-gap}) / 3
+            );
+            height: auto;
+            aspect-ratio: math.div(
+                $all-charts-block-row-thumbnail-width,
+                $all-charts-block-row-thumbnail-height
+            );
+        }
+    }
+
+    .all-charts-block-results__skeleton-inline-preview {
+        display: none;
+
+        @include md-down {
+            display: block;
+            height: $all-charts-block-results-inline-preview-height;
+            margin-top: $all-charts-block-row-padding;
+            background: $gray-10;
+        }
+    }
+
+    .all-charts-block-results__skeleton-preview {
+        background: $gray-10;
+    }
+
+    &.all-charts-block-results--message {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: $all-charts-block-results-height;
+        background: $gray-5;
+
+        .search-no-results {
+            margin-top: 0;
+        }
+
+        .search-no-results h2 {
+            @include md-down {
+                @include body-2-regular;
+            }
+        }
+
+        p {
+            margin: 0;
+        }
+    }
+
+    .all-charts-block-results__search-button {
+        display: inline-block;
+        margin-top: 16px;
+    }
+
+    .all-charts-block-row {
+        position: relative;
+        isolation: isolate;
+        @include all-charts-block-row-box;
+
+        &.all-charts-block-row--selected {
+            background: $blue-5;
+            border-left-color: $blue-40;
+        }
+
+        @media (hover: hover) {
+            &:hover {
+                background: $blue-5;
+            }
+        }
+
+        @include md-down {
+            &.all-charts-block-row--selected,
+            &.all-charts-block-row--selected:hover {
+                background: none;
+                border-left-color: transparent;
+            }
+        }
+
+        .all-charts-block-row__select {
+            display: block;
+            width: 100%;
+            padding: 0;
+            border: 0;
+            background: none;
+            color: inherit;
+            text-decoration: none;
+            font: inherit;
+            text-align: left;
+            cursor: pointer;
+
+            /* Stretches the title button's click area over the whole card */
+            &::after {
+                content: "";
+                position: absolute;
+                inset: 0;
+            }
+        }
+
+        .all-charts-block-row__heading {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: baseline;
+            column-gap: 6px;
+        }
+
+        .all-charts-block-row__title {
+            @include h4-semibold;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            overflow: hidden;
+            min-width: 0;
+            margin: 0;
+            line-height: 1.25;
+            color: $blue-90;
+        }
+
+        .all-charts-block-row__variant {
+            @include label-2-regular;
+            flex: 1 1 0;
+            min-width: min(6em, 100%);
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            color: $blue-60;
+        }
+
+        .all-charts-block-row__source {
+            @include note-1-regular;
+            display: block;
+            margin-top: 4px;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            color: $blue-60;
+        }
+
+        .all-charts-block-row__countries {
+            @include note-1-regular;
+            display: block;
+            margin-top: 2px;
+            font-weight: bold;
+            color: $blue-60;
+
+            .svg-inline--fa {
+                margin-right: 4px;
+            }
+        }
+
+        .all-charts-block-row__thumbnails {
+            display: flex;
+            gap: $all-charts-block-row-thumbnail-gap;
+            margin: $all-charts-block-row-thumbnails-margin-top 0 0;
+            padding: 0;
+            list-style: none;
+
+            @include md-down {
+                display: grid;
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
+
+        .all-charts-block-row__thumbnail {
+            position: relative;
+            z-index: 1;
+            display: block;
+            padding: 0;
+            border: 1px solid $blue-10;
+            background: white;
+            cursor: pointer;
+            scroll-margin-top: $all-charts-block-sticky-nav-height +
+                $all-charts-block-search-height +
+                $all-charts-block-row-thumbnails-margin-top;
+
+            @include sm-only {
+                scroll-margin-top: $all-charts-block-sticky-nav-height-sm +
+                    $all-charts-block-search-height +
+                    $all-charts-block-row-thumbnails-margin-top;
+            }
+
+            &:hover {
+                background: $accent-pale-blue;
+            }
+
+            &.all-charts-block-row__thumbnail--selected {
+                border-color: $blue-30;
+            }
+
+            img {
+                display: block;
+                width: $all-charts-block-row-thumbnail-width;
+                height: $all-charts-block-row-thumbnail-height;
+                object-fit: contain;
+                mix-blend-mode: multiply;
+            }
+
+            @include md-down {
+                width: 100%;
+
+                img {
+                    width: 100%;
+                    height: auto;
+                    aspect-ratio: math.div(
+                        $all-charts-block-row-thumbnail-width,
+                        $all-charts-block-row-thumbnail-height
+                    );
+                }
+            }
+        }
+    }
+}

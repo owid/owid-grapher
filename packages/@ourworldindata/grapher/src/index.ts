@@ -140,7 +140,9 @@ export {
     useMaybeGlobalGrapherStateRef,
     useGuidedChartLinkHandler,
     GuidedChartContext,
+    applyGuidedChartQueryParams,
     type GuidedChartContextValue,
+    type GuidedChartMultiDimRegistration,
     type ArchiveGuidedChartRegistration,
     buildArchiveGuidedChartSrc,
 } from "./chart/guidedChartUtils"
@@ -179,11 +181,10 @@ export type { DumbbellChartState } from "./dumbbellCharts/DumbbellChartState"
 export type { SwimlaneChartState } from "./swimlaneCharts/SwimlaneChartState"
 
 export {
-    selectPeerCountriesForGrapher,
-    selectPeerCountries,
-    isValidPeerCountryStrategyQueryParam,
+    selectPeersForGrapher,
+    selectPeers,
     prepareEntitiesForPeerSelection,
-} from "./core/PeerCountrySelection.js"
+} from "./core/PeerSelection.js"
 
 export { loadCatalogData, getCatalogAssetKey } from "./core/loadCatalogData.js"
 
@@ -218,3 +219,14 @@ export {
     DumbbellMode,
     DEFAULT_DUMBBELL_TREND_COLOR_MAP,
 } from "./dumbbellCharts/DumbbellChartConstants"
+export {
+    DEFAULT_IMAGE_REQUEST,
+    parseImageRequest,
+    serializeImageRequest,
+    type ImageSizePreset,
+    type ExplicitImageSize,
+    type PresetImageSize,
+    type ImageRequest,
+    type ImageRequestError,
+    type ParseImageRequestResult,
+} from "./core/imageRequest.js"

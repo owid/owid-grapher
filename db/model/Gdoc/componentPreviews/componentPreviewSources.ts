@@ -130,13 +130,21 @@ function computeVersion(
         .slice(0, 12)
 }
 
+const SIZE_CHANGING_IMAGE_PARAMS = [
+    "imType",
+    "imVariant",
+    "imPreset",
+    "imWidth",
+    "imHeight",
+]
+
 /**
  * Chart PNGs render at the default grapher size unless the link asks for a
  * different one with `im*` params, whose resulting shape we don't predict
  */
 function getChartRenderAspectRatio(queryStr: string): number | undefined {
     const params = new URLSearchParams(queryStr)
-    if (["imType", "imWidth", "imHeight"].some((param) => params.has(param)))
+    if (SIZE_CHANGING_IMAGE_PARAMS.some((param) => params.has(param)))
         return undefined
     return DEFAULT_GRAPHER_WIDTH / DEFAULT_GRAPHER_HEIGHT
 }
@@ -298,11 +306,13 @@ async function getExplorerConfigHashes(
 
 const DRAFT_CHART_MESSAGE =
     "Draft chart: the article shows this link as broken until the chart is published"
+const DRAFT_MULTI_DIM_MESSAGE =
+    "Unpublished multi-dim: the article shows this link as broken until the multi-dim is published"
 
 /**
  * Resolves /grapher/ and /explorers/ links like the article's own links do
- * (resolveGdocLinkTargets), but also renders draft charts so that authors can
- * see charts they're working on.
+ * (resolveGdocLinkTargets), but also renders draft charts and unpublished
+ * multi-dims so that authors can see charts they're working on.
  *
  * - Charts render their grapher config, plus the link's query params.
  * - Multi-dims render the grapher config of the view the query params select.
@@ -327,7 +337,7 @@ async function resolveChartLinks(
             grapherSlugs: grapherLinks.map((link) => link.slug),
             explorerSlugs: explorerLinks.map((link) => link.slug),
         },
-        { includeDraftCharts: true }
+        { includeDrafts: true }
     )
 
     const explorerRedirects = await matchExplorerRedirects(
@@ -341,6 +351,7 @@ async function resolveChartLinks(
     const views: { key: string; viewConfigId: string; queryStr: string }[] = []
     const explorers: { key: string; slug: string; queryStr: string }[] = []
     const draftKeys = new Set<string>()
+    const draftMultiDimKeys = new Set<string>()
 
     const addMultiDimView = (
         link: GrapherLink,
@@ -404,6 +415,7 @@ async function resolveChartLinks(
                     ...strToQueryParams(target.redirect?.queryStr ?? ""),
                     ...link.queryParams,
                 }
+                if (target.isDraft) draftMultiDimKeys.add(link.key)
                 addMultiDimView(link, config, queryParams)
                 return
             }
@@ -422,9 +434,10 @@ async function resolveChartLinks(
             continue
         }
         const redirect = explorerRedirects.get(link.key)
-        if (redirect)
+        if (redirect) {
+            if (!redirect.published) draftMultiDimKeys.add(link.key)
             addMultiDimView(link, redirect.config, redirect.queryParams)
-        else
+        } else
             targets.set(link.key, {
                 status: "unresolved",
                 message:
@@ -465,7 +478,12 @@ async function resolveChartLinks(
         targets.set(
             key,
             info
-                ? makeGrapherTarget(info, queryStr)
+                ? {
+                      ...makeGrapherTarget(info, queryStr),
+                      ...(draftMultiDimKeys.has(key)
+                          ? { message: DRAFT_MULTI_DIM_MESSAGE }
+                          : {}),
+                  }
                 : { status: "unresolved", message: "Multi-dim view not found" }
         )
     }
@@ -487,6 +505,12 @@ async function resolveChartLinks(
     return targets
 }
 
+interface ExplorerRedirectMatch {
+    config: MultiDimDataPageConfigEnriched
+    queryParams: QueryParams
+    published: boolean
+}
+
 /**
  * The multi-dim view each explorer link redirects to, picked by matching the
  * link's query params against the explorer's redirect rules. Mirrors
@@ -496,16 +520,8 @@ async function resolveChartLinks(
 async function matchExplorerRedirects(
     knex: db.KnexReadonlyTransaction,
     links: GrapherLink[]
-): Promise<
-    Map<
-        string,
-        { config: MultiDimDataPageConfigEnriched; queryParams: QueryParams }
-    >
-> {
-    const matched = new Map<
-        string,
-        { config: MultiDimDataPageConfigEnriched; queryParams: QueryParams }
-    >()
+): Promise<Map<string, ExplorerRedirectMatch>> {
+    const matched = new Map<string, ExplorerRedirectMatch>()
     const rulesBySlug = await getMultiDimRedirectRulesBySource(
         knex,
         "/explorers/",
@@ -541,7 +557,11 @@ async function matchExplorerRedirects(
             if (value === null) delete queryParams[param]
             else queryParams[param] = value
         }
-        matched.set(link.key, { config: multiDim.config, queryParams })
+        matched.set(link.key, {
+            config: multiDim.config,
+            queryParams,
+            published: Boolean(multiDim.published),
+        })
     }
     return matched
 }
