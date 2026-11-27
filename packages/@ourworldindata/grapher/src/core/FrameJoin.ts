@@ -86,14 +86,14 @@ export const fullJoin = (indicators: IndicatorFrame[]): Frame => {
     if (indicators.length === 1) return indicatorFrameToFrame(indicators[0])
 
     const [first] = indicators
-    const uniqueKey = `${first.timeDef.slug},${OwidTableSlugs.EntityId}`
+    const uniqueKey = `${OwidTableSlugs.EntityId},${first.timeDef.slug}`
 
     // Fast path: for multi-indicator charts, indicators often come from the
     // same dataset and share the exact same unique keys in the same order.
     // Reuse all column arrays directly without copying.
     if (
         haveIdenticalKeys(indicators) &&
-        areKeysUniqueByRun(first.times, first.entityIds)
+        areKeysUniqueByRun(first.entityIds, first.times)
     )
         return joinAlignedFrames(indicators, uniqueKey)
 
@@ -333,20 +333,20 @@ const haveIdenticalKeys = (indicators: IndicatorFrame[]): boolean => {
 }
 
 /**
- * Cheap check that no two rows share a `(time, entity)` key: succeeds if each
+ * Cheap check that no two rows share an `(entity, time)` key: succeeds if each
  * entity's rows form a single contiguous run with strictly increasing times
  * (the usual layout of our data). Returning false only means uniqueness wasn't
  * proven cheaply, not that duplicates definitely exist.
  */
 const areKeysUniqueByRun = (
-    times: readonly CoreValueType[],
-    entities: readonly CoreValueType[]
+    entities: readonly CoreValueType[],
+    times: readonly CoreValueType[]
 ): boolean => {
     const seenEntities = new Set<number>()
     for (let row = 0; row < entities.length; row++) {
-        const time = times[row]
         const entity = entities[row]
-        if (typeof time !== "number" || typeof entity !== "number") return false
+        const time = times[row]
+        if (typeof entity !== "number" || typeof time !== "number") return false
         if (row > 0 && entity === entities[row - 1]) {
             // Strict `>` also rejects NaN times within a run
             if (!(time > (times[row - 1] as number))) return false
@@ -448,9 +448,9 @@ const deduplicateOnKey = (frame: Frame, key: PairKey): Frame => {
     let duplicateRows: Set<number> | undefined
 
     for (let row = 0; row < frame.numRows; row++) {
-        const existing = seen.get(secondKey[row], firstKey[row])
+        const existing = seen.get(firstKey[row], secondKey[row])
         if (existing === undefined) {
-            seen.set(secondKey[row], firstKey[row], row)
+            seen.set(firstKey[row], secondKey[row], row)
             keptRows.push(row)
         } else {
             duplicateRows ??= new Set()
@@ -561,12 +561,12 @@ const createPairKeyMatcher = (
                 index = new PairMap()
                 // Later rows overwrite earlier ones: the last match wins
                 for (let row = 0; row < otherFrame.numRows; row++)
-                    index.set(otherSecond[row], otherFirst[row], row)
+                    index.set(otherFirst[row], otherSecond[row], row)
             }
 
             cachedFirst = first
             cachedSecond = second
-            cachedRow = index.get(second, first)
+            cachedRow = index.get(first, second)
             hasCached = true
             return cachedRow
         },

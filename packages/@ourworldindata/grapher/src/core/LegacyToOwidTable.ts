@@ -167,9 +167,9 @@ const joinIndicatorBuckets = ({
                 ? leftJoinWithFallbacks(
                       withYearDerivedFromDay(joinedByDay),
                       yearFrames.map(indicatorFrameToFrame),
-                      [OwidTableSlugs.Day, OwidTableSlugs.EntityId],
+                      [OwidTableSlugs.EntityId, OwidTableSlugs.Day],
                       [
-                          [OwidTableSlugs.Year, OwidTableSlugs.EntityId],
+                          [OwidTableSlugs.EntityId, OwidTableSlugs.Year],
                           [OwidTableSlugs.EntityId],
                       ]
                   )
@@ -187,7 +187,7 @@ const joinIndicatorBuckets = ({
         joined = leftJoinWithFallbacks(
             joined,
             targetTimeFrames,
-            [primaryTimeSlug, OwidTableSlugs.EntityId],
+            [OwidTableSlugs.EntityId, primaryTimeSlug],
             [[OwidTableSlugs.EntityId]]
         )
 
