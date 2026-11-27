@@ -4,6 +4,7 @@ import {
     Bounds,
     formatAttributions,
     getAttributionFragmentsFromVariable,
+    getAttributionShortFromVariable,
     getLastUpdatedFromVariable,
     getNextUpdateFromVariable,
     DisplaySource,
@@ -401,7 +402,7 @@ export class Source extends React.Component<SourceProps> {
             origins: this.def.origins ?? [],
             source: this.source,
             attributions: getAttributionFragmentsFromVariable(this.def),
-            attributionShort: this.def.presentation?.attributionShort,
+            attributionShort: getAttributionShortFromVariable(this.def),
             titleVariant: this.def.presentation?.titleVariant,
             owidProcessingLevel: this.def.owidProcessingLevel,
         })
@@ -549,9 +550,9 @@ export class Source extends React.Component<SourceProps> {
                         descriptionFromProducer={
                             this.def.descriptionFromProducer
                         }
-                        attributionShort={
-                            this.def.presentation?.attributionShort
-                        }
+                        attributionShort={getAttributionShortFromVariable(
+                            this.def
+                        )}
                         additionalInfo={this.source.additionalInfo}
                         isEmbeddedInADataPage={this.props.isEmbeddedInADataPage}
                         openLinksInNewTab={this.props.openLinksInNewTab}

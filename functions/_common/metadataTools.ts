@@ -14,6 +14,7 @@ import {
     getLastUpdatedFromVariable,
     getNextUpdateFromVariable,
     getAttributionFragmentsFromVariable,
+    getAttributionShortFromVariable,
     getIndicatorCitations,
     stripDetailOnDemandLinks,
 } from "@ourworldindata/utils"
@@ -103,7 +104,7 @@ export function assembleMetadata(
                     ...def,
                     source: col.source,
                 }),
-                attributionShort: def.presentation?.attributionShort,
+                attributionShort: getAttributionShortFromVariable(def),
                 titleVariant: def.presentation?.titleVariant,
                 owidProcessingLevel: def.owidProcessingLevel,
             })

@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest"
 import {
     formatSourceDate,
     getAttributionFragmentsFromVariable,
+    getAttributionShortFromVariable,
     getIndicatorCitations,
     getDateRange,
     getETLPathComponents,
@@ -165,6 +166,51 @@ describe(getAttributionFragmentsFromVariable, () => {
 
     it("returns an empty array if there is nothing to attribute", () => {
         expect(getAttributionFragmentsFromVariable({})).toEqual([])
+    })
+})
+
+describe(getAttributionShortFromVariable, () => {
+    it("prefers the indicator's own short attribution", () => {
+        expect(
+            getAttributionShortFromVariable({
+                presentation: { attributionShort: "Indicator" },
+                origins: [{ attributionShort: "Origin" }],
+            })
+        ).toEqual("Indicator")
+    })
+
+    it("falls back to the short attribution shared by all origins", () => {
+        expect(
+            getAttributionShortFromVariable({
+                presentation: { attributionShort: "" },
+                origins: [{ attributionShort: "WHO" }],
+            })
+        ).toEqual("WHO")
+        expect(
+            getAttributionShortFromVariable({
+                origins: [
+                    { attributionShort: "WHO" },
+                    { attributionShort: "WHO" },
+                ],
+            })
+        ).toEqual("WHO")
+    })
+
+    it("returns undefined when the origins are ambiguous", () => {
+        expect(
+            getAttributionShortFromVariable({
+                origins: [
+                    { attributionShort: "WHO" },
+                    { attributionShort: "UN" },
+                ],
+            })
+        ).toBeUndefined()
+        expect(
+            getAttributionShortFromVariable({
+                origins: [{ attributionShort: "WHO" }, { producer: "UN" }],
+            })
+        ).toBeUndefined()
+        expect(getAttributionShortFromVariable({})).toBeUndefined()
     })
 })
 
