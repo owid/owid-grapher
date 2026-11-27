@@ -1465,6 +1465,7 @@ const parseRecirc = (raw: RawBlockRecirc): EnrichedBlockRecirc => {
     ): EnrichedBlockRecirc => ({
         type: "recirc",
         title,
+        align: "center",
         links,
         parseErrors: [error],
     })
@@ -1499,13 +1500,17 @@ const parseRecirc = (raw: RawBlockRecirc): EnrichedBlockRecirc => {
         })
     }
 
-    if (raw.value.align && !validateRawEnum(blockAlignments, raw.value.align)) {
-        parseErrors.push({
-            message: `If specified, recirc align must be one of ${blockAlignments.join(", ")}`,
-        })
+    let align: BlockAlignment = "center"
+    const rawAlign = raw.value.align
+    if (rawAlign) {
+        if (validateRawEnum(blockAlignments, rawAlign)) {
+            align = rawAlign
+        } else {
+            parseErrors.push({
+                message: `If specified, recirc align must be one of ${blockAlignments.join(", ")}`,
+            })
+        }
     }
-
-    const align = (raw.value.align as BlockAlignment) || "center"
 
     return {
         type: "recirc",

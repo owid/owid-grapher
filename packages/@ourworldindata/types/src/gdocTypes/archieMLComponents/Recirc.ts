@@ -18,6 +18,6 @@ export type RawBlockRecirc = {
 export type EnrichedBlockRecirc = {
     type: "recirc"
     title: string
-    align?: BlockAlignment
+    align: BlockAlignment
     links: EnrichedHybridLink[]
 } & EnrichedBlockWithParseErrors

@@ -312,10 +312,7 @@ function ArticleBlockInternal({
         ))
         .with({ type: "recirc" }, (block) => (
             <Recirc
-                className={getLayout(
-                    block.align ? `recirc--${block.align}` : "default",
-                    containerType
-                )}
+                className={getLayout(`recirc--${block.align}`, containerType)}
                 d={block}
             />
         ))
