@@ -1,31 +1,50 @@
 import * as Sentry from "@sentry/cloudflare"
 import { Env } from "../../_common/env.js"
 import { getAlgoliaConfig } from "./algoliaClient.js"
+import { fetchTagGraph } from "../../_common/search/tagGraph.js"
 import {
     searchCharts,
     searchPages,
+    searchProfiles,
     searchTopicPages,
+    SearchApiOptions,
     SearchApiResponse,
     SearchPagesApiResponse,
-    SearchState,
+    SearchProfilesApiResponse,
     SearchTopicsApiResponse,
     SearchValidationError,
 } from "./searchApi.js"
+import { SearchUrlParam, ALL_GDOC_TYPES } from "@ourworldindata/types"
 import {
-    FilterType,
-    Filter,
-    SearchUrlParam,
-    ALL_GDOC_TYPES,
-    TagGraphRoot,
-} from "@ourworldindata/types"
+    DEFAULT_PAGE_TYPES,
+    SEARCH_TYPES,
+    searchUrlParamsToSectionState,
+    type SearchType,
+} from "@ourworldindata/utils"
+
+// Searches without a query (the search page's browse states, featured
+// charts and data insights on other pages) don't depend on reader input, so
+// they are cached at the edge for a day, as in cached-queries.ts. Searches
+// with a query are only cached by the browser, so Algolia's analytics still
+// see each of them.
+const QUERYLESS_CACHE_MAX_AGE_SECONDS = 60 * 60 * 24
+const CACHE_MAX_AGE_SECONDS = 60 * 10
 
 const DEFAULT_HITS_PER_PAGE = 20
 const MAX_HITS_PER_PAGE = 100
 const MAX_PAGE = 1000
+const MAX_OFFSET = MAX_PAGE * MAX_HITS_PER_PAGE
+// Algolia rejects queries longer than 512 bytes
+const MAX_QUERY_BYTES = 512
+const MAX_FILTERS = 50
+const MAX_FILTER_NAME_LENGTH = 200
 
-// topics recommends topic pages for a query, like the site's topic cards
-const SEARCH_TYPES = ["charts", "pages", "topics"] as const
-type SearchType = (typeof SEARCH_TYPES)[number]
+const DATASET_PARAMS = [
+    SearchUrlParam.DATASET_PRODUCT,
+    SearchUrlParam.DATASET_NAMESPACE,
+    SearchUrlParam.DATASET_VERSION,
+    SearchUrlParam.DATASET_PRODUCER,
+]
 
 // gdoc content types the `pageTypes` param (type=pages only) may request, as
 // a Set for O(1) membership checks.
@@ -42,20 +61,25 @@ const KNOWN_PARAMS = new Set<string>([
     SearchUrlParam.COUNTRY,
     SearchUrlParam.TOPIC,
     SearchUrlParam.REQUIRE_ALL_COUNTRIES,
+    ...DATASET_PARAMS,
     "pageTypes",
     "page",
     "hitsPerPage",
+    "offset",
+    "length",
+    "highlights",
 ])
 
 // The parameters only some search types read. A request that sends one to a
 // type that doesn't read it gets a warning instead of a silently different
-// answer (e.g. a type=pages search with `topics`, which only filters charts
-// and topic recommendations).
+// answer (e.g. a type=pages search with `requireAllCountries`, which pages
+// can't honor since they aren't tagged with countries).
 const PARAMS_BY_TYPE = new Map<string, readonly SearchType[]>([
-    [SearchUrlParam.COUNTRY, ["charts", "topics"]],
-    [SearchUrlParam.TOPIC, ["charts", "topics"]],
-    [SearchUrlParam.REQUIRE_ALL_COUNTRIES, ["charts", "topics"]],
+    [SearchUrlParam.REQUIRE_ALL_COUNTRIES, ["charts", "topics", "profiles"]],
+    ...DATASET_PARAMS.map((param) => [param, ["charts"]] as const),
     ["pageTypes", ["pages"]],
+    ["offset", ["pages", "topics", "profiles"]],
+    ["length", ["pages", "topics", "profiles"]],
 ])
 
 // type=topics filters by country only when charts match a query, so never
@@ -68,28 +92,50 @@ const CHART_ONLY_PARAMS = new Set<string>([
 const isSearchType = (value: string): value is SearchType =>
     (SEARCH_TYPES as readonly string[]).includes(value)
 
+/** "a", "a and b", "a, b and c" */
+const formatList = (items: readonly string[]): string =>
+    items.length > 1
+        ? `${items.slice(0, -1).join(", ")} and ${items.at(-1)}`
+        : items.join("")
+
+const badRequest = (error: string, details?: string): Response =>
+    new Response(JSON.stringify({ error, details }), {
+        status: 400,
+        headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+        },
+    })
+
+/** An integer parameter, or its default when not sent; null when invalid. */
+function parseIntegerParam(
+    params: URLSearchParams,
+    name: string,
+    defaultValue: number,
+    min: number,
+    max: number
+): number | null {
+    const value = params.get(name)
+    if (!value) return defaultValue
+    if (!/^-?\d+$/.test(value)) return null
+    const number = Number(value)
+    return number >= min && number <= max ? number : null
+}
+
+// Algolia's client throws an ApiError with the HTTP status. A 400 means
+// Algolia refused this request (e.g. too many query words), not that
+// something is broken. Other 4xx (a revoked key, rate limiting) are outages,
+// so they go to Sentry.
+const isAlgoliaBadRequest = (error: unknown): boolean =>
+    error instanceof Error && "status" in error && error.status === 400
+
 // Hints for parameters people carry over from the search page's URL.
 const PARAM_HINTS = new Map<string, string>([
     [
         SearchUrlParam.RESULT_TYPE,
-        'Use "type=pages" to search writing, "type=topics" for topic pages, or "type=charts" for charts.',
+        'Use "type=pages" to search writing, "type=topics" for topic pages, "type=profiles" for country profiles, or "type=charts" for charts.',
     ],
 ])
-
-/**
- * The topic tag graph the site bakes to /topicTagGraph.json; it maps tag
- * names to topic page slugs for topic page recommendations.
- */
-async function fetchTagGraph(env: Env, baseUrl: string): Promise<TagGraphRoot> {
-    const response = await env.ASSETS.fetch(
-        new URL("/topicTagGraph.json", baseUrl)
-    )
-    if (!response.ok)
-        throw new Error(
-            `Failed to fetch /topicTagGraph.json: ${response.status}`
-        )
-    return response.json()
-}
 
 const hasSearchEnvVars = (env: Env): boolean => {
     return !!env.ALGOLIA_ID && !!env.ALGOLIA_SEARCH_KEY
@@ -106,23 +152,12 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
             )
         }
 
-        const typeParam = url.searchParams.get("type") || "charts"
-        if (!isSearchType(typeParam)) {
-            return new Response(
-                JSON.stringify({
-                    error: "Invalid type parameter",
-                    details: `Type must be one of: ${SEARCH_TYPES.join(", ")}`,
-                }),
-                {
-                    status: 400,
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Access-Control-Allow-Origin": "*",
-                    },
-                }
+        const searchType = url.searchParams.get("type") || "charts"
+        if (!isSearchType(searchType))
+            return badRequest(
+                "Invalid type parameter",
+                `Type must be one of: ${SEARCH_TYPES.join(", ")}`
             )
-        }
-        const searchType = typeParam
 
         // utm_* tags are expected noise, not mistakes worth a warning
         const sentParams = [...new Set(url.searchParams.keys())]
@@ -159,11 +194,9 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                 : []),
             ...unusedParams.map(
                 (param) =>
-                    `Ignored parameter "${param}": it applies only to ${PARAMS_BY_TYPE.get(
-                        param
-                    )!
-                        .map((type) => `type=${type}`)
-                        .join(" and ")}.`
+                    `Ignored parameter "${param}": it applies only to ${formatList(
+                        PARAMS_BY_TYPE.get(param)!.map((type) => `type=${type}`)
+                    )}.`
             ),
             ...queryOnlyParams.map(
                 (param) =>
@@ -172,25 +205,34 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         ]
         const warnings = warningList.length > 0 ? warningList : undefined
 
-        // Parse query parameter
-        const query = url.searchParams.get(SearchUrlParam.QUERY) || ""
-
-        // Parse filter parameters
-        const countriesParam = url.searchParams.get(SearchUrlParam.COUNTRY)
-        const topicParam = url.searchParams.get(SearchUrlParam.TOPIC)
-        const requireAllCountries =
-            url.searchParams.get(SearchUrlParam.REQUIRE_ALL_COUNTRIES) ===
-            "true"
+        // Query and filters, as on the search page's URL
+        const searchState = searchUrlParamsToSectionState(url.searchParams)
+        if (
+            new TextEncoder().encode(searchState.query).length > MAX_QUERY_BYTES
+        )
+            return badRequest(
+                "Query too long",
+                `The query must be at most ${MAX_QUERY_BYTES} bytes`
+            )
+        if (
+            searchState.filters.length > MAX_FILTERS ||
+            searchState.filters.some(
+                (filter) => filter.name.length > MAX_FILTER_NAME_LENGTH
+            )
+        )
+            return badRequest(
+                "Too many or too long filters",
+                `At most ${MAX_FILTERS} filter values of up to ${MAX_FILTER_NAME_LENGTH} characters`
+            )
 
         // Which gdoc content types to include (type=pages only, e.g.
-        // "data-insight" or "article,about-page"). Omitted -> searchPages()'s
-        // own default (article + about-page). Validated upfront against the
-        // full gdoc type enum (a static, compile-time list — unlike topics,
-        // which are dynamic data and so are validated lazily against a live
-        // lookup).
+        // "data-insight" or "article,about-page"). Omitted -> articles and
+        // about pages. Validated upfront against the full gdoc type enum (a
+        // static, compile-time list — unlike topics, which are dynamic data
+        // and so are validated lazily against a live lookup).
         const pageTypesParam =
             searchType === "pages" ? url.searchParams.get("pageTypes") : null
-        let pageTypes: string[] | undefined
+        let pageTypes: readonly string[] = DEFAULT_PAGE_TYPES
         if (pageTypesParam) {
             pageTypes = pageTypesParam
                 .split(",")
@@ -206,90 +248,66 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
             }
         }
 
-        // Parse pagination parameters
-        const page = parseInt(url.searchParams.get("page") || "0")
-        const hitsPerPage = parseInt(
-            url.searchParams.get("hitsPerPage") ||
-                DEFAULT_HITS_PER_PAGE.toString()
+        // Pagination: page and hitsPerPage for every type; offset and length
+        // (which take precedence) for all but charts
+        const page = parseIntegerParam(url.searchParams, "page", 0, 0, MAX_PAGE)
+        if (page === null)
+            return badRequest(
+                "Invalid page parameter",
+                `Page must be between 0 and ${MAX_PAGE}`
+            )
+        const hitsPerPage = parseIntegerParam(
+            url.searchParams,
+            "hitsPerPage",
+            DEFAULT_HITS_PER_PAGE,
+            1,
+            MAX_HITS_PER_PAGE
         )
-
-        // Validate pagination parameters
-
-        if (page < 0 || page > MAX_PAGE) {
-            return new Response(
-                JSON.stringify({
-                    error: "Invalid page parameter",
-                    details: `Page must be between 0 and ${MAX_PAGE}`,
-                }),
-                {
-                    status: 400,
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Access-Control-Allow-Origin": "*",
-                    },
-                }
+        if (hitsPerPage === null)
+            return badRequest(
+                "Invalid hitsPerPage parameter",
+                `hitsPerPage must be between 1 and ${MAX_HITS_PER_PAGE}`
             )
-        }
-
-        if (hitsPerPage < 1 || hitsPerPage > MAX_HITS_PER_PAGE) {
-            return new Response(
-                JSON.stringify({
-                    error: "Invalid hitsPerPage parameter",
-                    details: `hitsPerPage must be between 1 and ${MAX_HITS_PER_PAGE}`,
-                }),
-                {
-                    status: 400,
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Access-Control-Allow-Origin": "*",
-                    },
-                }
+        const offset = parseIntegerParam(
+            url.searchParams,
+            "offset",
+            page * hitsPerPage,
+            0,
+            MAX_OFFSET
+        )
+        if (offset === null)
+            return badRequest(
+                "Invalid offset parameter",
+                `offset must be between 0 and ${MAX_OFFSET}`
             )
-        }
+        const length = parseIntegerParam(
+            url.searchParams,
+            "length",
+            hitsPerPage,
+            1,
+            MAX_HITS_PER_PAGE
+        )
+        if (length === null)
+            return badRequest(
+                "Invalid length parameter",
+                `length must be between 1 and ${MAX_HITS_PER_PAGE}`
+            )
 
-        // Build filters array
-        const filters: Filter[] = []
-
-        if (countriesParam) {
-            // Countries are separated by tilde (~) to match Grapher URL format
-            const countries = countriesParam
-                .split("~")
-                .map((c) => c.trim())
-                .filter(Boolean)
-            countries.forEach((country) => {
-                filters.push({
-                    type: FilterType.COUNTRY,
-                    name: country,
-                })
-            })
-        }
-
-        // Only support single topic (UI doesn't support multiple topics)
-        if (topicParam) {
-            const topic = topicParam.trim()
-            if (topic) {
-                filters.push({
-                    type: FilterType.TOPIC,
-                    name: topic,
-                })
-            }
-        }
-
-        // Build search state
-        const searchState: SearchState = {
-            query,
-            filters,
-            requireAllCountries,
+        const options: SearchApiOptions = {
+            highlights: url.searchParams.get("highlights") === "true",
         }
 
         // Get Algolia config
-        const algoliaConfig = getAlgoliaConfig(env)
+        const algoliaConfig = getAlgoliaConfig(env, request)
 
         // Extract base URL from request (for staging/preview deployments)
         const baseUrl = `${url.protocol}//${url.host}`
 
         const search = (): Promise<
-            SearchApiResponse | SearchPagesApiResponse | SearchTopicsApiResponse
+            | SearchApiResponse
+            | SearchPagesApiResponse
+            | SearchTopicsApiResponse
+            | SearchProfilesApiResponse
         > => {
             switch (searchType) {
                 case "charts":
@@ -298,55 +316,74 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                         searchState,
                         page,
                         hitsPerPage,
-                        baseUrl
+                        baseUrl,
+                        options
                     )
                 case "pages":
                     return searchPages(
                         algoliaConfig,
-                        query,
-                        page * hitsPerPage, // Convert page to offset
-                        hitsPerPage,
-                        pageTypes, // undefined -> searchPages()'s own default
-                        baseUrl
+                        searchState,
+                        offset,
+                        length,
+                        pageTypes,
+                        baseUrl,
+                        options
                     )
                 case "topics":
                     return searchTopicPages(
                         algoliaConfig,
                         searchState,
                         () => fetchTagGraph(env, baseUrl),
-                        page * hitsPerPage, // Convert page to offset
-                        hitsPerPage,
-                        baseUrl
+                        offset,
+                        length,
+                        baseUrl,
+                        options
+                    )
+                case "profiles":
+                    return searchProfiles(
+                        algoliaConfig,
+                        searchState,
+                        offset,
+                        length,
+                        baseUrl,
+                        options
                     )
             }
         }
+        const cache = caches.default
+        const cachedResponse = queryless
+            ? await cache.match(request.url)
+            : undefined
+        if (cachedResponse) return cachedResponse
+
         const results = await search()
 
-        return new Response(JSON.stringify({ ...results, warnings }, null, 2), {
-            status: 200,
-            headers: {
-                "Content-Type": "application/json",
-                "Cache-Control": "public, max-age=600", // 10 minutes
-                "Access-Control-Allow-Origin": "*", // Allow CORS for API usage
-            },
-        })
+        const response = new Response(
+            JSON.stringify({ ...results, warnings }, null, 2),
+            {
+                status: 200,
+                headers: {
+                    "Content-Type": "application/json",
+                    "Cache-Control": `public, max-age=${queryless ? QUERYLESS_CACHE_MAX_AGE_SECONDS : CACHE_MAX_AGE_SECONDS}`,
+                    "Access-Control-Allow-Origin": "*", // Allow CORS for API usage
+                },
+            }
+        )
+        if (queryless)
+            context.waitUntil(
+                cache.put(request.url, response.clone()).catch((error) => {
+                    console.error("Failed to cache search response:", error)
+                })
+            )
+        return response
     } catch (error) {
         // Client validation errors (e.g. invalid topic name) are returned
         // as 400 without being reported to Sentry.
-        if (error instanceof SearchValidationError) {
-            return new Response(
-                JSON.stringify({
-                    error: error.message,
-                }),
-                {
-                    status: 400,
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Access-Control-Allow-Origin": "*",
-                    },
-                }
-            )
-        }
+        if (
+            error instanceof SearchValidationError ||
+            isAlgoliaBadRequest(error)
+        )
+            return badRequest((error as Error).message)
 
         console.error("Search API error:", error)
         Sentry.captureException(error)
