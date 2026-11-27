@@ -235,19 +235,37 @@ export const leftJoinWithFallbacks = (
 
 /**
  * Nested Map keyed by a pair of values, avoiding string concatenation per row.
+ * Caches the last outer lookup so runs sharing the first key (e.g. all times
+ * of one entity) skip the outer Map lookup.
  */
 class PairMap<T> {
     private readonly outer = new Map<CoreValueType, Map<CoreValueType, T>>()
+    private hasCachedOuter = false
+    private cachedOuterKey: CoreValueType | undefined
+    private cachedInner: Map<CoreValueType, T> | undefined
+
+    private getInner(first: CoreValueType): Map<CoreValueType, T> | undefined {
+        if (this.hasCachedOuter && first === this.cachedOuterKey)
+            return this.cachedInner
+        const inner = this.outer.get(first)
+        this.cachedOuterKey = first
+        this.cachedInner = inner
+        this.hasCachedOuter = true
+        return inner
+    }
 
     get(first: CoreValueType, second: CoreValueType): T | undefined {
-        return this.outer.get(first)?.get(second)
+        return this.getInner(first)?.get(second)
     }
 
     set(first: CoreValueType, second: CoreValueType, value: T): void {
-        let inner = this.outer.get(first)
+        let inner = this.getInner(first)
         if (inner === undefined) {
             inner = new Map<CoreValueType, T>()
             this.outer.set(first, inner)
+            this.cachedOuterKey = first
+            this.cachedInner = inner
+            this.hasCachedOuter = true
         }
         inner.set(second, value)
     }
@@ -372,10 +390,12 @@ const collectUniqueKeys = (
         for (let row = 0; row < numRows; row++) {
             const time = times[row]
             const entityId = entityIds[row]
-            let outRow = outIndex.get(time, entityId)
+            // Key by (entityId, time): data is grouped by entity, so consecutive
+            // rows hit the same inner Map and daily data allocates far fewer Maps
+            let outRow = outIndex.get(entityId, time)
             if (outRow === undefined) {
                 outRow = outTimes.length
-                outIndex.set(time, entityId, outRow)
+                outIndex.set(entityId, time, outRow)
                 outTimes.push(time)
                 outEntityIds.push(entityId)
             }
@@ -428,9 +448,9 @@ const deduplicateOnKey = (frame: Frame, key: PairKey): Frame => {
     let duplicateRows: Set<number> | undefined
 
     for (let row = 0; row < frame.numRows; row++) {
-        const existing = seen.get(firstKey[row], secondKey[row])
+        const existing = seen.get(secondKey[row], firstKey[row])
         if (existing === undefined) {
-            seen.set(firstKey[row], secondKey[row], row)
+            seen.set(secondKey[row], firstKey[row], row)
             keptRows.push(row)
         } else {
             duplicateRows ??= new Set()
@@ -541,12 +561,12 @@ const createPairKeyMatcher = (
                 index = new PairMap()
                 // Later rows overwrite earlier ones: the last match wins
                 for (let row = 0; row < otherFrame.numRows; row++)
-                    index.set(otherFirst[row], otherSecond[row], row)
+                    index.set(otherSecond[row], otherFirst[row], row)
             }
 
             cachedFirst = first
             cachedSecond = second
-            cachedRow = index.get(first, second)
+            cachedRow = index.get(second, first)
             hasCached = true
             return cachedRow
         },
