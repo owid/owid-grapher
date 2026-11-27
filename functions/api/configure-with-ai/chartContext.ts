@@ -1,4 +1,6 @@
 import {
+    DEFAULT_IMAGE_REQUEST,
+    entityNameToCode,
     fetchInputTableForConfig,
     GrapherState,
     mapGrapherTabNameToQueryParam,
@@ -18,7 +20,6 @@ import {
     getDataApiUrl,
     initGrapher,
 } from "../../_common/grapherTools.js"
-import { TWITTER_OPTIONS } from "../../_common/imageOptions.js"
 import {
     ChartContext,
     CombinationData,
@@ -44,7 +45,6 @@ function summarizeFirstIndicator(grapherState: GrapherState): {
     column: ReturnType<GrapherState["inputTable"]["get"]>
 } {
     const column = grapherState.inputTable.get(grapherState.yColumnSlugs[0])
-    const codes = grapherState.inputTable.entityNameToCodeMap
     const series = new Map<string, SeriesPoint[]>()
     let minYear = Infinity
     let maxYear = -Infinity
@@ -63,9 +63,10 @@ function summarizeFirstIndicator(grapherState: GrapherState): {
     const entities: EntityInfo[] = [...series.keys()]
         .map((name) => {
             const continent = getContinentForCountry(name)
+            const code = entityNameToCode(name)
             return {
                 name,
-                code: codes.get(name),
+                code: code !== name ? code : undefined,
                 continent,
                 type: continent ? ("country" as const) : ("region" as const),
             }
@@ -167,7 +168,7 @@ export async function loadChartContext(
     const searchParams = new URLSearchParams(queryStr)
     const { grapher, identifierType } = await initGrapher(
         { type: "slug", id: slug },
-        TWITTER_OPTIONS,
+        DEFAULT_IMAGE_REQUEST,
         searchParams,
         env
     )
@@ -194,7 +195,7 @@ export async function loadCombinationData(
 ): Promise<CombinationData> {
     const { grapher } = await initGrapher(
         { type: "slug", id: slug },
-        TWITTER_OPTIONS,
+        DEFAULT_IMAGE_REQUEST,
         new URLSearchParams(dims),
         env
     )
