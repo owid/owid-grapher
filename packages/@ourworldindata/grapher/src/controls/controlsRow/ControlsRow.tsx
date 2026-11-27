@@ -29,11 +29,7 @@ import {
     MapZoomToSelectionButtonManager,
 } from "../MapZoomToSelectionButton"
 import { MapZoomDropdown, MapZoomDropdownManager } from "../MapZoomDropdown"
-import {
-    ControlsRowLayout,
-    countVisibleTabs,
-    findControlsRowLayout,
-} from "./ControlsRowHelpers"
+import { ControlsRowLayout, findControlsRowLayout } from "./ControlsRowHelpers"
 
 // Keep in sync with CaptionedChart.scss and Controls.scss
 const ROW_SIDES_GAP_PX = 16
@@ -78,11 +74,7 @@ export class ControlsRow extends Component<ControlsRowProps> {
         layout: ControlsRowLayout
     ): number {
         return measureControlsRowWidth(
-            ContentSwitchers.measureWidth(
-                manager,
-                layout.tabs,
-                countVisibleTabs(manager.availableTabs?.length ?? 0)
-            ),
+            ContentSwitchers.measureWidth(manager, layout.tabs),
             measureControlWidths(manager, layout)
         )
     }
@@ -94,7 +86,8 @@ export class ControlsRow extends Component<ControlsRowProps> {
     @computed private get layout(): ControlsRowLayout {
         return findControlsRowLayout(
             (layout) => ControlsRow.measureWidth(this.manager, layout),
-            this.props.maxWidth
+            this.props.maxWidth,
+            this.manager.availableTabs?.length ?? 0
         )
     }
 
@@ -177,9 +170,6 @@ export class ControlsRow extends Component<ControlsRowProps> {
                     <ContentSwitchers
                         manager={this.manager}
                         layout={this.layout.tabs}
-                        visibleTabCount={countVisibleTabs(
-                            this.manager.availableTabs?.length ?? 0
-                        )}
                     />
                 </div>
                 <div className="controls">
