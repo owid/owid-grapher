@@ -11,7 +11,12 @@ import {
     roundForSvg,
 } from "@ourworldindata/utils"
 import { computed, action, observable, makeObservable } from "mobx"
-import { SeriesName, SeriesStrategy, Time } from "@ourworldindata/types"
+import {
+    ChartLabelMode,
+    SeriesName,
+    SeriesStrategy,
+    Time,
+} from "@ourworldindata/types"
 import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
@@ -54,7 +59,10 @@ import { ExternalColorLegendData } from "../legend/HorizontalColorLegendTypes"
 import { CategoricalBin } from "../color/ColorScaleBin"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
 import { InteractionState } from "../interaction/InteractionState"
-import { resolveCollision, toPlacedStackedAreaSeries } from "./StackedUtils"
+import {
+    compareStackedSeriesByImportance,
+    toPlacedStackedAreaSeries,
+} from "./StackedUtils"
 
 const STACKED_AREA_CHART_CLASS_NAME = "StackedArea"
 
@@ -207,7 +215,8 @@ export class StackedAreaChart
 
     @computed private get showLegend(): boolean {
         return (
-            !!this.manager.showSeriesLabels && !this.manager.useMinimalLabeling
+            !!this.manager.showSeriesLabels &&
+            this.manager.labelMode !== ChartLabelMode.Values
         )
     }
 
@@ -298,21 +307,7 @@ export class StackedAreaChart
 
     @computed private get seriesSortedByImportance(): string[] {
         return this.series
-            .toSorted(
-                (s1: StackedSeries<Time>, s2: StackedSeries<Time>): number => {
-                    const PREFER_S1 = -1
-                    const PREFER_S2 = 1
-
-                    if (!s1) return PREFER_S2
-                    if (!s2) return PREFER_S1
-
-                    const picked = resolveCollision(s1, s2)
-                    if (picked === s1) return PREFER_S1
-                    if (picked === s2) return PREFER_S2
-
-                    return 0
-                }
-            )
+            .toSorted(compareStackedSeriesByImportance)
             .map((s) => s.seriesName)
     }
 

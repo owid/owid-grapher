@@ -1,6 +1,6 @@
 import ReactDOMServer from "react-dom/server"
+import { runInAction } from "mobx"
 import { Env, extensions } from "./env.js"
-import { extractOptions, ImageOptions } from "./imageOptions.js"
 import {
     buildExplorerProps,
     Explorer,
@@ -14,9 +14,13 @@ import {
     getEntityNamesParam,
     getSelectedEntityNamesParam,
     GrapherState,
+    DEFAULT_IMAGE_REQUEST,
+    type ImageRequest,
     migrateSelectedEntityNamesParam,
+    parseImageRequest,
     SelectionArray,
 } from "@ourworldindata/grapher"
+import { resolveImageLayout } from "./imageLayout.js"
 import {
     assembleCsv,
     assembleDataValues,
@@ -35,7 +39,7 @@ import { checkCache } from "./reusableHandlers.js"
 
 async function initGrapherForExplorerView(
     env: Env,
-    options: ImageOptions
+    imageRequest: ImageRequest
 ): Promise<{
     grapherState: GrapherState
     explorerParams: ExplorerChoiceParams
@@ -53,7 +57,8 @@ async function initGrapherForExplorerView(
     )
 
     const selection = new SelectionArray(windowEntityNames)
-    const bounds = new Bounds(0, 0, options.svgWidth, options.svgHeight)
+    const layout = resolveImageLayout(imageRequest)
+    const bounds = new Bounds(0, 0, layout.svgWidth, layout.svgHeight)
     const explorerProps = await buildExplorerProps(
         html,
         queryStr,
@@ -64,12 +69,9 @@ async function initGrapherForExplorerView(
     await explorer.updateGrapherFromExplorer()
     explorer.grapherState.populateFromQueryParams(urlObj.queryParams)
 
-    if (options.grapherProps?.variant)
-        explorer.grapherState.variant = options.grapherProps.variant
-    if (options.grapherProps?.useMinimalLabeling)
-        explorer.grapherState.useMinimalLabeling =
-            options.grapherProps.useMinimalLabeling
-    explorer.grapherState.initialOptions = { baseFontSize: options.fontSize }
+    explorer.grapherState.variant = imageRequest.variant
+    explorer.grapherState.labelMode = imageRequest.labelMode
+    explorer.grapherState.initialOptions = { baseFontSize: layout.fontSize }
 
     return {
         grapherState: explorer.grapherState,
@@ -82,13 +84,16 @@ export async function handleThumbnailRequestForExplorerView(
     env: Env,
     extension: "png" | "svg"
 ) {
-    const options = extractOptions(searchParams)
+    const parsed = parseImageRequest(searchParams)
+    if (!parsed.ok)
+        return error(400, `${parsed.error.param}: ${parsed.error.reason}`)
+    const imageRequest = parsed.request
 
     try {
         const explorerEnv = stripUrlExtensionFromEnv(env, `.${extension}`)
         const { grapherState } = await initGrapherForExplorerView(
             explorerEnv,
-            options
+            imageRequest
         )
         const svg = await grapherState.generateStaticSvg(
             ReactDOMServer.renderToStaticMarkup
@@ -101,7 +106,9 @@ export async function handleThumbnailRequestForExplorerView(
                 },
             })
         } else {
-            return png(await renderSvgToPng(svg, options))
+            return png(
+                await renderSvgToPng(svg, resolveImageLayout(imageRequest))
+            )
         }
     } catch (e) {
         console.error(e)
@@ -113,13 +120,11 @@ export async function handleConfigRequestForExplorerView(
     searchParams: URLSearchParams,
     env: Env
 ) {
-    const options = extractOptions(searchParams)
-
     try {
         const explorerEnv = stripUrlExtensionFromEnv(env, extensions.configJson)
         const { grapherState } = await initGrapherForExplorerView(
             explorerEnv,
-            options
+            DEFAULT_IMAGE_REQUEST
         )
 
         const config = grapherState.object
@@ -137,13 +142,11 @@ export async function fetchCsvForExplorerView(
     searchParams: URLSearchParams,
     env: Env
 ) {
-    const options = extractOptions(searchParams)
-
     try {
         const explorerEnv = stripUrlExtensionFromEnv(env, extensions.csv)
         const { grapherState } = await initGrapherForExplorerView(
             explorerEnv,
-            options
+            DEFAULT_IMAGE_REQUEST
         )
 
         console.log("checking if download is allowed")
@@ -167,15 +170,15 @@ export async function fetchMetadataForExplorerView(
     searchParams: URLSearchParams,
     env: Env
 ) {
-    const options = extractOptions(searchParams)
-
     try {
         const explorerEnv = stripUrlExtensionFromEnv(env, extensions.metadata)
         const { grapherState } = await initGrapherForExplorerView(
             explorerEnv,
-            options
+            DEFAULT_IMAGE_REQUEST
         )
-        const metadata = assembleMetadata(grapherState, searchParams)
+        const metadata = runInAction(() =>
+            assembleMetadata(grapherState, searchParams)
+        )
         return Response.json(metadata)
     } catch (e) {
         console.error(e)
@@ -187,15 +190,15 @@ export async function fetchReadmeForExplorerView(
     searchParams: URLSearchParams,
     env: Env
 ) {
-    const options = extractOptions(searchParams)
-
     try {
         const explorerEnv = stripUrlExtensionFromEnv(env, extensions.readme)
         const { grapherState } = await initGrapherForExplorerView(
             explorerEnv,
-            options
+            DEFAULT_IMAGE_REQUEST
         )
-        const readme = assembleReadme(grapherState, searchParams)
+        const readme = runInAction(() =>
+            assembleReadme(grapherState, searchParams)
+        )
         return new Response(readme, {
             headers: { "Content-Type": "text/markdown; charset=utf-8" },
         })
@@ -209,19 +212,19 @@ export async function fetchZipForExplorerView(
     searchParams: URLSearchParams,
     env: Env
 ) {
-    const options = extractOptions(searchParams)
-
     try {
         const explorerEnv = stripUrlExtensionFromEnv(env, extensions.zip)
         const { grapherState } = await initGrapherForExplorerView(
             explorerEnv,
-            options
+            DEFAULT_IMAGE_REQUEST
         )
 
         ensureDownloadOfDataAllowed(grapherState)
-        const metadata = assembleMetadata(grapherState, searchParams)
-        const readme = assembleReadme(grapherState, searchParams)
-        const csv = assembleCsv(grapherState, searchParams)
+        const { metadata, readme, csv } = runInAction(() => ({
+            metadata: assembleMetadata(grapherState, searchParams),
+            readme: assembleReadme(grapherState, searchParams),
+            csv: assembleCsv(grapherState, searchParams),
+        }))
         console.log("Fetched the parts, creating zip file")
 
         const filename = slugify(grapherState.effectiveTitle)
@@ -259,8 +262,6 @@ export async function fetchDataValuesForExplorerView(
     const cachedResponse = await checkCache(ctx.request, shouldCache)
     if (cachedResponse) return cachedResponse
 
-    const options = extractOptions(searchParams)
-
     const explorerEnv = stripUrlExtensionFromEnv(env, extensions.values)
     const url = explorerEnv.url
 
@@ -270,7 +271,7 @@ export async function fetchDataValuesForExplorerView(
     try {
         const { grapherState } = await initGrapherForExplorerView(
             explorerEnv,
-            options
+            DEFAULT_IMAGE_REQUEST
         )
 
         // Make sure the country query param is respected since Grapher ignores
@@ -281,7 +282,9 @@ export async function fetchDataValuesForExplorerView(
         if (entityNames && entityNames.length > 0)
             grapherState.selection.setSelectedEntities(entityNames)
 
-        const dataValues = assembleDataValues(grapherState, entityName)
+        const dataValues = runInAction(() =>
+            assembleDataValues(grapherState, entityName)
+        )
 
         const cacheControl = shouldCache ? "max-age=3600" : "no-cache"
         const response = Response.json(dataValues, {
@@ -340,10 +343,9 @@ export async function fetchSearchResultDataForExplorerView(
             env,
             extensions.searchResult
         )
-        const options = extractOptions(searchParams)
         const { grapherState } = await initGrapherForExplorerView(
             explorerEnv,
-            options
+            DEFAULT_IMAGE_REQUEST
         )
 
         // Optionally ignore projected data if requested

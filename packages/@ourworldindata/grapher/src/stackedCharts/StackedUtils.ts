@@ -1,6 +1,10 @@
 import * as R from "remeda"
 import * as _ from "lodash-es"
+import { InitialAnchoredLabelSeries } from "../anchoredLabels/AnchoredLabelsTypes.js"
+import { AnchoredLabelsState } from "../anchoredLabels/AnchoredLabelsState.js"
+import { FontSettings } from "../core/GrapherConstants.js"
 import {
+    SeriesName,
     sortNumeric,
     isArrayOfNumbers,
     omitUndefinedValues,
@@ -14,6 +18,7 @@ import {
     StackedPointPositionType,
     StackedSeries,
     PlacedStackedBarSeries,
+    MIN_LABELED_BAND_HEIGHT_PX,
 } from "./StackedConstants"
 import { DualAxis } from "../axis/Axis"
 import { Time } from "@ourworldindata/types"
@@ -111,33 +116,28 @@ export const withMissingValuesAsZeroes = <
     })
 }
 
-export function resolveCollision(
+export function compareStackedSeriesByImportance(
     s1: StackedSeries<number>,
     s2: StackedSeries<number>
-): StackedSeries<number> | undefined {
-    // Early return if one series is all zeroes
-    if (s1.isAllZeros && !s2.isAllZeros) return s2
-    if (s2.isAllZeros && !s1.isAllZeros) return s1
+): number {
+    return (
+        Number(s1.isAllZeros) - Number(s2.isAllZeros) ||
+        getLastValue(s2) - getLastValue(s1) ||
+        getMaxValue(s2) - getMaxValue(s1) ||
+        getArea(s2) - getArea(s1)
+    )
+}
 
-    // Prefer series with a higher last value
-    const yLast1 = R.last(s1.points)?.value ?? 0
-    const yLast2 = R.last(s2.points)?.value ?? 0
-    if (yLast1 > yLast2) return s1
-    if (yLast2 > yLast1) return s2
+function getLastValue(series: StackedSeries<number>): number {
+    return R.last(series.points)?.value ?? 0
+}
 
-    // Prefer series with a higher maximum value
-    const yMax1 = _.maxBy(s1.points, (p) => p.value)?.value ?? 0
-    const yMax2 = _.maxBy(s2.points, (p) => p.value)?.value ?? 0
-    if (yMax1 > yMax2) return s1
-    if (yMax2 > yMax1) return s2
+function getMaxValue(series: StackedSeries<number>): number {
+    return _.maxBy(series.points, (p) => p.value)?.value ?? 0
+}
 
-    // Prefer series with a higher total area
-    const area1 = _.sumBy(s1.points, (p) => p.value)
-    const area2 = _.sumBy(s2.points, (p) => p.value)
-    if (area1 > area2) return s1
-    if (area2 > area1) return s2
-
-    return undefined // no preference
+function getArea(series: StackedSeries<number>): number {
+    return _.sumBy(series.points, (p) => p.value)
 }
 
 export function getXAxisConfigDefaultsForStackedBar(
@@ -262,4 +262,111 @@ export function toPlacedStackedBarSeries(
             return { ...bar, x, y, barWidth, barHeight }
         }),
     }))
+}
+
+/** Series labels at the right edge of a stacked thumbnail */
+export function makeStackedAnchoredLabelsState(
+    labelsSeries: readonly Omit<InitialAnchoredLabelSeries, "position">[],
+    {
+        seriesByName,
+        dualAxis,
+        fontSettings,
+        maxWidth,
+        labelPadding,
+        yRange,
+    }: {
+        seriesByName: Map<SeriesName, StackedSeries<number>>
+        dualAxis: DualAxis
+        fontSettings: FontSettings
+        maxWidth: number
+        labelPadding: number
+        yRange: [number, number]
+    }
+): AnchoredLabelsState {
+    const compare = makeStackedLabelComparator(seriesByName)
+    const series = toInitialAnchoredLabelSeries(labelsSeries, {
+        seriesByName,
+        dualAxis,
+        compare,
+    })
+    return new AnchoredLabelsState(series, {
+        ...fontSettings,
+        maxWidth,
+        labelPadding,
+        yRanges: { edge: yRange },
+        compare,
+    })
+}
+
+/**
+ * Labels of series whose last band is tall enough to label, anchored at the
+ * chart's right edge. When no band is, the top-ranked series keeps its label.
+ */
+function toInitialAnchoredLabelSeries(
+    labelsSeries: readonly Omit<InitialAnchoredLabelSeries, "position">[],
+    {
+        seriesByName,
+        dualAxis,
+        compare,
+    }: {
+        seriesByName: Map<SeriesName, StackedSeries<number>>
+        dualAxis: DualAxis
+        compare: (
+            a: InitialAnchoredLabelSeries,
+            b: InitialAnchoredLabelSeries
+        ) => number
+    }
+): InitialAnchoredLabelSeries[] {
+    const anchoredSeries = labelsSeries.map((series) => ({
+        ...series,
+        position: {
+            x: dualAxis.bounds.right,
+            y: dualAxis.verticalAxis.place(series.value),
+        },
+    }))
+
+    const seriesWithTallBand = anchoredSeries.filter((series) => {
+        const stackedSeries = seriesByName.get(series.seriesName)
+        return (
+            !!stackedSeries &&
+            isLastBandTallEnoughToLabel(stackedSeries, dualAxis)
+        )
+    })
+    if (seriesWithTallBand.length > 0 || anchoredSeries.length === 0)
+        return seriesWithTallBand
+
+    const topRankedSeries = anchoredSeries.toSorted(compare)[0]
+    return [topRankedSeries]
+}
+
+function isLastBandTallEnoughToLabel(
+    series: StackedSeries<number>,
+    dualAxis: DualAxis
+): boolean {
+    return (
+        measureLastBandHeightPx(series, dualAxis) >= MIN_LABELED_BAND_HEIGHT_PX
+    )
+}
+
+function makeStackedLabelComparator(
+    seriesByName: Map<SeriesName, StackedSeries<number>>
+): (a: InitialAnchoredLabelSeries, b: InitialAnchoredLabelSeries) => number {
+    return (a, b) => {
+        const seriesA = seriesByName.get(a.seriesName)
+        const seriesB = seriesByName.get(b.seriesName)
+        if (!seriesA || !seriesB) return 0
+        return compareStackedSeriesByImportance(seriesA, seriesB)
+    }
+}
+
+function measureLastBandHeightPx(
+    series: StackedSeries<number>,
+    dualAxis: DualAxis
+): number {
+    const lastPoint = R.last(series.points)
+    if (!lastPoint) return 0
+    return Math.abs(
+        dualAxis.verticalAxis.place(lastPoint.valueOffset + lastPoint.value) -
+            dualAxis.verticalAxis.place(lastPoint.valueOffset)
+    )
 }

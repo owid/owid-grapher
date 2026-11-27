@@ -3,7 +3,7 @@ import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { scaleLinear } from "d3-scale"
 import { ChartInterface } from "../chart/ChartInterface"
-import { SideWidths } from "@ourworldindata/types"
+import { ChartLabelMode, SideWidths } from "@ourworldindata/types"
 import { SlopeChartState } from "./SlopeChartState.js"
 import { type SlopeChartProps } from "./SlopeChart.js"
 import {
@@ -232,12 +232,10 @@ export class SlopeChartThumbnail
             manager: { chartAreaPadding = 0 },
         } = this
 
-        return this.bounds
-            .expand({
-                top: chartAreaPadding,
-                bottom: chartAreaPadding + xMarksHeight,
-            })
-            .yRange()
+        return [
+            this.bounds.bottom - xMarksHeight,
+            this.bounds.top - chartAreaPadding,
+        ]
     }
 
     @computed private get endLabelsSeries(): Omit<
@@ -279,7 +277,7 @@ export class SlopeChartThumbnail
         return new AnchoredLabelsState(series, {
             ...this.labelFontSettings,
             labelPadding: LABEL_PADDING,
-            yRange: this.labelsRange,
+            yRanges: { edge: this.labelsRange },
         })
     }
 
@@ -288,7 +286,7 @@ export class SlopeChartThumbnail
     }
 
     @computed private get shouldShowValueLabelsOnly(): boolean {
-        return !!this.manager.useMinimalLabeling
+        return this.manager.labelMode === ChartLabelMode.Values
     }
 
     @computed private get startLabelsMaxWidth(): number | undefined {
@@ -340,17 +338,14 @@ export class SlopeChartThumbnail
             textAnchor: "end",
             maxWidth: this.startLabelsMaxWidth,
             labelPadding: LABEL_PADDING,
-            yRange: this.labelsRange,
-            resolveCollision: (
-                s1: InitialAnchoredLabelSeries,
-                s2: InitialAnchoredLabelSeries
-            ): InitialAnchoredLabelSeries => {
+            yRanges: { edge: this.labelsRange },
+            compare: (
+                a: InitialAnchoredLabelSeries,
+                b: InitialAnchoredLabelSeries
+            ): number =>
                 // Prefer to label series that have an end label
-                if (visibleEndLabels.has(s1.seriesName)) return s1
-                if (visibleEndLabels.has(s2.seriesName)) return s2
-
-                return s1 // No preference
-            },
+                Number(visibleEndLabels.has(b.seriesName)) -
+                Number(visibleEndLabels.has(a.seriesName)),
         })
     }
 

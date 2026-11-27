@@ -21,7 +21,7 @@ import {
 } from "./StackedConstants"
 import {
     getXAxisConfigDefaultsForStackedBar,
-    resolveCollision,
+    makeStackedAnchoredLabelsState,
     toPlacedStackedBarSeries,
 } from "./StackedUtils"
 import {
@@ -114,17 +114,8 @@ export class StackedBarChartThumbnail
     }
 
     @computed private get labelsRange(): [number, number] {
-        const {
-            horizontalAxisPart,
-            manager: { chartAreaPadding = 0 },
-        } = this
-
-        return this.bounds
-            .expand({
-                top: chartAreaPadding,
-                bottom: chartAreaPadding + horizontalAxisPart.height,
-            })
-            .yRange()
+        const padding = this.manager.chartAreaPadding ?? 0
+        return [this.bounds.bottom + padding, this.bounds.top - padding]
     }
 
     @computed private get labelsMaxWidth(): number {
@@ -159,35 +150,13 @@ export class StackedBarChartThumbnail
     }): AnchoredLabelsState | undefined {
         if (this.labelsSeries.length === 0) return undefined
 
-        const series = this.labelsSeries.map((series) => {
-            const position = {
-                x: dualAxis.bounds.right,
-                y: dualAxis.verticalAxis.place(series.value),
-            }
-
-            return { ...series, position }
-        })
-
-        return new AnchoredLabelsState(series, {
-            ...this.labelFontSettings,
+        return makeStackedAnchoredLabelsState(this.labelsSeries, {
+            seriesByName: this.chartState.seriesByName,
+            dualAxis,
+            fontSettings: this.labelFontSettings,
             maxWidth: this.labelsMaxWidth,
             labelPadding: LEGEND_PADDING,
             yRange: this.labelsRange,
-            resolveCollision: (
-                s1: InitialAnchoredLabelSeries,
-                s2: InitialAnchoredLabelSeries
-            ): InitialAnchoredLabelSeries => {
-                const series1 = this.chartState.seriesByName.get(s1.seriesName)
-                const series2 = this.chartState.seriesByName.get(s2.seriesName)
-
-                if (!series1 || !series2) return s1 // no preference
-
-                const picked = resolveCollision(series1, series2)
-                if (picked?.seriesName === s1.seriesName) return s1
-                if (picked?.seriesName === s2.seriesName) return s2
-
-                return s1 // no preference
-            },
         })
     }
 

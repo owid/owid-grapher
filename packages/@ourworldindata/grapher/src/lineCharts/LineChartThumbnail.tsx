@@ -10,7 +10,7 @@ import {
     getRelativeMouse,
     roundForSvg,
 } from "@ourworldindata/utils"
-import { SideWidths, Time } from "@ourworldindata/types"
+import { ChartLabelMode, SideWidths, Time } from "@ourworldindata/types"
 import { ChartInterface } from "../chart/ChartInterface"
 import { LineChartState } from "./LineChartState"
 import { LineChartProps } from "./LineChart.js"
@@ -268,17 +268,13 @@ export class LineChartThumbnail
     }
 
     @computed private get labelsRange(): [number, number] {
-        const {
-            horizontalAxisPart,
-            manager: { chartAreaPadding = 0 },
-        } = this
+        const padding = this.manager.chartAreaPadding ?? 0
+        return [this.bounds.bottom + padding, this.bounds.top - padding]
+    }
 
-        return this.bounds
-            .expand({
-                top: chartAreaPadding,
-                bottom: chartAreaPadding + horizontalAxisPart.height,
-            })
-            .yRange()
+    /** Label range inside the plot, which ends above the x-axis tick labels */
+    private makeInChartLabelsRange(dualAxis: DualAxis): [number, number] {
+        return [dualAxis.innerBounds.bottom, this.labelsRange[1]]
     }
 
     @computed
@@ -299,7 +295,14 @@ export class LineChartThumbnail
                 (series) => series.focus.active
             )
 
-        return labelCandidateSeries
+        // Keep one series per name, the one with the most recent data
+        // (series are sorted by time)
+        const seriesByName = Map.groupBy(
+            labelCandidateSeries,
+            (series) => series.seriesName
+        )
+
+        return [...seriesByName.values()].map((group) => group.at(-1)!)
     }
 
     @computed private get endPointBySeriesName(): Map<
@@ -368,25 +371,17 @@ export class LineChartThumbnail
         return new AnchoredLabelsState(series, {
             ...this.labelFontSettings,
             textAnchor: "start",
-            yRange: this.labelsRange,
+            xRange: dualAxis.innerBounds.xRange(),
+            yRanges: {
+                edge: this.labelsRange,
+                inChart: this.makeInChartLabelsRange(dualAxis),
+            },
             labelPadding: this.labelPadding,
             anchorCollisionRadius: this.dotRadius,
-            resolveCollision: (
-                s1: InitialAnchoredLabelSeries,
-                s2: InitialAnchoredLabelSeries
-            ): InitialAnchoredLabelSeries => {
-                const endPoint1 = this.endPointBySeriesName.get(s1.seriesName)
-                const endPoint2 = this.endPointBySeriesName.get(s2.seriesName)
-
-                const x1 = endPoint1?.x ?? 0
-                const x2 = endPoint2?.x ?? 0
-
-                // Prefer the series with the larger x value
-                if (x1 > x2) return s1
-                if (x2 > x1) return s2
-
-                return s1 // no preference
-            },
+            compare: (
+                a: InitialAnchoredLabelSeries,
+                b: InitialAnchoredLabelSeries
+            ): number => b.position.x - a.position.x,
         })
     }
 
@@ -412,7 +407,9 @@ export class LineChartThumbnail
                 (series) => series.focus.active
             )
 
-        return labelCandidateSeries
+        // Keep one series per name, the one with the earliest data
+        // (series are sorted by time)
+        return _.uniqBy(labelCandidateSeries, (series) => series.seriesName)
     }
 
     @computed private get startPointBySeriesName(): Map<
@@ -428,7 +425,7 @@ export class LineChartThumbnail
     }
 
     @computed private get shouldShowValueLabelsOnly(): boolean {
-        return !!this.manager.useMinimalLabeling
+        return this.manager.labelMode === ChartLabelMode.Values
     }
 
     @computed private get startLabelsMaxWidth(): number | undefined {
@@ -508,33 +505,21 @@ export class LineChartThumbnail
             ...this.labelFontSettings,
             maxWidth: this.startLabelsMaxWidth,
             textAnchor: "end",
+            xRange: dualAxis.innerBounds.xRange(),
             labelPadding: this.labelPadding,
             anchorCollisionRadius: this.dotRadius,
-            yRange: this.labelsRange,
-            resolveCollision: (
-                s1: InitialAnchoredLabelSeries,
-                s2: InitialAnchoredLabelSeries
-            ): InitialAnchoredLabelSeries => {
-                // Prefer to label series that have an end label
-                if (visibleEndLabels.has(s1.seriesName)) return s1
-                if (visibleEndLabels.has(s2.seriesName)) return s2
-
-                const startPoint1 = this.startPointBySeriesName.get(
-                    s1.seriesName
-                )
-                const startPoint2 = this.startPointBySeriesName.get(
-                    s2.seriesName
-                )
-
-                const x1 = startPoint1?.x ?? 0
-                const x2 = startPoint2?.x ?? 0
-
-                // Prefer the series with the larger x value
-                if (x1 > x2) return s1
-                if (x2 > x1) return s2
-
-                return s1 // No preference
+            yRanges: {
+                edge: this.labelsRange,
+                inChart: this.makeInChartLabelsRange(dualAxis),
             },
+            compare: (
+                a: InitialAnchoredLabelSeries,
+                b: InitialAnchoredLabelSeries
+            ): number =>
+                // Prefer series that have an end label, then those further right
+                Number(visibleEndLabels.has(b.seriesName)) -
+                    Number(visibleEndLabels.has(a.seriesName)) ||
+                b.position.x - a.position.x,
         })
     }
 
