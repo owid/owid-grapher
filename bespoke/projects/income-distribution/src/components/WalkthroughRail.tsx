@@ -246,9 +246,9 @@ const WalkthroughThumbnail = memo(function WalkthroughThumbnail({
                     key={path.key}
                     d={path.d}
                     fill={path.color}
-                    fillOpacity={drawing.isStacked ? 1 : 0.55}
+                    fillOpacity={drawing.isStacked ? 0.8 : 0.55}
                     stroke={path.color}
-                    strokeWidth={drawing.isStacked ? 0 : 0.75}
+                    strokeWidth={drawing.isStacked ? 0.5 : 0.75}
                 />
             ))}
             {/* A tint over everything, so the thumbnails read as previews */}

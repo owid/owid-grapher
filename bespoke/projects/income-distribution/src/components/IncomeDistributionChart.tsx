@@ -32,6 +32,7 @@ import {
 } from "../core/axisTicks.js"
 import {
     computeAreaPaths,
+    computeTopLinePaths,
     computeTotalPaths,
     makeXScale,
     makeYScale,
@@ -192,6 +193,10 @@ function IncomeDistributionChartContent({
 
     const paths = useMemo(
         () => computeAreaPaths(model.series, incomes, xScale, yScale),
+        [model.series, incomes, xScale, yScale]
+    )
+    const topPaths = useMemo(
+        () => computeTopLinePaths(model.series, incomes, xScale, yScale),
         [model.series, incomes, xScale, yScale]
     )
 
@@ -512,6 +517,7 @@ function IncomeDistributionChartContent({
                     <AreaLayer
                         series={model.series}
                         paths={paths}
+                        topPaths={topPaths}
                         isStacked={isStacked}
                         highlightedKeys={highlightedKeys}
                         xScale={xScale}
@@ -537,6 +543,7 @@ function IncomeDistributionChartContent({
                         <AreaLayer
                             series={model.series}
                             paths={paths}
+                            topPaths={topPaths}
                             isStacked={isStacked}
                             highlightedKeys={highlightedKeys}
                             xScale={xScale}

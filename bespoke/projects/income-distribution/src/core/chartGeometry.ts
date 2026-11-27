@@ -63,11 +63,21 @@ export function makeYScale(
 const EMPTY_HEIGHT_RATIO = 1e-3
 
 /**
- * One area path per series. Outside the range where a series has any height,
- * as beyond a country's data, the path stops rather than running on along
- * the axis as a flat line; within that range it stays in one piece, through
- * any dip to nothing between bumps.
+ * The grid indices a series is drawn over: from where it first has any
+ * height to where it last does, so a country's curve stops with its data
+ * rather than running on along the axis as a flat line, but stays in one
+ * piece through any dip to nothing between bumps
  */
+function drawnRange(s: Pick<ChartSeries, "y0" | "y1">): [number, number] {
+    const heights = s.y1.map((y, i) => y - s.y0[i])
+    const threshold = Math.max(...heights) * EMPTY_HEIGHT_RATIO
+    return [
+        heights.findIndex((h) => h > threshold),
+        heights.findLastIndex((h) => h > threshold),
+    ]
+}
+
+/** One area path per series, over its drawn range */
 export function computeAreaPaths(
     series: Pick<ChartSeries, "y0" | "y1">[],
     incomes: number[],
@@ -75,15 +85,34 @@ export function computeAreaPaths(
     yScale: ScaleLinear<number, number>
 ): string[] {
     return series.map((s) => {
-        const heights = s.y1.map((y, i) => y - s.y0[i])
-        const threshold = Math.max(...heights) * EMPTY_HEIGHT_RATIO
-        const first = heights.findIndex((h) => h > threshold)
-        const last = heights.findLastIndex((h) => h > threshold)
+        const [first, last] = drawnRange(s)
         const generator = area<number>()
             .defined((_, i) => i >= first && i <= last)
             .x((_, i) => xScale(incomes[i]))
             .y0((_, i) => yScale(s.y0[i]))
             .y1((_, i) => yScale(s.y1[i]))
+            .curve(curveMonotoneX)
+        return generator(s.y1) ?? ""
+    })
+}
+
+/**
+ * One line path per series along its top edge, over the same drawn range as
+ * its area: the stacked bands' borders, drawn in each band's own colour as
+ * Grapher's stacked area charts do
+ */
+export function computeTopLinePaths(
+    series: Pick<ChartSeries, "y0" | "y1">[],
+    incomes: number[],
+    xScale: ScaleLogarithmic<number, number>,
+    yScale: ScaleLinear<number, number>
+): string[] {
+    return series.map((s) => {
+        const [first, last] = drawnRange(s)
+        const generator = line<number>()
+            .defined((_, i) => i >= first && i <= last)
+            .x((_, i) => xScale(incomes[i]))
+            .y((y) => yScale(y))
             .curve(curveMonotoneX)
         return generator(s.y1) ?? ""
     })

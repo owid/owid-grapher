@@ -1,10 +1,11 @@
 import { Fragment, memo } from "react"
 import type { ScaleLogarithmic } from "d3-scale"
 
+import { GRAPHER_DARK_TEXT } from "@ourworldindata/grapher/src/color/ColorConstants.js"
 import {
-    GRAPHER_BACKGROUND,
-    GRAPHER_DARK_TEXT,
-} from "@ourworldindata/grapher/src/color/ColorConstants.js"
+    GRAPHER_AREA_OPACITY_DEFAULT,
+    GRAPHER_AREA_OPACITY_HIGHLIGHTED,
+} from "@ourworldindata/grapher/src/core/GrapherConstants.js"
 import { darkenColorForText } from "@ourworldindata/grapher/src/color/ColorUtils.js"
 
 import type { ChartSeries } from "../../core/chartModel.js"
@@ -22,6 +23,7 @@ const DIMMED_OPACITY = 0.3
 export const AreaLayer = memo(function AreaLayer({
     series,
     paths,
+    topPaths,
     isStacked,
     highlightedKeys,
     xScale,
@@ -31,6 +33,8 @@ export const AreaLayer = memo(function AreaLayer({
 }: {
     series: ChartSeries[]
     paths: string[]
+    /** Stacked: each band's top edge, drawn as its border (computeTopLinePaths) */
+    topPaths: string[]
     isStacked: boolean
     highlightedKeys: Set<string> | undefined
     xScale: ScaleLogarithmic<number, number>
@@ -106,27 +110,42 @@ export const AreaLayer = memo(function AreaLayer({
                 const isHighlighted = highlightedKeys?.has(s.key) ?? false
                 const isDimmed = highlightedKeys !== undefined && !isHighlighted
                 const maskId = fadeMasks.get(i)?.id
+                // Stacked bands as in Grapher's stacked area charts: the fill a
+                // little translucent, and the band's top edge drawn in its own
+                // colour at full strength as the border. Country curves overlap,
+                // so they're more see-through, each outlined in its colour.
                 return (
-                    <path
+                    <g
                         key={s.key}
-                        data-key={s.key}
                         mask={maskId ? `url(#${maskId})` : undefined}
-                        d={paths[i]}
-                        fill={s.color}
-                        fillOpacity={isStacked ? 1 : 0.5}
-                        stroke={isStacked ? GRAPHER_BACKGROUND : s.color}
-                        strokeWidth={
-                            isStacked
-                                ? isHighlighted
-                                    ? 1
-                                    : 0.5
-                                : isHighlighted
-                                  ? 2.5
-                                  : 1.5
-                        }
-                        strokeLinejoin="round"
                         opacity={isDimmed ? DIMMED_OPACITY : 1}
-                    />
+                    >
+                        <path
+                            data-key={s.key}
+                            d={paths[i]}
+                            fill={s.color}
+                            fillOpacity={
+                                isStacked
+                                    ? isHighlighted
+                                        ? GRAPHER_AREA_OPACITY_HIGHLIGHTED
+                                        : GRAPHER_AREA_OPACITY_DEFAULT
+                                    : 0.5
+                            }
+                            stroke={isStacked ? "none" : s.color}
+                            strokeWidth={isHighlighted ? 2.5 : 1.5}
+                            strokeLinejoin="round"
+                        />
+                        {isStacked && (
+                            <path
+                                d={topPaths[i]}
+                                fill="none"
+                                stroke={s.color}
+                                strokeWidth={isHighlighted ? 1.5 : 1}
+                                strokeLinejoin="round"
+                                pointerEvents="none"
+                            />
+                        )}
+                    </g>
                 )
             })}
         </>

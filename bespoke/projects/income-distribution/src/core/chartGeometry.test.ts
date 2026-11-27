@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest"
 
 import {
     computeAreaPaths,
+    computeTopLinePaths,
     makeXScale,
     makeYScale,
     MARGIN,
@@ -41,5 +42,12 @@ describe(computeAreaPaths, () => {
     it("starts the path where the series has height", () => {
         const [d] = computeAreaPaths(series, incomes, xScale, yScale)
         expect(startX(d)).toBeCloseTo(xScale(4))
+    })
+
+    it("draws the top edge as a line over the same range", () => {
+        const [d] = computeTopLinePaths(series, incomes, xScale, yScale)
+        expect(startX(d)).toBeCloseTo(xScale(4))
+        // A line, not a closed area: no return along the baseline
+        expect(d).not.toMatch(/Z/)
     })
 })
