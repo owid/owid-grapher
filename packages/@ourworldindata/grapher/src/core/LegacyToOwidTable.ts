@@ -11,8 +11,6 @@ import * as _ from "lodash-es"
 import {
     ColumnTypeNames,
     CoreValueType,
-    EntityName,
-    ErrorValue,
     IndicatorDimensionInterface,
     OwidChartDimensionInterface,
     OwidColumnDef,
@@ -49,6 +47,7 @@ import {
     trimObject,
 } from "@ourworldindata/utils"
 import { getIndicatorColumnSlug } from "../chart/ChartDimension.js"
+import { makeEntityColorColumn } from "./appendSelectedEntityColors.js"
 import { mergeDisplayIntoDef } from "./applyDisplayAndConversionFactor.js"
 import {
     EMPTY_FRAME,
@@ -104,19 +103,6 @@ export const legacyToOwidTableAndDimensions = (
     return frameToTable(
         appendDerivedColumns(joined, json, selectedEntityColors)
     )
-}
-
-/** Adds the entity color column that applies a config's `selectedEntityColors` */
-export const appendSelectedEntityColors = (
-    table: OwidTable,
-    selectedEntityColors: SelectedEntityColors | undefined
-): OwidTable => {
-    if (_.isEmpty(selectedEntityColors)) return table
-    const { def, values } = makeEntityColorColumn(
-        table.entityNameColumn.valuesIncludingErrorValues,
-        selectedEntityColors
-    )
-    return table.appendColumns([{ ...def, values }])
 }
 
 // ---------------------------------------------------------------------------
@@ -257,23 +243,6 @@ const appendDerivedColumns = (
         numRows: frame.numRows,
     }
 }
-
-const makeEntityColorColumn = (
-    entityNames: readonly CoreValueType[],
-    selectedEntityColors: SelectedEntityColors | undefined
-): FrameColumn => ({
-    def: {
-        slug: OwidTableSlugs.EntityColor,
-        name: OwidTableSlugs.EntityColor,
-        type: ColumnTypeNames.Color,
-    },
-    values: entityNames.map(
-        (entityName): string | ErrorValue =>
-            (entityName
-                ? selectedEntityColors?.[entityName as EntityName]
-                : undefined) ?? ErrorValueTypes.UndefinedButShouldBeString
-    ),
-})
 
 // ---------------------------------------------------------------------------
 // Per-variable frames
