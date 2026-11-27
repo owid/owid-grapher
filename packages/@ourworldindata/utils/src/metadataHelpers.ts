@@ -3,6 +3,7 @@ import {
     OwidVariableWithSource,
     OwidProcessingLevel,
     DisplaySource,
+    SourceWithIndicatorLinks,
     IndicatorTitleWithFragments,
     OwidSource,
     PrimaryTopic,
@@ -169,6 +170,22 @@ export const getProcessingPhraseForAttribution = (
         ? undefined
         : getPhraseForProcessingLevel(owidProcessingLevel)
 
+/**
+ * A key for what identifies an origin as a data source to a reader: two
+ * origins with the same key are the same source, even if they link to
+ * different pages of it or differ in what the data page doesn't show (their
+ * license, their download link).
+ */
+export const getOriginIdentityKey = (origin: OwidOrigin): string =>
+    JSON.stringify([
+        origin.producer,
+        origin.title,
+        origin.versionProducer,
+        origin.attribution,
+        origin.description,
+        origin.dateAccessed,
+    ])
+
 const prepareOriginForDisplay = (origin: OwidOrigin): DisplaySource => {
     const title = origin.title !== origin.producer ? origin.title : undefined
     const label = excludeUndefined([origin.producer, title]).join(" – ")
@@ -189,7 +206,8 @@ const prepareOriginForDisplay = (origin: OwidOrigin): DisplaySource => {
 }
 
 export const prepareSourcesForDisplay = (
-    variable: Pick<OwidVariableWithSource, "origins" | "source">
+    variable: Pick<OwidVariableWithSource, "origins" | "source">,
+    sourcesWithIndicatorLinks: SourceWithIndicatorLinks[] = []
 ): DisplaySource[] => {
     const { origins, source } = variable
 
@@ -209,7 +227,13 @@ export const prepareSourcesForDisplay = (
 
     if (origins && origins.length > 0) {
         sourcesForDisplay.push(
-            ...origins.map((origin) => prepareOriginForDisplay(origin))
+            ...origins.map((origin, originIndex) => {
+                const source = prepareOriginForDisplay(origin)
+                const indicatorLinks = sourcesWithIndicatorLinks.find(
+                    (source) => source.originIndex === originIndex
+                )?.indicatorLinks
+                return indicatorLinks ? { ...source, indicatorLinks } : source
+            })
         )
     }
 
@@ -253,6 +277,7 @@ const getCitationLong = ({
     owidProcessingLevel,
     citationUrl,
     archivalDate,
+    includeDatasetTitle,
 }: {
     indicatorTitle: IndicatorTitleWithFragments
     origins: OwidOrigin[]
@@ -263,6 +288,7 @@ const getCitationLong = ({
     owidProcessingLevel?: OwidProcessingLevel
     citationUrl?: string
     archivalDate?: string
+    includeDatasetTitle: boolean
 }): string => {
     const citationTitleFragments =
         attributionShort && titleVariant
@@ -292,7 +318,7 @@ const getCitationLong = ({
     const archivalPhrase = getPhraseForArchivalDate(archivalDate)
     return excludeUndefined([
         `${attributionWithProcessing}.`,
-        `“${titleWithFragments}” [dataset].`,
+        includeDatasetTitle ? `“${titleWithFragments}” [dataset].` : undefined,
         originCitations
             ? `${originCitations} [original data].`
             : source?.name
@@ -304,23 +330,37 @@ const getCitationLong = ({
     ]).join(" ")
 }
 
+/**
+ * The producers of the origins, each named once. An origin can name several
+ * at once ("A; B"), which would otherwise repeat the ones another origin
+ * names singly.
+ */
+const getDistinctProducers = (origins: OwidOrigin[]): string[] =>
+    _.uniq(
+        origins.flatMap((origin) =>
+            (origin.producer ?? "")
+                .split(";")
+                .map((producer) => producer.trim())
+                .filter(Boolean)
+        )
+    )
+
 const getCitationDatapage = ({
-    indicatorTitle,
-    origins,
+    title,
+    producers,
     source,
     primaryTopic,
     citationUrl,
     archivalDate,
 }: {
-    indicatorTitle: IndicatorTitleWithFragments
-    origins: OwidOrigin[]
+    title: string
+    producers: string[]
     source?: OwidSource
     primaryTopic?: PrimaryTopic
     citationUrl: string
     archivalDate?: string
 }): string => {
     const currentYear = dayjs().year()
-    const producers = _.uniq(origins.map((origin) => `${origin.producer}`))
     const adaptedFrom =
         producers.length > 0 ? producers.join(", ") : source?.name
 
@@ -332,13 +372,24 @@ const getCitationDatapage = ({
     const archivalPhrase = getPhraseForArchivalDate(archivalDate)
     return excludeUndefined([
         primaryTopic
-            ? `“Data Page: ${indicatorTitle.title}”, part of the following publication: ${primaryTopicCitation}`
-            : `“Data Page: ${indicatorTitle.title}”. Our World in Data (${currentYear}).`,
+            ? `“Data Page: ${title}”, part of the following publication: ${primaryTopicCitation}`
+            : `“Data Page: ${title}”. Our World in Data (${currentYear}).`,
         adaptedFrom ? `Data adapted from ${adaptedFrom}.` : undefined,
         `Retrieved from ${citationUrl} [online resource]${
             archivalPhrase ? ` ${archivalPhrase}` : ""
         }`,
     ]).join(" ")
+}
+
+/**
+ * How a data page with several indicators is cited: by the chart's title, as
+ * no one indicator's title describes the page, and so without the long
+ * citation's line naming a single indicator's dataset.
+ */
+export interface PageCitation {
+    title: string
+    /** On a page with a pane per indicator: the origins of all of them */
+    origins?: OwidOrigin[]
 }
 
 export const getIndicatorCitations = ({
@@ -352,6 +403,7 @@ export const getIndicatorCitations = ({
     citationUrl,
     archivalDate,
     primaryTopic,
+    pageCitation,
 }: {
     indicatorTitle: IndicatorTitleWithFragments
     origins: OwidOrigin[]
@@ -363,6 +415,7 @@ export const getIndicatorCitations = ({
     citationUrl?: string
     archivalDate?: string
     primaryTopic?: PrimaryTopic
+    pageCitation?: PageCitation
 }): { short: string; long: string; datapage?: string } => ({
     short: getCitationShort({ attributions, owidProcessingLevel }),
     long: getCitationLong({
@@ -375,11 +428,12 @@ export const getIndicatorCitations = ({
         owidProcessingLevel,
         citationUrl,
         archivalDate,
+        includeDatasetTitle: !pageCitation,
     }),
     datapage: citationUrl
         ? getCitationDatapage({
-              indicatorTitle,
-              origins,
+              title: pageCitation?.title ?? indicatorTitle.title,
+              producers: getDistinctProducers(pageCitation?.origins ?? origins),
               source,
               primaryTopic,
               citationUrl,
@@ -398,7 +452,7 @@ export const formatSourceDate = (
 }
 
 /** The years of "1990-2020" or "2023" (BCE years negative), else null */
-const parseTimespan = (
+export const parseTimespan = (
     timespan: string
 ): { firstYear: number; lastYear: number } | null => {
     const match = timespan.match(

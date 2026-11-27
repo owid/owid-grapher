@@ -47,6 +47,8 @@ import {
     DbPlainDataset,
     normalizeDescriptionKey,
     parseVariableDisplayConfig,
+    VariableSliceMetadata,
+    parseVariableDimensions,
 } from "@ourworldindata/types"
 import { knexRaw, knexRawFirst } from "../db.js"
 import {
@@ -399,6 +401,9 @@ export async function updateIndicatorChartConfig(
 /**
  * Returns the indicator ID to use for datapage metadata if the grapher is
  * eligible for a datapage, otherwise undefined.
+ *
+ * `forceDatapage` makes a chart without a `datapages` row eligible, with its
+ * first y-indicator. A chart with a row keeps the indicator the row names.
  */
 export async function getDatapageIndicatorId(
     knex: db.KnexReadonlyTransaction,
@@ -407,32 +412,29 @@ export async function getDatapageIndicatorId(
         forceDatapage?: boolean
     }
 ): Promise<number | undefined> {
-    // If a data page is forced, simply return the first y-dimension
-    if (options?.forceDatapage) {
-        const yVariableIds = grapher
-            .dimensions!.filter((d) => d.property === DimensionProperty.y)
-            .map((d) => d.variableId)
-        return yVariableIds[0]
-    }
-
-    if (!grapher.id) {
+    if (!grapher.id && !options?.forceDatapage) {
         console.warn(
             "Grapher must have an ID to check for datapage eligibility"
         )
         return undefined
     }
 
-    const row = await knexRawFirst<DbPlainDatapage>(
-        knex,
-        `-- sql
-            SELECT variableId
-            FROM datapages
-            WHERE chartId = ?
-        `,
-        [grapher.id]
-    )
+    const row = grapher.id
+        ? await knexRawFirst<DbPlainDatapage>(
+              knex,
+              `-- sql
+                SELECT variableId
+                FROM datapages
+                WHERE chartId = ?
+            `,
+              [grapher.id]
+          )
+        : undefined
+    if (row) return row.variableId
+    if (!options?.forceDatapage) return undefined
 
-    return row?.variableId
+    return grapher.dimensions?.find((d) => d.property === DimensionProperty.y)
+        ?.variableId
 }
 
 /**
@@ -1793,4 +1795,41 @@ export async function deleteIndicators(
     }
 
     return { deleted: deletableIndicatorIds, blocked }
+}
+
+/**
+ * How the ETL cut each variable from its table (`variables.dimensions`).
+ * Variables that weren't cut from a table are absent from the map.
+ */
+export async function getVariableSliceMetadata(
+    knex: db.KnexReadonlyTransaction,
+    variableIds: number[]
+): Promise<Map<number, VariableSliceMetadata>> {
+    const sliceMetadata = new Map<number, VariableSliceMetadata>()
+    if (!variableIds.length) return sliceMetadata
+    const rows = await knexRaw<{
+        id: number
+        dimensions: string
+        catalogPath: string
+    }>(
+        knex,
+        `-- sql
+            SELECT id, dimensions, catalogPath
+            FROM variables
+            WHERE id IN (?)
+              AND dimensions IS NOT NULL
+              AND catalogPath IS NOT NULL
+        `,
+        [variableIds]
+    )
+    for (const row of rows) {
+        const dimensions = parseVariableDimensions(row.dimensions)
+        if (!dimensions?.originalShortName) continue
+        sliceMetadata.set(row.id, {
+            originalShortName: dimensions.originalShortName,
+            filters: dimensions.filters ?? [],
+            tablePath: row.catalogPath.split("#")[0],
+        })
+    }
+    return sliceMetadata
 }

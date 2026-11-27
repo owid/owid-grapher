@@ -22,6 +22,10 @@ import {
     getRelatedResearchAndWritingForVariables,
 } from "../db/model/Post.js"
 import {
+    DataPageDataV2,
+    FaqDictionary,
+    IndicatorPaneData,
+    MultiIndicatorMetadata,
     GrapherInterface,
     DimensionProperty,
     OwidVariableWithSource,
@@ -38,8 +42,10 @@ import ProgressBar from "progress"
 import {
     getVariableDistribution,
     getIndicatorChartConfig,
+    getVariableMetadata,
     getVariableOfDatapageIfApplicable,
     getOwnersForVariables,
+    getVariableSliceMetadata,
 } from "../db/model/Variable.js"
 import {
     fetchAndParseFaqs,
@@ -60,7 +66,29 @@ import { getAllMultiDimDataPageSlugs } from "../db/model/MultiDimDataPage.js"
 import pMap from "p-map"
 import { stringify } from "safe-stable-stringify"
 import { GrapherArchivalManifest } from "../serverUtils/archivalUtils.js"
+import { stitchIndicatorPanes } from "./stitchIndicatorPanes.js"
+import {
+    PlannedIndicatorPane,
+    hasMultipleIndicators,
+    planIndicatorPanes,
+} from "./indicatorPanePlan.js"
+import { shouldShowIndicatorList } from "./stitchedIndicatorList.js"
 import { getLatestArchivedChartPageVersionsIfEnabled } from "../db/model/ArchivedChartVersion.js"
+
+/** Set from the query string of the admin's preview routes */
+export interface DatapageRenderOptions {
+    /** Render a data page even if the chart isn't one by the usual rules */
+    forceDatapage?: boolean
+    /** Give each indicator its own pane even where they could be stitched */
+    forceSwitcher?: boolean
+}
+
+export const parseDatapageRenderOptions = (
+    query: Record<string, unknown>
+): DatapageRenderOptions => ({
+    forceDatapage: query.forceDatapage === "true",
+    forceSwitcher: query.forceSwitcher === "true",
+})
 
 const renderDatapageIfApplicable = async (
     grapher: GrapherInterface,
@@ -71,15 +99,17 @@ const renderDatapageIfApplicable = async (
         archiveContextDictionary,
         teamPagePhotos,
         forceDatapage,
+        forceSwitcher,
     }: {
         imageMetadataDictionary?: Record<string, DbEnrichedImage>
         archiveContextDictionary?: Record<number, ArchiveContext | undefined>
         teamPagePhotos?: TeamPagePhoto[]
-        forceDatapage?: boolean
-    } = {}
+    } & DatapageRenderOptions = {}
 ) => {
     const variable = await getVariableOfDatapageIfApplicable(knex, grapher, {
-        forceDatapage,
+        // A chart with several indicators is a data page without needing a
+        // `datapages` row
+        forceDatapage: forceDatapage || hasMultipleIndicators(grapher),
     })
 
     if (!variable) return undefined
@@ -102,6 +132,7 @@ const renderDatapageIfApplicable = async (
             pageGrapher: grapher,
             imageMetadataDictionary,
             archiveContextDictionary,
+            forceSwitcher,
             teamPagePhotos,
         },
         knex
@@ -138,6 +169,119 @@ export const renderDataPageOrGrapherPage = async (
     })
 }
 
+type LoadedIndicatorPane = IndicatorPaneData & { variableId: number }
+
+const getFaqGdocIds = (variables: OwidVariableWithSource[]): string[] =>
+    _.compact(
+        _.uniq(
+            variables.flatMap((variable) =>
+                variable.presentation?.faqs?.map((faq) => faq.gdocId)
+            )
+        )
+    )
+
+async function getFaqEntries(
+    faqGdocs: Record<string, FaqDictionary>,
+    variableMetadata: OwidVariableWithSource
+): Promise<FaqEntryData> {
+    const { resolvedFaqs, errors } = resolveFaqsForVariable(
+        faqGdocs,
+        variableMetadata
+    )
+    for (const error of errors) {
+        await logErrorAndMaybeCaptureInSentry(
+            new Error(
+                `Data page error in finding FAQs for variable ${variableMetadata.id}: ${error.error}`
+            )
+        )
+    }
+    return {
+        faqs: resolvedFaqs?.flatMap((faq) => faq.enrichedFaq.content) ?? [],
+    }
+}
+
+async function loadIndicatorPane(
+    knex: db.KnexReadonlyTransaction,
+    {
+        variableMetadata,
+        grapher,
+        pane,
+        faqGdocs,
+    }: {
+        variableMetadata: OwidVariableWithSource
+        grapher: GrapherInterface
+        /** Given for each pane of a chart with several indicators */
+        pane?: PlannedIndicatorPane
+        faqGdocs: Record<string, FaqDictionary>
+    }
+): Promise<LoadedIndicatorPane> {
+    const datapageData = getDatapageDataV2(variableMetadata, grapher, pane)
+    datapageData.primaryTopic = await getPrimaryTopic(
+        knex,
+        datapageData.topicTagsLinks
+    )
+    // Each pane shows who manages its own indicator's dataset
+    datapageData.owners = await getOwnersForVariables(knex, [
+        variableMetadata.id,
+    ])
+    return {
+        variableId: variableMetadata.id,
+        datapageData,
+        faqEntries: await getFaqEntries(faqGdocs, variableMetadata),
+    }
+}
+
+/**
+ * Stitches the panes into one where they agree, and otherwise keeps one for
+ * each indicator.
+ */
+async function arrangeIndicatorPanes(
+    knex: db.KnexReadonlyTransaction,
+    panes: LoadedIndicatorPane[],
+    { forceSwitcher }: Pick<DatapageRenderOptions, "forceSwitcher">
+): Promise<{
+    datapageData: DataPageDataV2
+    multiIndicator?: MultiIndicatorMetadata
+}> {
+    const [primaryPane, ...additionalPanes] = panes
+    if (additionalPanes.length === 0)
+        return { datapageData: primaryPane.datapageData }
+
+    const stitchedPane = forceSwitcher ? undefined : stitchIndicatorPanes(panes)
+    if (!stitchedPane)
+        return {
+            datapageData: primaryPane.datapageData,
+            multiIndicator: {
+                type: "switcher",
+                additionalPanes: additionalPanes.map(
+                    ({ datapageData, faqEntries }) => ({
+                        // The browser only reads the primary pane's chart
+                        // config
+                        datapageData: { ...datapageData, chartConfig: {} },
+                        faqEntries,
+                    })
+                ),
+            },
+        }
+
+    const sliceMetadata = await getVariableSliceMetadata(
+        knex,
+        panes.map((pane) => pane.variableId)
+    )
+    return {
+        datapageData: stitchedPane.datapageData,
+        multiIndicator: {
+            type: "stitched",
+            indicators: stitchedPane.indicators,
+            showIndicatorList: shouldShowIndicatorList(
+                stitchedPane.indicators,
+                panes.map((pane) => sliceMetadata.get(pane.variableId))
+            ),
+            sourcesWithIndicatorLinks: stitchedPane.sourcesWithIndicatorLinks,
+        },
+    }
+}
+
 export async function renderDataPageV2(
     {
         variableId,
@@ -147,6 +291,7 @@ export async function renderDataPageV2(
         pageGrapher,
         imageMetadataDictionary = {},
         archiveContextDictionary,
+        forceSwitcher,
         teamPagePhotos,
     }: {
         variableId: number
@@ -157,7 +302,7 @@ export async function renderDataPageV2(
         imageMetadataDictionary?: Record<string, ImageMetadata>
         archiveContextDictionary?: Record<number, ArchiveContext | undefined>
         teamPagePhotos?: TeamPagePhoto[]
-    },
+    } & Pick<DatapageRenderOptions, "forceSwitcher">,
     knex: db.KnexReadonlyTransaction
 ) {
     // Only merge the grapher config on the indicator if the caller tells us to do so -
@@ -170,31 +315,6 @@ export async function renderDataPageV2(
               pageGrapher ?? {}
           )
         : (pageGrapher ?? {})
-
-    const faqDocIds = _.compact(
-        _.uniq(variableMetadata.presentation?.faqs?.map((faq) => faq.gdocId))
-    )
-
-    const faqGdocs = await fetchAndParseFaqs(knex, faqDocIds, { isPreviewing })
-
-    const { resolvedFaqs, errors: faqResolveErrors } = resolveFaqsForVariable(
-        faqGdocs,
-        variableMetadata
-    )
-
-    if (faqResolveErrors.length > 0) {
-        for (const error of faqResolveErrors) {
-            await logErrorAndMaybeCaptureInSentry(
-                new Error(
-                    `Data page error in finding FAQs for variable ${variableId}: ${error.error}`
-                )
-            )
-        }
-    }
-
-    const faqEntries: FaqEntryData = {
-        faqs: resolvedFaqs?.flatMap((faq) => faq.enrichedFaq.content) ?? [],
-    }
 
     // If we are rendering this in the context of an indicator page preview or similar,
     // then the chart config might be entirely empty. Make sure that dimensions is
@@ -209,28 +329,60 @@ export async function renderDataPageV2(
         _.compact(grapher.dimensions.map(({ variableId }) => variableId))
     )
     const distribution = await getVariableDistribution(knex, variableIds)
-    const datapageData = getDatapageDataV2(variableMetadata, grapher)
 
-    datapageData.primaryTopic = await getPrimaryTopic(
+    const plannedPanes = planIndicatorPanes(grapher)
+    // The primary indicator's pane comes first
+    const orderedPanes: PlannedIndicatorPane[] = [
+        plannedPanes.find((pane) => pane.variableId === variableId) ?? {
+            variableId,
+        },
+        ...plannedPanes.filter((pane) => pane.variableId !== variableId),
+    ]
+    const isMultiIndicator = orderedPanes.length > 1
+    const paneVariableMetadata = [
+        variableMetadata,
+        ...(await pMap(
+            orderedPanes.slice(1),
+            // Not cached, like the primary indicator's
+            (pane) => getVariableMetadata(pane.variableId, { noCache: true }),
+            { concurrency: 5 }
+        )),
+    ]
+
+    // Indicators of one dataset tend to share their FAQ documents, so these
+    // are fetched once for all the panes
+    const faqGdocs = await fetchAndParseFaqs(
         knex,
-        datapageData.topicTagsLinks
+        getFaqGdocIds(paneVariableMetadata),
+        { isPreviewing }
+    )
+    const panes = await pMap(
+        orderedPanes,
+        (pane, i) =>
+            loadIndicatorPane(knex, {
+                variableMetadata: paneVariableMetadata[i],
+                grapher,
+                // A lone indicator is described by the chart, and so titled
+                // by it
+                pane: isMultiIndicator ? pane : undefined,
+                faqGdocs,
+            }),
+        { concurrency: 5 }
+    )
+    const { faqEntries } = panes[0]
+    const { datapageData, multiIndicator } = await arrangeIndicatorPanes(
+        knex,
+        panes,
+        { forceSwitcher }
     )
 
     let imageMetadata: Record<string, ImageMetadata> = {}
 
-    // y-indicators only: the x is usually GDP or population, and only the first
-    // dataset's owners are shown
-    const ownerVariableIds = _.uniq(
-        _.compact(
-            grapher.dimensions
-                .filter(({ property }) => property === DimensionProperty.y)
-                .map(({ variableId }) => variableId)
-        )
-    )
-    datapageData.owners = await getOwnersForVariables(knex, ownerVariableIds)
-
+    // The managers of every pane's dataset, whose author pages the box links
     const ownerNames = _.uniq(
-        datapageData.owners.flatMap((dataset) => dataset.owners)
+        panes
+            .flatMap((pane) => pane.datapageData.owners ?? [])
+            .flatMap((dataset) => dataset.owners)
     )
     const archiveContext =
         grapher.id !== undefined
@@ -296,6 +448,7 @@ export async function renderDataPageV2(
         <DataPageV2
             grapher={grapher}
             datapageData={datapageData}
+            multiIndicator={multiIndicator}
             canonicalUrl={canonicalUrl}
             baseUrl={BAKED_BASE_URL}
             isPreviewing={isPreviewing}
@@ -315,13 +468,13 @@ export const renderPreviewDataPageOrGrapherPage = async (
     grapher: GrapherInterface,
     chartId: number,
     knex: db.KnexReadonlyTransaction,
-    options?: { forceDatapage?: boolean }
+    options?: DatapageRenderOptions
 ) => {
     const archiveContextDictionary =
         await getLatestArchivedChartPageVersionsIfEnabled(knex)
     const datapage = await renderDatapageIfApplicable(grapher, true, knex, {
         archiveContextDictionary,
-        forceDatapage: options?.forceDatapage,
+        ...options,
     })
     if (datapage) return datapage
 

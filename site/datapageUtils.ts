@@ -159,3 +159,12 @@ export function getProducerDocsLabel(
     if (shortNames.size === 1 && shortName) return shortName
     return producer
 }
+
+/** "Title – variant", unless the title already says the variant. */
+export function appendTitleVariant(
+    title: string,
+    titleVariant: string | undefined
+): string {
+    const variant = titleVariant?.trim()
+    return variant && !title.includes(variant) ? `${title} – ${variant}` : title
+}

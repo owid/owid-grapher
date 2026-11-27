@@ -1,0 +1,161 @@
+// The indicator switcher of a data page whose metadata box has a pane for
+// each indicator (IndicatorSwitcher.tsx). The menu follows the multi-dim
+// dimension dropdown's (site/multiDim/DimensionDropdown.scss).
+
+// react-aria's wrapper around the trigger, which is laid out as if unwrapped
+.indicator-switcher__select {
+    display: contents;
+}
+
+.indicator-switcher__label {
+    white-space: nowrap;
+    color: $blue-50;
+}
+
+.indicator-switcher__label-title {
+    @include overline-black-caps;
+}
+
+.indicator-switcher__label-count {
+    @include note-1-regular;
+    font-style: italic;
+}
+
+.indicator-switcher__dropdown-trigger,
+.indicator-switcher__switch-trigger {
+    @include body-3-medium;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    max-width: 100%;
+    min-width: 0;
+    height: 32px;
+    padding: 4px 10px 4px 12px;
+    border: 1px solid $blue-20;
+    border-radius: 4px;
+    background: $white;
+    color: $blue-60;
+    line-height: 1;
+    cursor: pointer;
+    transition: border-color 120ms ease;
+
+    &:hover,
+    &[aria-expanded="true"] {
+        border-color: $blue-30;
+        color: $blue-90;
+    }
+}
+
+// The site's focus ring shows on any button that takes focus, which these do
+// when their menu closes after a click. So the ring is kept to keyboard
+// focus, which react-aria tracks.
+button.indicator-switcher__dropdown-trigger,
+button.indicator-switcher__switch-trigger {
+    &:focus-visible {
+        outline: none;
+    }
+
+    &[data-focus-visible] {
+        outline: 2px solid $blue-60;
+    }
+}
+
+.indicator-switcher__switch-trigger {
+    flex: none;
+    // Wide enough to set the caret apart from the label
+    min-width: 208px;
+    white-space: nowrap;
+}
+
+.indicator-switcher__switch-icon {
+    font-size: 0.875rem;
+}
+
+.indicator-switcher__dropdown-value {
+    overflow: hidden;
+    min-width: 0;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.indicator-switcher__caret {
+    margin-left: auto;
+    font-size: 0.875rem;
+    transition: transform 160ms ease;
+
+    [aria-expanded="true"] > & {
+        transform: rotate(180deg);
+    }
+}
+
+.indicator-switcher__popover {
+    z-index: $zindex-popover;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    min-width: 300px;
+    max-width: min(480px, calc(100vw - 24px));
+    padding: 4px 0;
+    border-radius: 4px;
+    background: $white;
+    box-shadow: 0 4px 23px 4px rgba($oxford-blue, 0.06);
+}
+
+// As wide as its trigger, which react-aria measures
+.indicator-switcher__popover--match-trigger {
+    min-width: max(var(--trigger-width), 300px);
+}
+
+.indicator-switcher__menu {
+    outline: none;
+}
+
+.indicator-switcher__menu-group-label {
+    @include body-3-medium;
+    padding: 16px 16px 4px;
+    color: $gray-70;
+    line-height: 16px;
+}
+
+.indicator-switcher__option {
+    @include body-3-medium;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 8px 16px;
+    color: $gray-80;
+    line-height: 16px;
+    cursor: pointer;
+
+    .indicator-switcher__menu--grouped & {
+        padding-left: 32px;
+    }
+
+    // The row's fill shows which option has focus, where the site's focus
+    // ring would be clipped by the menu's edges
+    &:focus-visible {
+        outline: none;
+    }
+
+    &[data-hovered],
+    &[data-focused] {
+        background: $blue-10;
+        color: $blue-90;
+    }
+
+    &[data-selected] {
+        background: $blue-20;
+        color: $blue-90;
+        cursor: default;
+
+        // The selected option's own fill hides the focus fill
+        &[data-focus-visible] {
+            box-shadow: inset 0 0 0 2px $blue-60;
+        }
+    }
+}
+
+.indicator-switcher__option-check {
+    flex-shrink: 0;
+    font-size: 0.75rem;
+}

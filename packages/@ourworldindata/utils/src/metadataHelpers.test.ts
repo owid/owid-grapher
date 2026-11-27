@@ -830,6 +830,32 @@ describe(getIndicatorCitations, () => {
             ).toContain("Data adapted from A, B.")
         })
 
+        it("lists producers that an origin names together one by one", () => {
+            expect(
+                citations({
+                    origins: [{ producer: "A; B" }, { producer: "B" }],
+                    citationUrl,
+                }).datapage
+            ).toContain("Data adapted from A, B.")
+        })
+
+        it("cites a page of several indicators by its title and all their producers", () => {
+            expect(
+                citations({
+                    origins: [{ producer: "A" }],
+                    pageCitation: {
+                        title: "Chart",
+                        origins: [{ producer: "A" }, { producer: "B" }],
+                    },
+                    citationUrl,
+                }).datapage
+            ).toEqual(
+                `“Data Page: Chart”. Our World in Data (${dayjs().year()}). ` +
+                    `Data adapted from A, B. ` +
+                    `Retrieved from ${citationUrl} [online resource]`
+            )
+        })
+
         it("falls back to the source name if there are no origins", () => {
             expect(
                 citations({ source: { name: "Source" }, citationUrl }).datapage

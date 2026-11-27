@@ -130,3 +130,125 @@ describe("FAQ fragment compatibility", () => {
         }
     )
 })
+
+describe("a chart with several indicators", () => {
+    const worldBank = {
+        producer: "World Bank",
+        title: "World Development Indicators",
+        urlMain: "https://data.worldbank.org/urban",
+        citationFull: "World Bank (2026).",
+    }
+
+    it("lists a stitched pane's indicators, and each one's link to a source they share", () => {
+        const view = render(
+            <IndicatorMetadataBox
+                datapageData={{ ...datapageData, origins: [worldBank] }}
+                faqEntries={undefined}
+                multiIndicator={{
+                    type: "stitched",
+                    indicators: [
+                        {
+                            title: "Urban population",
+                            descriptionShort: "People living in cities.",
+                        },
+                        {
+                            title: "Rural population",
+                            descriptionShort: "People living elsewhere.",
+                        },
+                    ],
+                    showIndicatorList: true,
+                    sourcesWithIndicatorLinks: [
+                        {
+                            originIndex: 0,
+                            indicatorLinks: [
+                                {
+                                    label: "Urban population",
+                                    retrievedFrom:
+                                        "https://data.worldbank.org/urban",
+                                },
+                                {
+                                    label: "Rural population",
+                                    retrievedFrom:
+                                        "https://data.worldbank.org/rural",
+                                },
+                            ],
+                        },
+                    ],
+                }}
+                chartTitle="Urban and rural population"
+                canonicalUrl="https://ourworldindata.org/grapher/example"
+                archiveContext={undefined}
+            />
+        )
+        expect(
+            view.getByRole("heading", { name: "About this data" })
+        ).toBeTruthy()
+        expect(view.getByRole("heading", { name: "2 indicators" })).toBeTruthy()
+        expect(view.getByText("People living elsewhere.")).toBeTruthy()
+        expect(
+            view
+                .getAllByRole("link")
+                .map((link) => link.getAttribute("href"))
+                .filter((href) => href?.startsWith("https://data.worldbank"))
+        ).toEqual([
+            "https://data.worldbank.org/urban",
+            "https://data.worldbank.org/rural",
+        ])
+        expect(view.container.textContent).toContain(
+            "Data Page: Urban and rural population"
+        )
+    })
+
+    it("leaves a stitched pane's list out when it would repeat the chart's legend", () => {
+        const view = render(
+            <IndicatorMetadataBox
+                datapageData={datapageData}
+                faqEntries={undefined}
+                multiIndicator={{
+                    type: "stitched",
+                    indicators: [{ title: "Coal" }, { title: "Gas" }],
+                    showIndicatorList: false,
+                    sourcesWithIndicatorLinks: [],
+                }}
+                canonicalUrl="https://ourworldindata.org/grapher/example"
+                archiveContext={undefined}
+            />
+        )
+        expect(view.queryByRole("heading", { name: "2 indicators" })).toBeNull()
+    })
+
+    it("puts every indicator's pane in the HTML, without repeating an id", () => {
+        const html = renderToStaticMarkup(
+            <IndicatorMetadataBox
+                datapageData={{
+                    ...datapageData,
+                    descriptionProcessing: "We added up the regions.",
+                }}
+                faqEntries={faqEntries}
+                multiIndicator={{
+                    type: "switcher",
+                    additionalPanes: [
+                        {
+                            datapageData: {
+                                ...datapageData,
+                                title: { title: "Another indicator" },
+                                descriptionProcessing: "We took the average.",
+                            },
+                            faqEntries,
+                        },
+                    ],
+                }}
+                canonicalUrl="https://ourworldindata.org/grapher/example"
+                archiveContext={undefined}
+                id="about-this-data"
+            />
+        )
+        expect(html).toContain("Example indicator")
+        expect(html).toContain("Another indicator")
+        expect(html).toContain("We took the average.")
+        const ids = [...html.matchAll(/ id="([^"]+)"/g)]
+            .map((match) => match[1])
+            .filter((id) => !id.startsWith("react-aria"))
+        expect(ids).toEqual([...new Set(ids)])
+    })
+})

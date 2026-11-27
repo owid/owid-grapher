@@ -31,6 +31,14 @@ export interface DatasetOwners {
 export interface DataPageDataV2 {
     status: "published" | "draft"
     title: IndicatorTitleWithFragments
+    /**
+     * The chart author's name for this indicator's dimension, on a chart with
+     * several indicators. The indicator switcher prefers it to the title, so
+     * that its menu matches the chart's legend.
+     */
+    chartDimensionName?: string
+    /** Set on the pane of a scatter plot's bubble-size or colour indicator. */
+    auxiliaryRole?: AuxiliaryIndicatorRole
     titleVariant?: string
     attributionShort?: string
     topicTagsLinks?: string[]
@@ -75,8 +83,68 @@ export type Distribution =
     | { allowed: true }
     | { allowed: false; sourceLinks: string[] }
 
+/** What a scatter plot uses an indicator for besides its axes. */
+export type AuxiliaryIndicatorRole = "size" | "color"
+
+/** One indicator's pane in the metadata box of a chart with several indicators. */
+export interface IndicatorPaneData {
+    datapageData: DataPageDataV2
+    faqEntries?: FaqEntryData
+}
+
+/**
+ * One indicator of a stitched metadata box, whose single pane shows what the
+ * indicators share. Every field but the title is set only when it differs
+ * between the indicators.
+ */
+export interface StitchedIndicator {
+    title: string
+    titleVariant?: string
+    descriptionShort?: string
+    unit?: string
+    descriptionKey?: string
+    dateRange?: string
+    descriptionFromProducer?: string
+}
+
+/** One indicator's link and citation for a data source several indicators share. */
+export interface IndicatorLink {
+    /** The indicator's title */
+    label: string
+    retrievedFrom?: string
+    citation?: string
+}
+
+/** A source of a stitched pane that its indicators link or cite differently. */
+export interface SourceWithIndicatorLinks {
+    /** The source's index in the pane's origins */
+    originIndex: number
+    indicatorLinks: IndicatorLink[]
+}
+
+/**
+ * How the metadata box documents a chart with several indicators. When they
+ * share their sources, processing and FAQs the baker stitches them into one
+ * pane; otherwise each indicator gets a pane and the box a switcher.
+ */
+export type MultiIndicatorMetadata =
+    | {
+          type: "switcher"
+          /** The panes after the primary indicator's, in display order */
+          additionalPanes: IndicatorPaneData[]
+      }
+    | {
+          type: "stitched"
+          indicators: StitchedIndicator[]
+          /** False when the list would only repeat the chart's legend */
+          showIndicatorList: boolean
+          sourcesWithIndicatorLinks: SourceWithIndicatorLinks[]
+      }
+
 export interface DataPageV2ContentFields {
     datapageData: DataPageDataV2
+    /** Set when the chart has more than one indicator to document */
+    multiIndicator?: MultiIndicatorMetadata
     faqEntries: FaqEntryData | undefined
     // TODO: add gdocs for FAQs
     isPreviewing?: boolean
@@ -93,6 +161,12 @@ export interface DisplaySource {
     retrievedOn?: string
     retrievedFrom?: string
     citation?: string
+    /**
+     * Each indicator's own link and citation, on a stitched page where they
+     * differ. The Sources UI then shows these in place of retrievedFrom and
+     * citation.
+     */
+    indicatorLinks?: IndicatorLink[]
     // Only the data-download readme reads these; the Sources UIs render the
     // fields above. They are here so both start from one shape.
     producer?: string

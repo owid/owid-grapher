@@ -3,6 +3,15 @@
     padding: var(--indicator-metadata-box-padding);
     background-color: $gray-5;
     grid-template-columns: repeat(12, 1fr);
+    @include sm-only {
+        --indicator-metadata-box-padding: 16px;
+    }
+}
+
+// The box's place on the page, which its wrapper takes on a page with an
+// indicator switcher
+.indicator-metadata-box,
+.indicator-metadata-box-wrap {
     grid-column-start: 2;
     grid-column-end: span 12;
     margin-top: 16px;
@@ -12,16 +21,43 @@
         margin-right: -8px;
         margin-left: -8px;
         margin-bottom: 16px;
-        --indicator-metadata-box-padding: 16px;
     }
 }
 
 @include md-up {
     .indicator-metadata-box {
         grid-template-columns: repeat(9, 1fr);
+    }
+
+    .indicator-metadata-box,
+    .indicator-metadata-box-wrap {
         grid-column-start: 2;
         grid-column-end: span 9;
     }
+}
+
+.indicator-metadata-box-wrap > .indicator-metadata-box {
+    grid-column: auto;
+    margin: 0;
+}
+
+// The indicator dropdown above the box
+.indicator-metadata-box-wrap__header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+    margin-bottom: 8px;
+}
+
+// A box with an indicator switcher has a pane for each indicator and shows
+// the active one
+.indicator-metadata-box__pane {
+    display: none;
+}
+
+.indicator-metadata-box__pane--active {
+    display: contents;
 }
 
 .indicator-metadata-box .indicator-metadata-box__expander--has-preview {
@@ -109,6 +145,16 @@
     gap: 16px;
 }
 
+// The title and what follows it. A control moves under the title whole when
+// both don't fit on a line, so the title is never cut short.
+.indicator-metadata-box__heading {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
 .indicator-metadata-box__title {
     @include h3-bold;
     margin: 0;
@@ -133,6 +179,20 @@
     }
 }
 
+.indicator-metadata-box__title--hidden {
+    display: none;
+}
+
+// Takes the place of a hidden title
+.indicator-metadata-box__header-description {
+    @include body-3-regular;
+    color: $blue-90;
+
+    p {
+        margin: 0;
+    }
+}
+
 // The toggle button's hit area covers the whole title row
 .indicator-metadata-box__header {
     position: relative;
@@ -143,6 +203,13 @@
     position: absolute;
     inset: calc(-1 * var(--indicator-metadata-box-padding))
         calc(-1 * var(--indicator-metadata-box-padding)) 0;
+}
+
+// What else in the row can be clicked sits above the hit area
+.indicator-metadata-box__header-control,
+.indicator-metadata-box__header-description {
+    position: relative;
+    z-index: 1;
 }
 
 // On phones the label is for screen readers only (as .sr-only)
@@ -399,4 +466,66 @@
     li > p {
         margin: 0;
     }
+}
+
+// What differs between the indicators of a stitched pane
+.indicator-metadata-box__indicator-list {
+    margin-top: 16px;
+
+    ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    li {
+        @include body-3-regular;
+        margin-bottom: 12px;
+        color: $blue-90;
+    }
+
+    a {
+        @include owid-link-90;
+    }
+}
+
+.indicator-metadata-box__indicator-list-heading {
+    @include body-2-regular;
+    margin: 0 0 12px;
+    color: $blue-60;
+    line-height: 21px;
+}
+
+.indicator-metadata-box__indicator-list-title {
+    @include body-3-bold;
+    display: block;
+    line-height: normal;
+}
+
+.indicator-metadata-box__indicator-list-text {
+    display: block;
+    margin-top: 4px;
+}
+
+.indicator-metadata-box__indicator-list-key-data {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 16px;
+    margin-top: 4px;
+}
+
+.indicator-metadata-box__indicator-list-key {
+    color: $blue-50;
+}
+
+.indicator-metadata-box__indicator-list-toggle {
+    @include body-3-bold;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: $blue-90;
+    line-height: normal;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
 }

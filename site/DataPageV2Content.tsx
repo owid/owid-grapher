@@ -58,6 +58,7 @@ function DataPageDownloadSection({
 
 export const DataPageV2Content = ({
     datapageData,
+    multiIndicator,
     grapherConfig,
     isPreviewing = false,
     faqEntries,
@@ -154,10 +155,12 @@ export const DataPageV2Content = ({
                         </div>
                         <IndicatorMetadataBox
                             datapageData={datapageData}
+                            multiIndicator={multiIndicator}
                             faqEntries={faqEntries}
                             canonicalUrl={canonicalUrl}
                             archiveContext={archiveContext}
                             id={DATAPAGE_ABOUT_THIS_DATA_SECTION_ID}
+                            chartTitle={grapherConfig.title}
                         />
                         {relatedResearch.length > 0 && (
                             <div className="datapage-research-and-writing-v2 col-start-2 span-cols-12">

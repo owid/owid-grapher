@@ -51,7 +51,9 @@ export const IndicatorSources = (props: IndicatorSourcesProps) => {
                     />
                 )
                 const useExpandableToggle =
-                    source.description || source.citation
+                    source.description ||
+                    source.citation ||
+                    source.indicatorLinks
                 return useExpandableToggle ? (
                     <ExpandableToggle
                         key={source.label}
@@ -101,11 +103,13 @@ const SourceContent = (props: {
 }) => {
     const { source } = props
     const retrievedOn = formatSourceDate(source.retrievedOn, "MMMM D, YYYY")
+    const { indicatorLinks } = source
     const showKeyInfo =
         source.dataPublishedBy ||
         retrievedOn ||
         (source.retrievedFrom && source.retrievedFrom.length > 0) ||
-        source.citation
+        source.citation ||
+        indicatorLinks
     return (
         <div className="source">
             {source.description && (
@@ -139,6 +143,7 @@ const SourceContent = (props: {
                         <div
                             className={cx("source-key-data", {
                                 "source-key-data--span-2":
+                                    !!indicatorLinks ||
                                     !source.retrievedFrom ||
                                     source.retrievedFrom.length === 0,
                             })}
@@ -151,7 +156,39 @@ const SourceContent = (props: {
                             </div>
                         </div>
                     )}
-                    {source.retrievedFrom &&
+                    {indicatorLinks?.map((indicatorLink, i) => (
+                        <div
+                            key={i}
+                            className="source-key-data source-key-data--span-2"
+                        >
+                            <div className="source-key-data__title">
+                                {indicatorLink.label}
+                            </div>
+                            <div className="source-key-data__content">
+                                {indicatorLink.retrievedFrom && (
+                                    <div className="source-key-data__indicator-link">
+                                        Retrieved from{" "}
+                                        {makeLinks({
+                                            link: indicatorLink.retrievedFrom,
+                                            trackNote:
+                                                props.retrievedFromTrackNote,
+                                            openLinksInNewTab:
+                                                props.openLinksInNewTab,
+                                        })}
+                                    </div>
+                                )}
+                                {indicatorLink.citation && (
+                                    <CodeSnippet
+                                        code={indicatorLink.citation.trim()}
+                                        theme="light"
+                                        useMarkdown={true}
+                                    />
+                                )}
+                            </div>
+                        </div>
+                    ))}
+                    {!indicatorLinks &&
+                        source.retrievedFrom &&
                         source.retrievedFrom.length > 0 && (
                             <div
                                 className={cx("source-key-data", {
@@ -171,7 +208,7 @@ const SourceContent = (props: {
                                 </div>
                             </div>
                         )}
-                    {source.citation && (
+                    {!indicatorLinks && source.citation && (
                         <div className="source-key-data source-key-data-citation source-key-data--span-2">
                             <div className="source-key-data__title">
                                 Citation

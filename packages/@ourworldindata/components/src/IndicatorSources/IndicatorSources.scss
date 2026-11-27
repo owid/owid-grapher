@@ -79,6 +79,10 @@
             }
         }
 
+        .source-key-data__indicator-link:not(:last-child) {
+            margin-bottom: 8px;
+        }
+
         a {
             @include owid-link-90;
             color: inherit;

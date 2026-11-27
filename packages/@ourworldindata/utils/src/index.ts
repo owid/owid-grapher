@@ -179,10 +179,13 @@ export {
     getAttributionWithProcessing,
     getProcessingPhraseForAttribution,
     prepareSourcesForDisplay,
+    getOriginIdentityKey,
     formatSourceDate,
+    parseTimespan,
     getDateRange,
     getDateRangeLabel,
     getIndicatorCitations,
+    type PageCitation,
 } from "./metadataHelpers.js"
 
 export { getAllVariableIds } from "./multiDim.js"

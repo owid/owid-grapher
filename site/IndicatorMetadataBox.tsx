@@ -25,23 +25,45 @@ import {
     ArchiveContext,
     DataPageDataV2,
     FaqEntryData,
+    IndicatorPaneData,
     LicenseOption,
+    MultiIndicatorMetadata,
     OwidEnrichedGdocBlock,
+    SourceWithIndicatorLinks,
+    StitchedIndicator,
 } from "@ourworldindata/types"
 import cx from "clsx"
-import { useEffect, useRef } from "react"
+import * as _ from "lodash-es"
+import { createRef, useEffect, useRef, useState } from "react"
 import {
     formatAttributions,
     prepareSourcesForDisplay,
     getIndicatorCitations,
     spansToUnformattedPlainText,
+    type PageCitation,
 } from "@ourworldindata/utils"
 import AvatarByline from "./gdocs/components/AvatarByline.js"
 import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
-import { getProducerDocsLabel, splitDescriptionKey } from "./datapageUtils.js"
+import {
+    appendTitleVariant,
+    getProducerDocsLabel,
+    splitDescriptionKey,
+} from "./datapageUtils.js"
 import { SiteAnalytics } from "./SiteAnalytics.js"
+import {
+    IndicatorDropdown,
+    IndicatorSwitchButton,
+} from "./IndicatorSwitcher.js"
+import { useSwitcherVariant } from "./useSwitcherVariant.js"
 
 const analytics = new SiteAnalytics()
+
+type StitchedMetadata = Extract<MultiIndicatorMetadata, { type: "stitched" }>
+
+// A longer list of indicators shows its first few until the reader asks for
+// the rest
+const MAX_INDICATORS_LISTED_IN_FULL = 5
+const INDICATORS_LISTED_WHEN_FOLDED = 3
 
 interface FaqQuestion {
     id: string
@@ -102,12 +124,28 @@ function openDetailsAroundLinkTarget(event: React.MouseEvent): void {
 
 function IndicatorDataDetails({
     datapageData,
+    stitchedIndicators = [],
 }: {
     datapageData: DataPageDataV2
+    /** A stitched pane's indicators, when it lists them */
+    stitchedIndicators?: StitchedIndicator[]
 }): React.ReactElement | null {
     const { unit, dateRange, lastUpdated, nextUpdate } = datapageData
-    const formattedDateRange = makeDateRange({ dateRange })
-    if (!unit && !formattedDateRange && !lastUpdated && !nextUpdate) return null
+    // Indicators that give their own date ranges make the span of them all
+    // redundant
+    const formattedDateRange = stitchedIndicators.some(
+        (indicator) => indicator.dateRange
+    )
+        ? undefined
+        : makeDateRange({ dateRange })
+    if (
+        !unit &&
+        !formattedDateRange &&
+        !lastUpdated &&
+        !nextUpdate &&
+        stitchedIndicators.length === 0
+    )
+        return null
     return (
         <MetadataBoxSection
             title="Data details"
@@ -137,16 +175,124 @@ function IndicatorDataDetails({
                     </MetadataBoxKeyDataRow>
                 )}
             </MetadataBoxKeyData>
+            {stitchedIndicators.length > 0 && (
+                <StitchedIndicatorList
+                    indicators={stitchedIndicators}
+                    sharedTitleVariant={datapageData.titleVariant?.trim()}
+                />
+            )}
         </MetadataBoxSection>
+    )
+}
+
+/** What differs between a stitched pane's indicators, one entry for each. */
+function StitchedIndicatorList({
+    indicators,
+    sharedTitleVariant,
+}: {
+    indicators: StitchedIndicator[]
+    sharedTitleVariant?: string
+}): React.ReactElement {
+    const [isExpanded, setIsExpanded] = useState(false)
+    const isFoldable = indicators.length > MAX_INDICATORS_LISTED_IN_FULL
+    const visibleCount =
+        isFoldable && !isExpanded
+            ? INDICATORS_LISTED_WHEN_FOLDED
+            : indicators.length
+    const listRef = useRef<HTMLDivElement>(null)
+    const fold = (): void => {
+        setIsExpanded(false)
+        // Folding pulls the page up under the reader, so a list whose top
+        // has scrolled out of view is brought back
+        const list = listRef.current
+        if (list && list.getBoundingClientRect().top < 0)
+            list.scrollIntoView({ block: "start" })
+    }
+    return (
+        <div className="indicator-metadata-box__indicator-list" ref={listRef}>
+            <h3 className="indicator-metadata-box__indicator-list-heading">
+                {indicators.length} indicators
+                {sharedTitleVariant && ` (${sharedTitleVariant})`}
+            </h3>
+            <ul>
+                {indicators.map((indicator, i) => (
+                    // Folded indicators stay in the HTML, where crawlers and
+                    // agents can read them
+                    <li key={i} hidden={i >= visibleCount}>
+                        <span className="indicator-metadata-box__indicator-list-title">
+                            {appendTitleVariant(
+                                indicator.title,
+                                indicator.titleVariant
+                            )}
+                        </span>
+                        {indicator.descriptionShort && (
+                            <span className="indicator-metadata-box__indicator-list-text">
+                                <SimpleMarkdownText
+                                    text={indicator.descriptionShort}
+                                    useParagraphs={false}
+                                />
+                            </span>
+                        )}
+                        {(indicator.unit || indicator.dateRange) && (
+                            <span className="indicator-metadata-box__indicator-list-key-data">
+                                {indicator.unit && (
+                                    <span>
+                                        <span className="indicator-metadata-box__indicator-list-key">
+                                            Unit
+                                        </span>{" "}
+                                        {indicator.unit}
+                                    </span>
+                                )}
+                                {indicator.dateRange && (
+                                    <span>
+                                        <span className="indicator-metadata-box__indicator-list-key">
+                                            {makeDateRangeLabel({
+                                                dateRange: indicator.dateRange,
+                                            })}
+                                        </span>{" "}
+                                        {makeDateRange({
+                                            dateRange: indicator.dateRange,
+                                        })}
+                                    </span>
+                                )}
+                            </span>
+                        )}
+                        {indicator.descriptionKey && (
+                            <span className="indicator-metadata-box__indicator-list-text">
+                                <SimpleMarkdownText
+                                    text={indicator.descriptionKey}
+                                    useParagraphs={false}
+                                />
+                            </span>
+                        )}
+                    </li>
+                ))}
+            </ul>
+            {isFoldable && (
+                <button
+                    type="button"
+                    className="indicator-metadata-box__indicator-list-toggle"
+                    onClick={isExpanded ? fold : () => setIsExpanded(true)}
+                    aria-expanded={isExpanded}
+                    data-track-note="metadata_box_indicator_list_toggle"
+                >
+                    {isExpanded
+                        ? "− Show less indicators"
+                        : "+ Show more indicators"}
+                </button>
+            )}
+        </div>
     )
 }
 
 function IndicatorFaqs({
     descriptionProcessing,
     faqEntries,
+    idSuffix,
 }: {
     descriptionProcessing: string | undefined
     faqEntries: FaqEntryData | undefined
+    idSuffix: string
 }): React.ReactElement | null {
     const faqQuestions = groupFaqsByQuestion(faqEntries?.faqs ?? [])
     if (!descriptionProcessing && faqQuestions.length === 0) return null
@@ -154,13 +300,13 @@ function IndicatorFaqs({
     return (
         <MetadataBoxSection
             title="Frequently asked questions"
-            id="faqs"
+            id={`faqs${idSuffix}`}
             className="metadata-box-section--faqs"
         >
             {descriptionProcessing && (
                 <ExpandableToggle
                     label="How did Our World in Data process this data?"
-                    id={INDICATOR_PROCESSING_SECTION_ID}
+                    id={`${INDICATOR_PROCESSING_SECTION_ID}${idSuffix}`}
                     content={
                         <div className="indicator-metadata-box__processing-notes">
                             <SimpleMarkdownText
@@ -181,7 +327,7 @@ function IndicatorFaqs({
             {faqQuestions.map((faq) => (
                 <ExpandableToggle
                     key={faq.id}
-                    id={faq.id}
+                    id={`${faq.id}${idSuffix}`}
                     label={faq.question}
                     content={
                         <ArticleBlocks
@@ -204,47 +350,78 @@ function IndicatorFaqs({
 
 function IndicatorProducerDocs({
     datapageData,
+    stitchedIndicators = [],
 }: {
     datapageData: DataPageDataV2
+    stitchedIndicators?: StitchedIndicator[]
 }): React.ReactElement | null {
-    if (!datapageData.descriptionFromProducer) return null
+    // The pane's own or, on a stitched pane whose indicators' differ, each
+    // of theirs
+    const docs = datapageData.descriptionFromProducer
+        ? [
+              {
+                  label: getProducerDocsLabel(datapageData),
+                  text: datapageData.descriptionFromProducer,
+              },
+          ]
+        : stitchedIndicators.flatMap((indicator) =>
+              indicator.descriptionFromProducer
+                  ? [
+                        {
+                            label: appendTitleVariant(
+                                indicator.title,
+                                indicator.titleVariant
+                            ),
+                            text: indicator.descriptionFromProducer,
+                        },
+                    ]
+                  : []
+          )
+    if (docs.length === 0) return null
     return (
         <MetadataBoxSection title="Documentation from data sources">
-            <ExpandableToggle
-                label={getProducerDocsLabel(datapageData)}
-                content={
-                    <div className="indicator-metadata-box__producer-docs">
-                        <SimpleMarkdownText
-                            text={datapageData.descriptionFromProducer}
-                            dataTrackNote="producer_link"
-                            dodTrackNote="producer_documentation"
-                        />
-                    </div>
-                }
-                onToggle={(isOpen) =>
-                    analytics.logExpandableToggle(
-                        "producer_documentation",
-                        isOpen
-                    )
-                }
-            />
+            {docs.map(({ label, text }, i) => (
+                <ExpandableToggle
+                    key={i}
+                    label={label}
+                    content={
+                        <div className="indicator-metadata-box__producer-docs">
+                            <SimpleMarkdownText
+                                text={text}
+                                dataTrackNote="producer_link"
+                                dodTrackNote="producer_documentation"
+                            />
+                        </div>
+                    }
+                    onToggle={(isOpen) =>
+                        analytics.logExpandableToggle(
+                            "producer_documentation",
+                            isOpen
+                        )
+                    }
+                />
+            ))}
         </MetadataBoxSection>
     )
 }
 
 function IndicatorDataSources({
     datapageData,
+    sourcesWithIndicatorLinks,
+    idSuffix,
 }: {
     datapageData: DataPageDataV2
+    sourcesWithIndicatorLinks?: SourceWithIndicatorLinks[]
+    idSuffix: string
 }): React.ReactElement {
-    const sourcesForDisplay = prepareSourcesForDisplay({
-        origins: datapageData.origins,
-        source: datapageData.source,
-    })
+    const sourcesForDisplay = prepareSourcesForDisplay(
+        { origins: datapageData.origins, source: datapageData.source },
+        sourcesWithIndicatorLinks
+    )
     return (
         <MetadataBoxSection
             title="Data sources"
-            id={DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID}
+            id={`${DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID}${idSuffix}`}
         >
             <IndicatorSources
                 sources={sourcesForDisplay}
@@ -287,10 +464,16 @@ function IndicatorCitations({
     datapageData,
     canonicalUrl,
     archiveContext,
+    pageCitation,
+    dataCitationLabel,
+    idSuffix,
 }: {
     datapageData: DataPageDataV2
     canonicalUrl: string
     archiveContext: ArchiveContext | undefined
+    pageCitation?: PageCitation
+    dataCitationLabel: string
+    idSuffix: string
 }): React.ReactElement | null {
     const {
         short: citationShort,
@@ -307,6 +490,7 @@ function IndicatorCitations({
         citationUrl: archiveContext?.archiveUrl ?? canonicalUrl,
         archivalDate: archiveContext?.archivalDate,
         primaryTopic: datapageData.primaryTopic,
+        pageCitation,
     })
 
     if (!citationShort && !citationLong) return null
@@ -314,7 +498,7 @@ function IndicatorCitations({
         <MetadataBoxSection
             title="How to cite"
             // The old layout's id, which existing links still use
-            id={REUSE_THIS_WORK_SECTION_ID}
+            id={`${REUSE_THIS_WORK_SECTION_ID}${idSuffix}`}
         >
             {citationDatapage && (
                 <ExpandableToggle
@@ -343,7 +527,7 @@ function IndicatorCitations({
             )}
             {citationShort && (
                 <ExpandableToggle
-                    label="How to cite this data"
+                    label={dataCitationLabel}
                     content={
                         <>
                             <p>
@@ -407,31 +591,59 @@ function IndicatorFinePrint({
     )
 }
 
-export default function IndicatorMetadataBox({
+/**
+ * One indicator's metadata: a header with the box's toggle, the key data and
+ * the expandable sections. A box with a switcher holds one for each indicator
+ * and shows the active one.
+ */
+function IndicatorPane({
     datapageData,
     faqEntries,
-    id,
     canonicalUrl,
     archiveContext,
+    detailsRef,
+    detailsId,
+    idSuffix,
+    onToggle,
+    stitched,
+    pageCitation,
+    hasSwitcher,
+    headerControl,
+    hideTitle = false,
 }: {
     datapageData: DataPageDataV2
-    id?: string
     faqEntries: FaqEntryData | undefined
     canonicalUrl: string
     archiveContext: ArchiveContext | undefined
+    detailsRef: React.RefObject<HTMLDetailsElement | null>
+    detailsId: string | undefined
+    /** Keeps the section ids unique among the panes of a box */
+    idSuffix: string
+    onToggle: (isOpen: boolean) => void
+    stitched: StitchedMetadata | undefined
+    pageCitation: PageCitation | undefined
+    hasSwitcher: boolean
+    /** Sits beside the title */
+    headerControl?: React.ReactNode
+    /**
+     * For when the switcher above the box names the indicator: the short
+     * description then takes the title's place in the header.
+     */
+    hideTitle?: boolean
 }): React.ReactElement {
-    // Owners of the dataset backing this indicator. For now we show a single
-    // indicator's owners; multi-indicator charts will get a separate metadata
-    // expander per indicator, so we don't merge owners across datasets here.
-    const owners = datapageData.owners?.[0]?.owners ?? []
+    // A stitched pane's indicators can come from several datasets
+    const owners = _.uniq(
+        (datapageData.owners ?? []).flatMap((dataset) => dataset.owners)
+    )
 
     const descriptionProcessing = datapageData.descriptionProcessing?.trim()
     const attribution = formatAttributions(datapageData.attributions ?? [])
     const sourceString = makeSource({
         attribution,
         owidProcessingLevel: datapageData.owidProcessingLevel,
+        // Without processing notes there's nothing to link to
         processingId: descriptionProcessing
-            ? INDICATOR_PROCESSING_SECTION_ID
+            ? `${INDICATOR_PROCESSING_SECTION_ID}${idSuffix}`
             : null,
     })
 
@@ -441,47 +653,45 @@ export default function IndicatorMetadataBox({
     const { preview: descriptionKeyPreview, remainder: descriptionKeyRest } =
         splitDescriptionKey(datapageData.descriptionKey ?? "")
 
-    const detailsRef = useRef<HTMLDetailsElement | null>(null)
-    const rootRef = useRef<HTMLDivElement | null>(null)
-    useEffect(() => {
-        const revealHashTarget = (): void => {
-            const root = rootRef.current
-            if (!root) return
-            const target = revealMetadataTarget(root, window.location.hash)
-            // Fragment navigation may have run while the target was hidden.
-            target?.scrollIntoView()
-        }
-        revealHashTarget()
-        window.addEventListener("hashchange", revealHashTarget)
-        return () => window.removeEventListener("hashchange", revealHashTarget)
-    }, [])
-    // Not useId(): the client hydrates only part of the server-rendered page,
-    // so generated ids wouldn't match
-    const detailsId = id ? `${id}-details` : undefined
-
     return (
-        <div
-            className="metadata-box indicator-metadata-box"
-            id={id}
-            ref={rootRef}
-            onClick={openDetailsAroundLinkTarget}
-        >
+        <>
             <div className="indicator-metadata-box__header">
-                <h2 className="indicator-metadata-box__title">
-                    {datapageData.title.title}
-                    {datapageData.titleVariant && (
-                        <span className="indicator-metadata-box__title-variant">
-                            {datapageData.titleVariant}
-                        </span>
+                <div className="indicator-metadata-box__heading">
+                    <h2
+                        className={cx("indicator-metadata-box__title", {
+                            "indicator-metadata-box__title--hidden": hideTitle,
+                        })}
+                    >
+                        {stitched
+                            ? "About this data"
+                            : datapageData.title.title}
+                        {!stitched && datapageData.titleVariant && (
+                            <span className="indicator-metadata-box__title-variant">
+                                {datapageData.titleVariant}
+                            </span>
+                        )}
+                    </h2>
+                    {headerControl && (
+                        <div className="indicator-metadata-box__header-control">
+                            {headerControl}
+                        </div>
                     )}
-                </h2>
+                    {hideTitle && datapageData.descriptionShort && (
+                        <div className="indicator-metadata-box__header-description">
+                            <SimpleMarkdownText
+                                text={datapageData.descriptionShort}
+                                dodTrackNote="key_data"
+                            />
+                        </div>
+                    )}
+                </div>
                 <MetadataBoxToggleButton
                     detailsRef={detailsRef}
                     detailsId={detailsId}
                 />
             </div>
             <MetadataBoxKeyData>
-                {datapageData.descriptionShort && (
+                {datapageData.descriptionShort && !hideTitle && (
                     <MetadataBoxKeyDataRow
                         label="Description"
                         isFullWidth
@@ -536,11 +746,7 @@ export default function IndicatorMetadataBox({
                         </>
                     ) : undefined
                 }
-                onToggle={(isOpen) =>
-                    analytics.logSiteClick(
-                        isOpen ? "expand_metadata_box" : "collapse_metadata_box"
-                    )
-                }
+                onToggle={onToggle}
             >
                 {descriptionKeyRest && (
                     <div className="metadata-box-expander__remainder metadata-box-expander__prose">
@@ -551,20 +757,213 @@ export default function IndicatorMetadataBox({
                         />
                     </div>
                 )}
-                <IndicatorDataDetails datapageData={datapageData} />
+                <IndicatorDataDetails
+                    datapageData={datapageData}
+                    stitchedIndicators={
+                        stitched?.showIndicatorList
+                            ? stitched.indicators
+                            : undefined
+                    }
+                />
                 <IndicatorFaqs
                     descriptionProcessing={descriptionProcessing}
                     faqEntries={faqEntries}
+                    idSuffix={idSuffix}
                 />
-                <IndicatorProducerDocs datapageData={datapageData} />
-                <IndicatorDataSources datapageData={datapageData} />
+                <IndicatorProducerDocs
+                    datapageData={datapageData}
+                    stitchedIndicators={stitched?.indicators}
+                />
+                <IndicatorDataSources
+                    datapageData={datapageData}
+                    sourcesWithIndicatorLinks={
+                        stitched?.sourcesWithIndicatorLinks
+                    }
+                    idSuffix={idSuffix}
+                />
                 <IndicatorCitations
                     datapageData={datapageData}
                     canonicalUrl={canonicalUrl}
                     archiveContext={archiveContext}
+                    pageCitation={pageCitation}
+                    dataCitationLabel={
+                        hasSwitcher
+                            ? "How to cite this indicator"
+                            : "How to cite this data"
+                    }
+                    idSuffix={idSuffix}
                 />
                 <IndicatorFinePrint license={datapageData.license} />
             </MetadataBoxExpander>
+        </>
+    )
+}
+
+export default function IndicatorMetadataBox({
+    datapageData,
+    faqEntries,
+    multiIndicator,
+    chartTitle,
+    id,
+    canonicalUrl,
+    archiveContext,
+}: {
+    datapageData: DataPageDataV2
+    faqEntries: FaqEntryData | undefined
+    multiIndicator?: MultiIndicatorMetadata
+    /** Names the page in its citation when the chart has several indicators */
+    chartTitle?: string
+    id?: string
+    canonicalUrl: string
+    archiveContext: ArchiveContext | undefined
+}): React.ReactElement {
+    const panes: IndicatorPaneData[] = [
+        { datapageData, faqEntries },
+        ...(multiIndicator?.type === "switcher"
+            ? multiIndicator.additionalPanes
+            : []),
+    ]
+    const hasSwitcher = panes.length > 1
+    const pageCitation: PageCitation | undefined = multiIndicator && {
+        title: chartTitle ?? datapageData.title.title,
+        origins: hasSwitcher
+            ? panes.flatMap((pane) => pane.datapageData.origins ?? [])
+            : undefined,
+    }
+
+    const rootRef = useRef<HTMLDivElement | null>(null)
+    useEffect(() => {
+        const revealHashTarget = (): void => {
+            const root = rootRef.current
+            if (!root) return
+            const target = revealMetadataTarget(root, window.location.hash)
+            // Fragment navigation may have run while the target was hidden.
+            target?.scrollIntoView()
+        }
+        revealHashTarget()
+        window.addEventListener("hashchange", revealHashTarget)
+        return () => window.removeEventListener("hashchange", revealHashTarget)
+    }, [])
+
+    const switcherVariant = useSwitcherVariant()
+    const [activeIndex, setActiveIndex] = useState(0)
+    const [hasSwitched, setHasSwitched] = useState(false)
+    const [detailsRefs] = useState(() =>
+        panes.map(() => createRef<HTMLDetailsElement>())
+    )
+    // The panes whose <details> a switch has opened or closed, until their
+    // toggle events arrive
+    const panesToggledBySwitch = useRef(new Set<number>())
+
+    const switchToPane = (index: number): void => {
+        // Asking for an indicator is asking to see its metadata, so its pane
+        // opens. The others close, to be closed when they next show.
+        detailsRefs.forEach((detailsRef, paneIndex) => {
+            const details = detailsRef.current
+            const shouldBeOpen = paneIndex === index
+            if (!details || details.open === shouldBeOpen) return
+            panesToggledBySwitch.current.add(paneIndex)
+            details.open = shouldBeOpen
+        })
+        setActiveIndex(index)
+        setHasSwitched(true)
+    }
+
+    const logToggle = (paneIndex: number, isOpen: boolean): void => {
+        // Only the reader's own expanding and collapsing is logged
+        if (panesToggledBySwitch.current.delete(paneIndex)) return
+        analytics.logSiteClick(
+            isOpen ? "expand_metadata_box" : "collapse_metadata_box"
+        )
+    }
+
+    const renderPane = (
+        pane: IndicatorPaneData,
+        paneIndex: number
+    ): React.ReactElement => {
+        const isActive = paneIndex === activeIndex
+        // The active pane has the plain ids, which the rest of the page
+        // links to. Not useId(): the client hydrates only part of the
+        // server-rendered page, so generated ids wouldn't match.
+        const idSuffix = isActive ? "" : `--${paneIndex}`
+        return (
+            <IndicatorPane
+                datapageData={pane.datapageData}
+                faqEntries={pane.faqEntries}
+                canonicalUrl={canonicalUrl}
+                archiveContext={archiveContext}
+                detailsRef={detailsRefs[paneIndex]}
+                detailsId={id ? `${id}-details${idSuffix}` : undefined}
+                idSuffix={idSuffix}
+                onToggle={(isOpen) => logToggle(paneIndex, isOpen)}
+                stitched={
+                    multiIndicator?.type === "stitched"
+                        ? multiIndicator
+                        : undefined
+                }
+                pageCitation={pageCitation}
+                hasSwitcher={hasSwitcher}
+                headerControl={
+                    hasSwitcher &&
+                    isActive &&
+                    switcherVariant === "dropdown-inside" && (
+                        <IndicatorSwitchButton
+                            panes={panes}
+                            activeIndex={activeIndex}
+                            onChange={switchToPane}
+                            // A switch replaces the button that had focus
+                            // with this pane's
+                            focusOnMount={hasSwitched}
+                        />
+                    )
+                }
+                hideTitle={hasSwitcher && switcherVariant === "dropdown"}
+            />
+        )
+    }
+
+    if (!hasSwitcher)
+        return (
+            <div
+                className="metadata-box indicator-metadata-box"
+                id={id}
+                ref={rootRef}
+                onClick={openDetailsAroundLinkTarget}
+            >
+                {renderPane(panes[0], 0)}
+            </div>
+        )
+
+    return (
+        <div
+            className="indicator-metadata-box-wrap"
+            id={id}
+            ref={rootRef}
+            onClick={openDetailsAroundLinkTarget}
+        >
+            {switcherVariant === "dropdown" && (
+                <div className="indicator-metadata-box-wrap__header">
+                    <IndicatorDropdown
+                        panes={panes}
+                        activeIndex={activeIndex}
+                        onChange={switchToPane}
+                    />
+                </div>
+            )}
+            <div className="metadata-box indicator-metadata-box">
+                {/* Every pane is in the HTML, where agents can read it */}
+                {panes.map((pane, paneIndex) => (
+                    <div
+                        key={paneIndex}
+                        className={cx("indicator-metadata-box__pane", {
+                            "indicator-metadata-box__pane--active":
+                                paneIndex === activeIndex,
+                        })}
+                    >
+                        {renderPane(pane, paneIndex)}
+                    </div>
+                ))}
+            </div>
         </div>
     )
 }

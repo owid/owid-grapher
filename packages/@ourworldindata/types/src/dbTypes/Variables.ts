@@ -53,6 +53,17 @@ export interface VariableDisplayDimension {
     }[]
 }
 
+/**
+ * How the ETL cut a variable from a table: the column it comes from and the
+ * values the table's other columns were filtered to.
+ */
+export interface VariableSliceMetadata {
+    originalShortName: string
+    filters: VariableDisplayDimension["filters"]
+    /** The table part of the variable's catalog path */
+    tablePath: string
+}
+
 export interface License {
     name: string
     url: string
