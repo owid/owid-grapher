@@ -16,6 +16,7 @@ import { Timeago } from "../Forms.js"
 import { ApiSlideshowOverview } from "../../adminShared/AdminTypes.js"
 import { Link } from "../Link.js"
 import { useListSearch } from "../useListSearch.js"
+import { BAKED_BASE_URL } from "../../settings/clientSettings.mjs"
 
 function createColumns(ctx: {
     highlightFn: (
@@ -35,7 +36,17 @@ function createColumns(ctx: {
             dataIndex: "slug",
             key: "slug",
             width: 200,
-            render: (slug) => ctx.highlightFn(slug),
+            render: (slug, slideshow) =>
+                slideshow.isPublished ? (
+                    <a
+                        href={`${BAKED_BASE_URL}/slideshows/${slug}`}
+                        target="_blank"
+                    >
+                        {ctx.highlightFn(slug)}
+                    </a>
+                ) : (
+                    ctx.highlightFn(slug)
+                ),
         },
         {
             title: "Author",

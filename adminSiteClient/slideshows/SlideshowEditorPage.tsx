@@ -24,6 +24,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons"
 import { AdminLayout } from "../AdminLayout.js"
 import { AdminAppContext } from "../AdminAppContext.js"
+import { BAKED_BASE_URL } from "../../settings/clientSettings.mjs"
 import {
     DbPlainSlideshow,
     ImageMetadata,
@@ -98,6 +99,7 @@ export function SlideshowEditorPage(props: {
     const [title, setTitle] = useState("")
     const [slug, setSlug] = useState("")
     const [slugIsCustom, setSlugIsCustom] = useState(false)
+    const [savedSlug, setSavedSlug] = useState("")
     const [authors, setAuthors] = useState(admin.username)
     const [slides, setSlides] = useState<Slide[]>([
         makeDefaultSlideForTemplate(SlideTemplate.Cover),
@@ -144,6 +146,7 @@ export function SlideshowEditorPage(props: {
             const { slideshow } = res
             setTitle(slideshow.title)
             setSlug(slideshow.slug)
+            setSavedSlug(slideshow.slug)
             setSlugIsCustom(true)
             setIsPublished(Boolean(slideshow.isPublished))
             setAuthors(slideshow.config.authors ?? admin.username)
@@ -307,6 +310,7 @@ export function SlideshowEditorPage(props: {
                     "PUT"
                 )
                 if (shouldPublish) setIsPublished(true)
+                setSavedSlug(slug)
                 setIsDirty(false)
             }
         },
@@ -574,6 +578,22 @@ export function SlideshowEditorPage(props: {
                                     }
                                 >
                                     Preview
+                                </Button>
+                            </a>
+                        )}
+                        {!isCreate && isPublished && savedSlug && (
+                            <a
+                                href={`${BAKED_BASE_URL}/slideshows/${savedSlug}`}
+                                target="_blank"
+                            >
+                                <Button
+                                    icon={
+                                        <FontAwesomeIcon
+                                            icon={faExternalLinkAlt}
+                                        />
+                                    }
+                                >
+                                    View live
                                 </Button>
                             </a>
                         )}
