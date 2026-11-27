@@ -2103,7 +2103,7 @@
         {
           "name": "align",
           "type": "\"left\" | \"center\" | \"right\"",
-          "optional": true,
+          "optional": false,
           "description": "Where the block sits on desktop: `left` or `right` place it in a narrow side column next to the body text (link thumbnails are hidden there), `center` (what you get when it is omitted) puts it in the main text column. Other values are reported as a parse error."
         },
         {
