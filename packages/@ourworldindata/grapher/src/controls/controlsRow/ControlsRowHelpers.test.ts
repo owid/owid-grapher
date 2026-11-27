@@ -20,7 +20,7 @@ const FULL_LAYOUT: ControlsRowLayout = {
 }
 
 const MOST_COMPACT_LAYOUT: ControlsRowLayout = {
-    tabs: { labelMode: "icon", paddingPx: 8, visibleTabCount: 1 },
+    tabs: { labelMode: "icon", paddingPx: 8, visibleTabCount: 3 },
     entityLabel: "actionOnly",
     settingsLabel: "icon",
     showTableFilter: false,
@@ -69,40 +69,22 @@ describe(findControlsRowLayout, () => {
             "settingsLabel: icon",
             "showTableFilter: false",
             "tabs.visibleTabCount: 3",
-            "tabs.visibleTabCount: 2",
             "tabs.labelMode: icon, tabs.visibleTabCount: 4",
             "tabs.visibleTabCount: 3",
-            "tabs.visibleTabCount: 2",
-            "tabs.visibleTabCount: 1",
             "entityLabel: actionOnly",
             "tabs.paddingPx: 8",
         ])
     })
 
-    it("hides no tab for a chart with a single tab", () => {
+    it.each([1, 2, 3])("hides no tab for a chart with %s tabs", (tabCount) => {
         expect(
-            listCompactionSteps(1).map((step) => step.changedFields)
+            listCompactionSteps(tabCount).map((step) => step.changedFields)
         ).toEqual([
             "tabs.paddingPx: 12",
             "entityLabel: short",
             "settingsLabel: icon",
             "showTableFilter: false",
             "tabs.labelMode: icon",
-            "entityLabel: actionOnly",
-            "tabs.paddingPx: 8",
-        ])
-    })
-
-    it("hides only an icon tab for a chart with two tabs", () => {
-        expect(
-            listCompactionSteps(2).map((step) => step.changedFields)
-        ).toEqual([
-            "tabs.paddingPx: 12",
-            "entityLabel: short",
-            "settingsLabel: icon",
-            "showTableFilter: false",
-            "tabs.labelMode: icon",
-            "tabs.visibleTabCount: 1",
             "entityLabel: actionOnly",
             "tabs.paddingPx: 8",
         ])

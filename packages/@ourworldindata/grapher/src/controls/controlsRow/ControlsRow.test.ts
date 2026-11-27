@@ -68,7 +68,7 @@ function describeWidthChange(widthChange: number): WidthChange {
 }
 
 describe(ControlsRow.measureWidth, () => {
-    it("narrows the chart tab's row at every step but the table filter's and the switch to icon tabs", () => {
+    it("narrows the chart tab's row at every step but the table filter's", () => {
         expect(
             describeWidthChangeByStep(
                 makeFiveTabGrapher(GRAPHER_TAB_CONFIG_OPTIONS.chart)
@@ -78,13 +78,13 @@ describe(ControlsRow.measureWidth, () => {
             "entityLabel: short": "narrower",
             "settingsLabel: icon": "narrower",
             "showTableFilter: false": "unchanged",
-            "tabs.labelMode: icon, tabs.visibleTabCount: 5": "wider",
+            "tabs.labelMode: icon, tabs.visibleTabCount: 5": "narrower",
             "entityLabel: actionOnly": "narrower",
             "tabs.paddingPx: 8": "narrower",
         })
     })
 
-    it("narrows the map tab's row at the tab padding steps and the short entity label only", () => {
+    it("narrows the map tab's row at the tab steps and the short entity label only", () => {
         expect(
             describeWidthChangeByStep(
                 makeFiveTabGrapher(GRAPHER_TAB_CONFIG_OPTIONS.map)
@@ -94,13 +94,13 @@ describe(ControlsRow.measureWidth, () => {
             "entityLabel: short": "narrower",
             "settingsLabel: icon": "unchanged",
             "showTableFilter: false": "unchanged",
-            "tabs.labelMode: icon, tabs.visibleTabCount: 5": "wider",
+            "tabs.labelMode: icon, tabs.visibleTabCount: 5": "narrower",
             "entityLabel: actionOnly": "unchanged",
             "tabs.paddingPx: 8": "narrower",
         })
     })
 
-    it("narrows the table tab's row at the tab padding steps and the table filter only", () => {
+    it("narrows the table tab's row at the tab steps and the table filter only", () => {
         expect(
             describeWidthChangeByStep(
                 makeFiveTabGrapher(GRAPHER_TAB_CONFIG_OPTIONS.table)
@@ -110,7 +110,7 @@ describe(ControlsRow.measureWidth, () => {
             "entityLabel: short": "unchanged",
             "settingsLabel: icon": "unchanged",
             "showTableFilter: false": "narrower",
-            "tabs.labelMode: icon, tabs.visibleTabCount: 5": "wider",
+            "tabs.labelMode: icon, tabs.visibleTabCount: 5": "narrower",
             "entityLabel: actionOnly": "unchanged",
             "tabs.paddingPx: 8": "narrower",
         })
@@ -123,7 +123,7 @@ describe(ControlsRow.measureWidth, () => {
         const tabHidingSteps = listCompactionSteps(
             grapherState.availableTabs.length
         ).filter(isTabHidingStep)
-        expect(tabHidingSteps).toHaveLength(7)
+        expect(tabHidingSteps).toHaveLength(4)
         for (const { before, after } of tabHidingSteps) {
             expect(ControlsRow.measureWidth(grapherState, after)).toBeLessThan(
                 ControlsRow.measureWidth(grapherState, before)
@@ -323,7 +323,7 @@ describe("choosing how many tabs to show", () => {
         ).toEqual([])
     })
 
-    it("shows as many tabs as fit, and drops labels only when two labelled tabs don't fit", () => {
+    it("shows as many tabs as fit, and drops labels only when three labelled tabs don't fit", () => {
         const grapherState = makeSevenTabGrapher()
         const fits = (layout: ControlsRowLayout, maxWidth: number): boolean =>
             ControlsRow.measureWidth(grapherState, layout) <= maxWidth
@@ -345,16 +345,16 @@ describe("choosing how many tabs to show", () => {
                 ).toBe(false)
 
             if (labelMode === "label") {
-                expect(visibleTabCount).toBeGreaterThanOrEqual(2)
+                expect(visibleTabCount).toBeGreaterThanOrEqual(3)
                 shownLabelledCounts.add(visibleTabCount)
             } else {
-                expect(fits(makeCompactLayout("label", 2), maxWidth)).toBe(
+                expect(fits(makeCompactLayout("label", 3), maxWidth)).toBe(
                     false
                 )
                 isIconModeShown = true
             }
         }
-        expect([...shownLabelledCounts].toSorted()).toEqual([2, 3, 4, 5, 6, 7])
+        expect([...shownLabelledCounts].toSorted()).toEqual([3, 4, 5, 6, 7])
         expect(isIconModeShown).toBe(true)
     })
 

@@ -116,9 +116,9 @@ function listCompactionSteps(tabCount: number): ControlsRowStep[] {
         setEntityLabel("short"),
         showSettingsAsIcon,
         hideTableFilter,
-        ...hideTabsOneByOne({ from: tabCount, downTo: 2 }),
+        ...hideTabsOneByOne({ from: tabCount, downTo: 3 }),
         switchTabsToIcons(tabCount),
-        ...hideTabsOneByOne({ from: tabCount, downTo: 1 }),
+        ...hideTabsOneByOne({ from: tabCount, downTo: 3 }),
         setEntityLabel("actionOnly"),
         setTabPadding(8),
     ]
