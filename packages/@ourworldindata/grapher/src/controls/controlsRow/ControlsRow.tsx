@@ -29,7 +29,7 @@ import {
     MapZoomToSelectionButtonManager,
 } from "../MapZoomToSelectionButton"
 import { MapZoomDropdown, MapZoomDropdownManager } from "../MapZoomDropdown"
-import { ControlsRowLayout } from "./ControlsRowHelpers"
+import { ControlsRowLayout, findControlsRowLayout } from "./ControlsRowHelpers"
 
 // Keep in sync with CaptionedChart.scss and Controls.scss
 const ROW_SIDES_GAP_PX = 16
@@ -52,7 +52,7 @@ export interface ControlsRowManager
 
 interface ControlsRowProps {
     manager: ControlsRowManager
-    maxWidth?: number
+    maxWidth: number
     popoverMaxWidth?: number
     popoverMaxHeight?: number
 }
@@ -67,8 +67,7 @@ export class ControlsRow extends Component<ControlsRowProps> {
     }
 
     static shouldShow(manager: ControlsRowManager): boolean {
-        const test = new ControlsRow({ manager })
-        return test.showControlsRow
+        return shouldShowControlsRow(manager)
     }
 
     static measureWidth(
@@ -85,20 +84,10 @@ export class ControlsRow extends Component<ControlsRowProps> {
         return this.props.manager
     }
 
-    @computed private get showControlsRow(): boolean {
-        return (
-            ContentSwitchers.shouldShow(this.manager) ||
-            SettingsMenu.shouldShow(this.manager) ||
-            EntitySelectionToggle.shouldShow(this.manager) ||
-            // Map controls
-            MapRegionDropdown.shouldShow(this.manager) ||
-            MapZoomDropdown.shouldShow(this.manager) ||
-            MapZoomToSelectionButton.shouldShow(this.manager) ||
-            MapResetButton.shouldShow(this.manager, "resetZoom") ||
-            MapResetButton.shouldShow(this.manager, "resetView") ||
-            // Table controls
-            DataTableFilterDropdown.shouldShow(this.manager) ||
-            DataTableSearchField.shouldShow(this.manager)
+    @computed private get layout(): ControlsRowLayout {
+        return findControlsRowLayout(
+            (layout) => ControlsRow.measureWidth(this.manager, layout),
+            this.props.maxWidth
         )
     }
 
@@ -169,7 +158,10 @@ export class ControlsRow extends Component<ControlsRowProps> {
                 style={{ padding: `0 ${this.framePaddingHorizontal}px` }}
             >
                 <div>
-                    <ContentSwitchers manager={this.manager} />
+                    <ContentSwitchers
+                        manager={this.manager}
+                        layout={this.layout.tabs}
+                    />
                 </div>
                 <div className="controls">
                     {this.manager.isOnMapTab
@@ -181,6 +173,23 @@ export class ControlsRow extends Component<ControlsRowProps> {
             </nav>
         )
     }
+}
+
+function shouldShowControlsRow(manager: ControlsRowManager): boolean {
+    return (
+        ContentSwitchers.shouldShow(manager) ||
+        SettingsMenu.shouldShow(manager) ||
+        EntitySelectionToggle.shouldShow(manager) ||
+        // Map controls
+        MapRegionDropdown.shouldShow(manager) ||
+        MapZoomDropdown.shouldShow(manager) ||
+        MapZoomToSelectionButton.shouldShow(manager) ||
+        MapResetButton.shouldShow(manager, "resetZoom") ||
+        MapResetButton.shouldShow(manager, "resetView") ||
+        // Table controls
+        DataTableFilterDropdown.shouldShow(manager) ||
+        DataTableSearchField.shouldShow(manager)
+    )
 }
 
 function measureControlWidths(

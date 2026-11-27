@@ -44,6 +44,20 @@ $active-icon: $blue-50;
         }
     }
 
+    .Tabs.ContentSwitchers {
+        &.ContentSwitchers--tab-padding-12 .Tabs__Tab {
+            --tab-padding: 12px;
+        }
+
+        &.ContentSwitchers--tab-padding-8 .Tabs__Tab {
+            --tab-padding: 8px;
+        }
+
+        &.ContentSwitchers--icon-only .ContentSwitchers__TabContent {
+            justify-content: center;
+        }
+    }
+
     .Tabs.ContentSwitchers .Tabs__Tab,
     .ContentSwitchers__OverflowMenuItem {
         $icon-padding: 6px;

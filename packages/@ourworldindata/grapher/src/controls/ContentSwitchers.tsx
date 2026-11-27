@@ -43,10 +43,13 @@ function shouldShowContentSwitchers(manager: ContentSwitchersManager): boolean {
     return (manager.availableTabs ?? []).length > 1
 }
 
-@observer
-export class ContentSwitchers extends React.Component<{
+interface ContentSwitchersProps {
     manager: ContentSwitchersManager
-}> {
+    layout: ControlsRowLayout["tabs"]
+}
+
+@observer
+export class ContentSwitchers extends React.Component<ContentSwitchersProps> {
     static shouldShow(manager: ContentSwitchersManager): boolean {
         return shouldShowContentSwitchers(manager)
     }
@@ -55,7 +58,7 @@ export class ContentSwitchers extends React.Component<{
         manager: ContentSwitchersManager,
         tabsLayout: ControlsRowLayout["tabs"]
     ): number {
-        const switchers = new ContentSwitchers({ manager })
+        const switchers = new ContentSwitchers({ manager, layout: tabsLayout })
         if (!switchers.shouldShow) return 0
         return measureTabGroupWidth(
             switchers.visibleTabs.map((tab) => makeLabelForGrapherTab(tab)),
@@ -111,7 +114,13 @@ export class ContentSwitchers extends React.Component<{
     @computed private get tabItems(): TabItem<GrapherTabName>[] {
         return this.visibleTabs.map((tab) => ({
             key: tab,
-            element: <TabContent key={tab} tab={tab} />,
+            element: (
+                <TabContent
+                    key={tab}
+                    tab={tab}
+                    showLabel={this.props.layout.labelMode === "label"}
+                />
+            ),
             buttonProps: {
                 className: cx({ active: tab === this.activeTab }),
                 dataTrackNote: "chart_click_" + tab,
@@ -130,11 +139,16 @@ export class ContentSwitchers extends React.Component<{
     override render(): React.ReactElement | null {
         if (!this.shouldShow) return null
 
+        const { labelMode, paddingPx } = this.props.layout
         return (
             <div className="ContentSwitchers__Container">
                 <Tabs
                     variant="slim"
-                    className="ContentSwitchers"
+                    className={cx("ContentSwitchers", {
+                        "ContentSwitchers--tab-padding-12": paddingPx === 12,
+                        "ContentSwitchers--tab-padding-8": paddingPx === 8,
+                        "ContentSwitchers--icon-only": labelMode === "icon",
+                    })}
                     items={this.tabItems}
                     selectedKey={this.activeTab}
                     onChange={this.setTab}
@@ -195,11 +209,19 @@ function OverflowMenu({
     )
 }
 
-function TabContent({ tab }: { tab: GrapherTabName }): React.ReactElement {
+function TabContent({
+    tab,
+    showLabel = true,
+}: {
+    tab: GrapherTabName
+    showLabel?: boolean
+}): React.ReactElement {
     return (
         <span className="ContentSwitchers__TabContent">
             <GrapherTabIcon tab={tab} />
-            <span className="label">{makeLabelForGrapherTab(tab)}</span>
+            {showLabel && (
+                <span className="label">{makeLabelForGrapherTab(tab)}</span>
+            )}
         </span>
     )
 }

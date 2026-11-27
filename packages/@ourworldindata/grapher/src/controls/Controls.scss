@@ -151,30 +151,6 @@ nav.controlsRow .controls {
     }
 }
 
-@container grapher (width <= 500px) {
-    // hide labels on smaller screens
-    .ContentSwitchers .Tabs__Tab .label {
-        display: none;
-    }
-
-    // center the icon now that it's the only content in the tab
-    .ContentSwitchers .Tabs__Tab .ContentSwitchers__TabContent {
-        justify-content: center;
-    }
-}
-
-// reduce the horizontal padding of a content switcher tab based on grapher's size
-@container grapher (width <= 725px) {
-    .ContentSwitchers .Tabs__Tab {
-        --tab-padding: 12px;
-    }
-}
-@container grapher (width <= 335px) {
-    .ContentSwitchers .Tabs__Tab {
-        --tab-padding: 8px;
-    }
-}
-
 //
 // correct for style bleeds in admin
 //
