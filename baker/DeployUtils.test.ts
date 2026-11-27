@@ -56,6 +56,9 @@ let fetchMock: ReturnType<typeof vi.fn>
 beforeEach(() => {
     vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "Date"] })
     buildRequests = []
+    // restoreAllMocks doesn't clear a vi.mock factory's vi.fn, so a stale call
+    // from an earlier test could satisfy the Sentry assertion
+    vi.mocked(logErrorAndMaybeCaptureInSentry).mockClear()
     fetchMock = vi.fn(async (_url: string, init: RequestInit) => {
         buildRequests.push(JSON.parse(init.body as string))
         return new Response(JSON.stringify({ number: 42 }), { status: 201 })
