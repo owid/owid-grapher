@@ -15,15 +15,31 @@ Nothing else needs reading to interpret an event.
 - **`EventParamsMap`** pairs each event with its params type, e.g.
   `GrapherClickParams`.
 - **The params type** holds everything about the event. Its doc comment says
-  what the event is and when it fires. `@since YYYY-MM` is the month from
-  which rows with this name exist, so the absence of earlier rows means "not
-  tracked under this name yet", not "nobody did this". Its fields are the parameters sent with the event.
+  what the event is and when it fires, its fields are the parameters sent with
+  the event, and four tags give its history:
+    - `@since YYYY-MM`: from when do rows with this name exist? The absence of
+      earlier rows means "not tracked under this name yet", not "nobody did
+      this".
+    - `@formerly <old name> YYYY-MM to YYYY-MM`: under which other name was it
+      sent, and when? One line per old name.
+    - `@change YYYY-MM <text>`: when did the meaning of rows change (a wrong
+      value sent for a while, a new field, a change in where the event fires)?
+      Read these before comparing rows across that month.
+    - `@deprecated YYYY-MM <text>`: when did it stop, and what replaced it?
+- **`RetiredEventCategory`** lists the events that are no longer sent. Their
+  params types, marked `@deprecated`, sit at the end of the event types. They
+  are not in `EventParamsMap`, so the compiler rejects sending one. A renamed
+  event is not retired: its old name is only in `@formerly`.
 - **`eventAction`**, on the events that have one, is typed as the list of
   every value it can take. For clicks that list is `TrackNote`: every value of
   the `data-track-note` HTML attribute, which marks an element as tracked.
   The one exception is clicks on explorer controls: their value is the
   explorer's slug, `_click_`, then the control's title, so `TrackNote`
   describes them with a pattern instead of listing them.
+
+Each tag is on one line and regular enough for a script to extract, e.g.
+`@formerly (\S+) (\d{4}-\d{2}) to (\d{4}-\d{2})`. Months are when the change
+was merged; the first rows can come a little later.
 
 GA4 cuts every text parameter at 100 characters.
 
@@ -58,6 +74,16 @@ is not collected by GA4, even though the page sends it.
 ## Changing or removing an event
 
 - When you change what an event sends or where it fires, add a dated `@change`
-  line to its params type in the same PR.
+  line to its params type in the same PR. Keep it to one line, in plain words,
+  and link related events with `{@link OtherParams}`.
+- When you rename an event, set `@since` to the month of the rename and add a
+  `@formerly` line with the old name and the months it was sent.
 - When you remove an event, retire it, don't delete it: rows sent in the past
-  still need explaining.
+  still need explaining. Move its name from `EventCategory` to
+  `RetiredEventCategory`, remove its entry from `EventParamsMap`, and move its
+  params type to the retired section with a `@deprecated YYYY-MM` line.
+- When an event stops sending one of its values, such as a track note whose
+  button was removed, delete the value from the list and add a `@change` line
+  to the event that names it. Don't keep it in the list marked `@deprecated`:
+  TypeScript ignores `@deprecated` on one value of a union, so code could
+  still send it.

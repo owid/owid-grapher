@@ -2,8 +2,11 @@
 //
 // The single source of truth for the analytics events the site sends.
 // Each event has exactly one params type, which says what the event is, when
-// it fires, since when (`@since`), and what it carries. TypeScript enforces
-// you can't send wrong parameters for an event.
+// it fires, since when (`@since`), under which earlier name (`@formerly`),
+// what changed along the way (`@change`), and what it carries. TypeScript
+// enforces you can't send wrong parameters for an event. Events that are no
+// longer sent are kept at the end of the event types, marked `@deprecated`, so
+// their old rows stay explained.
 //
 // Read docs/analytics.md before adding or changing an event: it explains how
 // an event reaches GA4, how to read these types, and what to do when an event
@@ -23,7 +26,6 @@ import { FacetStrategy, GrapherTabName } from "../grapherTypes/GrapherTypes.js"
 // =============================================================================
 
 export enum EventCategory {
-    Filter = "owid.filter",
     GrapherView = "owid.grapher_view",
     GrapherClick = "owid.grapher_click",
     GrapherHover = "owid.grapher_hover",
@@ -51,6 +53,18 @@ export enum EventCategory {
     SiteStaticVizDownload = "owid.site_static_viz_download",
     SiteUserSurvey = "owid.site_user_survey",
     TranslatePage = "owid.translate_page",
+}
+
+/**
+ * Events that are no longer sent. They are left out of `EventParamsMap`, so
+ * `logToGA` rejects them. Each keeps its params type, marked `@deprecated`.
+ */
+export enum RetiredEventCategory {
+    CountryProfileSearch = "owid.country_profile_search",
+    Filter = "owid.filter",
+    GlobalEntitySelectorUsage = "owid.global_entity_selector_usage",
+    SiteSearchClick = "owid.site_search_click",
+    SiteSearchFilterClick = "owid.site_search_filter_click",
 }
 
 // =============================================================================
@@ -84,7 +98,6 @@ export type EventParamsMap = {
     [EventCategory.SiteInstantSearchClick]: SiteInstantSearchClickParams
     [EventCategory.SiteError]: SiteErrorParams
     [EventCategory.SitePrint]: SitePrintParams
-    [EventCategory.Filter]: FilterParams
     [EventCategory.TranslatePage]: TranslatePageParams
 }
 
@@ -105,6 +118,10 @@ export type GAEvent = {
  * (`/search`). Each distinct state is sent once. The empty default state is
  * not sent on page load, only when the visitor comes back to it.
  * @since 2025-10
+ * @formerly owid.data_catalog_search 2024-09 to 2025-10
+ * @change 2025-10 The search page moved from `/data` to `/search`. Its `searchResultType` takes over from {@link SiteSearchFilterClickParams}
+ * @change 2025-11 The search state is sent as separate `search…` params. Before, it was one JSON string in `eventContext`, cut at 100 characters
+ * @change 2026-05 Coming back to the empty default state is sent. Before, that state was never sent
  */
 export interface SiteSearchParams {
     /** Always 'search' for this event */
@@ -202,6 +219,8 @@ export interface SiteSearchAutocompleteClickParams {
  * chart, an article, a topic page, a data insight, a country profile or a
  * featured visualization.
  * @since 2025-10
+ * @formerly owid.data_catalog_result_click 2024-09 to 2025-10
+ * @change 2025-10 Also fires for results that are not charts, and `eventContext` gains `type` and `vizType`. Takes over from {@link SiteSearchClickParams}
  */
 export interface SiteSearchResultClickParams {
     /** Always 'click' for this event */
@@ -220,6 +239,12 @@ export interface SiteSearchResultClickParams {
  * inside a chart send `owid.grapher_click`. A few clicks are logged from code
  * instead, see {@link SiteClickAction}.
  * @since 2023-06
+ * @formerly SiteClick 2020-03 to 2023-06
+ * @change 2023-06 Every action went from kebab-case to snake_case (`header-navigation` became `header_navigation`)
+ * @change 2023-06 Clicks inside a chart are sent as {@link GrapherClickParams} instead
+ * @change 2023-11 Also counts clicks on elements that stop the click from reaching the page; those were missed before
+ * @change 2026-07 Table of contents: `page_toggle_toc` and `toc_header` replaced by `toc_expand`, `toc_collapse`, `toc_back_to_top` and `toc_see_all_charts`
+ * @change 2026-10 `gdoc-header-browse-versions` split into `gdoc-header-date-versions` and `gdoc-past-versions-section-open`
  */
 export interface SiteClickParams {
     /** The clicked element's track note, or an action logged from code */
@@ -235,6 +260,7 @@ export interface SiteClickParams {
  * (`newsletter-subscribe`), or when the donation form was accepted and the
  * visitor is about to be sent to the payment page (`donate`).
  * @since 2024-07
+ * @change 2024-11 Also fires for the donation form (`donate`). Before, only for newsletter forms
  */
 export interface SiteFormSubmitParams {
     /** Action type - form submission type */
@@ -266,6 +292,8 @@ export interface SiteFindInPageParams {
  * field outside the search page, such as the one in the site header, on the
  * homepage or on a data page.
  * @since 2024-04
+ * @change 2024-04 Until 2024-04-09, `eventContext` was sent as an object instead of a JSON string
+ * @change 2026-07 `eventContext` gains `source`: which search field was used
  */
 export interface SiteInstantSearchClickParams {
     /** Always 'click' for this event */
@@ -282,6 +310,7 @@ export interface SiteInstantSearchClickParams {
  * Fires when a visitor lands on the site's 404 page. `eventContext` is the
  * address they tried to open.
  * @since 2023-06
+ * @formerly Errors 2020-03 to 2023-06
  */
 export interface SiteErrorParams {
     /** Always 'not_found' for this event */
@@ -476,6 +505,12 @@ export type SiteUserSurveyParams =
  * (`viewConfigId` says which). Charts inside explorers send
  * `owid.explorer_view` instead.
  * @since 2024-11
+ * @change 2025-01 New `chartViewName` field: a narrative chart is logged under its parent chart's path
+ * @change 2025-04 Also fires for multi-dimensional charts embedded outside their own data page
+ * @change 2025-05 `chartViewName` renamed to `narrativeChartName`
+ * @change 2025-09 `grapherView` (JSON of the dimension choices of a multi-dimensional chart) replaced by `viewConfigId`
+ * @change 2026-01 Paths over 100 characters continue in `grapherPathNext`. Before, they were cut at 100
+ * @change 2026-04 A multi-dimensional chart fires only once it has become visible. Before, it also fired while still out of view
  */
 export interface GrapherViewParams {
     /** Grapher chart path (e.g., '/grapher/life-expectancy') */
@@ -496,9 +531,20 @@ export interface GrapherViewParams {
  * settings, download and share options, and so on, listed in
  * {@link TrackNote}. Also fires when a visitor downloads the chart as an
  * image from the download modal (`chart_download_png`, `chart_download_svg`).
- * Before 2023-06, clicks inside a chart were not told apart from other site
- * clicks.
  * @since 2023-06
+ * @change 2023-06 Split off from {@link SiteClickParams}. Before, clicks inside a chart were not told apart from other site clicks
+ * @change 2023-10 Chart redesign: `chart_click_newtab` became `chart_click_fullscreen`; `grapher_change_entity` and `grapher_select_entities` were dropped
+ * @change 2023-11 Also counts clicks on elements that stop the click from reaching the page; those were missed before
+ * @change 2024-11 `chart_download_csv` replaced by `chart_download_full_data--…` and `chart_download_filtered_data--…`, each ending in `server` or `client`
+ * @change 2024-11 Until 2025-01-08, both of these CSV download buttons sent `server` as the whole action, so they can't be told apart in that period
+ * @change 2025-01 New `chartViewName` field for clicks inside a narrative chart
+ * @change 2025-05 `chartViewName` renamed to `narrativeChartName`
+ * @change 2025-05 `chart_download_png` and `chart_download_svg` are sent from code: no `eventTarget` any more, and `eventContext` is JSON with the active tab
+ * @change 2025-05 `chart_filter_table_rows` replaced by `data_table_filter_by`
+ * @change 2025-12 Tab clicks (`chart_click_<tab>`) were not sent from 2025-12-01 to 2025-12-03
+ * @change 2026-01 Paths over 100 characters continue in `grapherPathNext`. Before, they were cut at 100
+ * @change 2026-03 An image download from the download modal sends two rows: `chart_download_modal_vis_png` and `chart_download_png` (same for `svg`)
+ * @change 2026-05 New `viewConfigId` field on clicks on tracked elements
  */
 export interface GrapherClickParams {
     /** The clicked element's track note, or an image download */
@@ -523,6 +569,8 @@ export interface GrapherClickParams {
  * Fires when a visitor hovers over a country on a chart's map or globe, or
  * over an item of the map's legend.
  * @since 2025-05
+ * @change 2025-09 `grapherView` (JSON of the dimension choices of a multi-dimensional chart) replaced by `viewConfigId`
+ * @change 2026-01 Paths over 100 characters continue in `grapherPathNext`. Before, they were cut at 100
  */
 export interface GrapherHoverParams {
     /** Type of hover interaction */
@@ -546,6 +594,9 @@ export interface GrapherHoverParams {
  * `eventContext` is the error message. No code sends the
  * `entities_not_found` action.
  * @since 2023-06
+ * @formerly GrapherErrors 2020-09 to 2023-06
+ * @formerly Errors 2020-03 to 2020-09
+ * @change 2023-06 Both actions went from upper case to lower case (`GRAPHER_VIEW_ERROR` became `grapher_view_error`)
  */
 export interface GrapherErrorParams {
     /** Type of error */
@@ -569,6 +620,8 @@ export interface GrapherErrorParams {
  * Fires when a visitor selects or deselects an entity, clears the selection,
  * or changes how the list is sorted or filtered.
  * @since 2025-05
+ * @change 2025-09 `grapherView` (JSON of the dimension choices of a multi-dimensional chart) replaced by `viewConfigId`
+ * @change 2026-01 Paths over 100 characters continue in `grapherPathNext`. Before, they were cut at 100
  */
 export interface GrapherEntitySelectorParams {
     /** Entity selector action */
@@ -593,6 +646,7 @@ export interface GrapherEntitySelectorParams {
  * Fires when an explorer scrolls into view, and again each time the visitor
  * changes the explorer's controls to show another view.
  * @since 2024-11
+ * @change 2026-01 New `viewConfigId` field
  */
 export interface ExplorerViewParams {
     /** Explorer path (e.g., '/explorers/migration') */
@@ -609,6 +663,9 @@ export interface ExplorerViewParams {
  * Fires when a visitor selects or deselects an entity there, picks one by
  * pressing Enter in its search field, or changes how the list is sorted.
  * @since 2023-06
+ * @formerly <explorer>ExplorerCountrySelectorUsage 2020-09 to 2023-06
+ * @formerly <explorer>DataExplorerCountrySelector 2020-05 to 2020-09
+ * @change 2026-05 New `viewConfigId` field
  */
 export interface ExplorerCountrySelectorParams {
     /** Entity selector action */
@@ -629,6 +686,7 @@ export interface ExplorerCountrySelectorParams {
  * Fires when a visitor brings up the tooltip of an underlined term, in a chart
  * or in a page's text. `eventTarget` is the id of the term.
  * @since 2024-06
+ * @change 2026-09 New `eventContext` field: the region of a data page the term is in
  */
 export interface DetailOnDemandParams {
     /** Always 'show' for this event */
@@ -691,6 +749,8 @@ export interface SiteLatestAnnouncementExpandParams {
  *
  * Fires when a visitor presses one of a chart's keyboard shortcuts.
  * @since 2023-06
+ * @formerly KeyboardShortcut 2020-07 to 2023-06
+ * @change 2026-10 Key combinations in `eventContext` are written differently: `esc` became `Escape`, `shift+o` became `Shift+O`, `right` became `ArrowRight`
  */
 export interface KeyboardShortcutParams {
     /** The keyboard shortcut name */
@@ -704,21 +764,6 @@ export interface KeyboardShortcutParams {
 }
 
 /**
- * A search in the chart filter of a country page.
- *
- * Fired when a visitor typed in the field that filters the list of charts on
- * a country page. No code sends this event any more: those pages were
- * removed.
- * @since 2023-06
- */
-export interface FilterParams {
-    /** Always 'country_page_search' for this event */
-    eventAction: "country_page_search"
-    /** Search query or filter context */
-    eventContext: string
-}
-
-/**
  * A page translated by the visitor's browser.
  *
  * Fires when a visitor's browser translates a page into another language, or
@@ -729,6 +774,98 @@ export interface TranslatePageParams {
     /** Information about the translation event, in the form { from: string | null, to: string | null } */
     eventTarget: JsonString
     /** Comma-separated list of browser languages, e.g.: `es-ES,de-DE,en` */
+    eventContext: string
+}
+
+// =============================================================================
+// RETIRED EVENTS
+// =============================================================================
+//
+// No code sends these any more: their names are in `RetiredEventCategory` and
+// they have no entry in `EventParamsMap`. The types stay so that rows sent in
+// the past can still be read.
+
+/**
+ * A pick in the country search field of a country profile page.
+ *
+ * Fired when a visitor picked a country in the "Search for a country..." field
+ * of a country profile page, which took them to that country's profile.
+ * @since 2023-06
+ * @formerly COVID_COUNTRY_PROFILE_SEARCH 2020-07 to 2023-06
+ * @deprecated 2025-02 Search field removed. Nothing replaces it
+ */
+export interface CountryProfileSearchParams {
+    /** Slug of the picked country */
+    eventContext: string
+}
+
+/**
+ * A search in the chart filter of a country page.
+ *
+ * Fired when a visitor typed in the field that filters the list of charts on
+ * a country page.
+ * @since 2023-06
+ * @formerly ChartsPage 2020-03 to 2023-06
+ * @change 2024-09 Action renamed from `charts_page` to `country_page_search`. Before, the filter of the charts index page sent this event too
+ * @deprecated 2026-03 The code that sent it was removed. Nothing replaces it
+ */
+export interface FilterParams {
+    /** Always 'country_page_search' for this event */
+    eventAction: "country_page_search"
+    /** Search query or filter context */
+    eventContext: string
+}
+
+/**
+ * Use of the page-wide entity selector: a control above the charts embedded
+ * in a page, which set the selected countries of all of them at once.
+ *
+ * Fired when a visitor opened or closed that selector (`eventContext` is the
+ * button's text) or changed the selection (`eventContext` is the names of the
+ * selected entities, separated by commas).
+ * @since 2023-06
+ * @formerly GlobalEntitySelector 2021-02 to 2023-06
+ * @formerly GlobalEntityControl 2020-04 to 2021-02
+ * @deprecated 2026-01 Selector removed. Nothing replaces it; the closest live event is {@link GrapherEntitySelectorParams}
+ */
+export interface GlobalEntitySelectorUsageParams {
+    /** Entity control action */
+    eventAction: EntityControlEvent
+    /** Additional note or context */
+    eventContext?: string
+}
+
+/**
+ * A click on a result of the previous search page.
+ *
+ * Fired when a visitor clicked a result on the search page that was at
+ * `/search` until 2025-10.
+ * @since 2024-04
+ * @change 2024-04 Until 2024-04-09, `eventContext` was sent as an object instead of a JSON string
+ * @deprecated 2025-10 Page replaced by the current search page. See {@link SiteSearchResultClickParams}
+ */
+export interface SiteSearchClickParams {
+    /** Always 'click' for this event */
+    eventAction: "click"
+    /** JSON string with `query`, `position`, `positionInSection`,
+     * `cardPosition`, `positionWithinCard` and `filter` */
+    eventContext: string
+    /** URL of the clicked result */
+    eventTarget: string
+}
+
+/**
+ * A click on a category tab of the previous search page.
+ *
+ * Fired when a visitor switched between the result categories on the search
+ * page that was at `/search` until 2025-10.
+ * @since 2024-04
+ * @deprecated 2025-10 Page replaced by the current search page. See `searchResultType` in {@link SiteSearchParams}
+ */
+export interface SiteSearchFilterClickParams {
+    /** Always 'click' for this event */
+    eventAction: "click"
+    /** The clicked category */
     eventContext: string
 }
 
@@ -868,7 +1005,8 @@ export type TrackNote =
  * Both parts come from content, so this stays a loose pattern. As a result,
  * any value containing `_click_` compiles, including a misspelled fixed note
  * like `chart_click_sourcse`. Remove this, and its line in `TrackNote`,
- * together with `ExplorerControls.tsx`.
+ * together with `ExplorerControls.tsx`, as docs/analytics.md says for a value
+ * that stops being sent.
  */
 export type ExplorerControlTrackNote = `${string}_click_${string}`
 
@@ -911,6 +1049,9 @@ export type KeyboardShortcutAction =
     | "Toggle globe view"
     | "Next chart"
     | "Previous chart"
+
+/** Actions of the retired page-wide entity selector. */
+export type EntityControlEvent = "open" | "change" | "close"
 
 export type EntitySelectorEvent =
     | "enter"
