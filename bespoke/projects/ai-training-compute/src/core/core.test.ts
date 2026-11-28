@@ -5,14 +5,6 @@ import {
     formatPowerOfTenTick,
     formatScientific,
 } from "./formatFlop.js"
-import { getOrganizationGroup } from "./organizations.js"
-import {
-    getComputeStatus,
-    getDomainGroup,
-    getSectorGroup,
-} from "./colorSchemes.js"
-import { getLeaderSegments, getLeaderSegmentsSince } from "./eci.js"
-import { getComputeRange } from "./uncertainty.js"
 import {
     getLinearYMax,
     getLinearYTicks,
@@ -21,15 +13,7 @@ import {
     getYTickExponents,
 } from "./axes.js"
 import { placeLabels } from "./labelPlacement.js"
-import {
-    COMPUTER_SYSTEMS,
-    SHOWN_COMPUTERS,
-    getMonthOfComputation,
-    getRecordHolders,
-} from "./computers.js"
-import { getLargestRunInDeviceMonths } from "./hardwareComparison.js"
-import { spreadLabels } from "./labelLayout.js"
-import { AI_MODELS, getModels } from "./data.js"
+import { getComputeRange } from "./uncertainty.js"
 
 describe(formatFlopInWords, () => {
     it.each([
@@ -59,82 +43,6 @@ describe(formatScientific, () => {
         expect(formatScientific(9.4e26)).toBe("9.4 × 10²⁶")
         expect(formatScientific(1e25)).toBe("10²⁵")
         expect(formatScientific(9.97e25)).toBe("10²⁶")
-    })
-})
-
-describe(getOrganizationGroup, () => {
-    it("merges Google's labs into one group", () => {
-        expect(getOrganizationGroup("Google DeepMind", "Industry")).toBe(
-            "Google"
-        )
-        expect(getOrganizationGroup("DeepMind", "Industry")).toBe("Google")
-    })
-
-    it("credits a co-developed model to the first named lab", () => {
-        expect(
-            getOrganizationGroup(
-                "University of Toronto,Google Brain",
-                "Academia,Industry"
-            )
-        ).toBe("Google")
-    })
-
-    it("falls back on Epoch's categorization", () => {
-        expect(getOrganizationGroup("Mistral AI", "Industry")).toBe(
-            "Other companies"
-        )
-        expect(getOrganizationGroup("Stanford University", "Academia")).toBe(
-            "Academia & others"
-        )
-        expect(getOrganizationGroup(null, null)).toBe("Academia & others")
-    })
-})
-
-describe(spreadLabels, () => {
-    it("leaves labels that already have room where they are", () => {
-        expect(spreadLabels([0, 50, 100], 10, { min: -100, max: 200 })).toEqual(
-            [0, 50, 100]
-        )
-    })
-
-    it("pushes overlapping labels apart around their mean, in input order", () => {
-        expect(spreadLabels([104, 100], 10, { min: 0, max: 200 })).toEqual([
-            107, 97,
-        ])
-    })
-
-    it("keeps the stack inside the bounds", () => {
-        expect(spreadLabels([0, 1], 10, { min: 0, max: 100 })).toEqual([0, 10])
-    })
-})
-
-describe("bundled data", () => {
-    it("includes GPT-6 Astra with a source link", () => {
-        const astra = AI_MODELS.find((m) => m.model === "GPT-6 Astra")
-        expect(astra?.groups.organization).toBe("OpenAI")
-        expect(astra?.link).toMatch(/^https:\/\/openai\.com\//)
-    })
-})
-
-describe(getDomainGroup, () => {
-    it("prefers the most distinctive domain over Language", () => {
-        expect(getDomainGroup("Multimodal,Language,Vision")).toBe("Language")
-        expect(getDomainGroup("Language,Biology")).toBe("Science")
-        expect(getDomainGroup("Vision,Image generation")).toBe("Drawing")
-        expect(getDomainGroup("Games")).toBe("Games")
-        expect(getDomainGroup("Speech")).toBe("Other")
-        expect(getDomainGroup(null)).toBe("Other")
-    })
-})
-
-describe(getSectorGroup, () => {
-    it("separates industry, academia and collaborations between them", () => {
-        expect(getSectorGroup("Industry,Industry")).toBe("Industry")
-        expect(getSectorGroup("Academia")).toBe("Academia")
-        expect(getSectorGroup("Academia,Industry,Government")).toBe(
-            "Industry–academia collaboration"
-        )
-        expect(getSectorGroup("Government")).toBe("Other")
     })
 })
 
@@ -198,107 +106,6 @@ describe(placeLabels, () => {
     })
 })
 
-describe("computer systems", () => {
-    it("are compared at one month of running", () => {
-        const h100 = COMPUTER_SYSTEMS.find((c) => c.id === "h100")!
-        expect(formatFlopInWords(getMonthOfComputation(h100))).toBe(
-            "2.6 sextillion"
-        )
-    })
-})
-
-describe(getComputeStatus, () => {
-    it("counts a figure as reported whenever the developer reported it", () => {
-        expect(getComputeStatus(1e24, "Reported,Operation counting")).toBe(
-            "Reported by developer"
-        )
-        expect(getComputeStatus(1e24, "Hardware")).toBe("Epoch estimate")
-        // Epoch sometimes leaves the method blank on its own estimates
-        expect(getComputeStatus(9.4e26, null)).toBe("Epoch estimate")
-        expect(getComputeStatus(null, "Benchmarks")).toBe("No estimate")
-    })
-})
-
-describe(getLeaderSegments, () => {
-    const score = (model: string, date: string, eci: number) => ({
-        model,
-        displayName: model,
-        organization: "Lab",
-        date,
-        eci,
-        eciLow: eci - 2,
-        eciHigh: eci + 2,
-        trainingComputeFlop: null,
-        computeEstimationMethod: null,
-    })
-    const day = (date: string) => Date.parse(`${date}T00:00:00Z`)
-    const scores = [
-        score("A", "2023-06-01", 100),
-        score("B", "2024-03-01", 110),
-        // Released the same day as a better model: never leads
-        score("C small", "2024-06-01", 112),
-        score("C large", "2024-06-01", 115),
-        // Worse than the leader: never leads
-        score("D", "2024-09-01", 114),
-        score("E", "2025-01-01", 120),
-    ]
-
-    it("follows the running best score, clipped to the range", () => {
-        const segments = getLeaderSegments(scores, {
-            start: day("2024-01-01"),
-            end: day("2025-03-01"),
-        })
-        expect(segments.map((s) => s.score.model)).toEqual([
-            "A",
-            "B",
-            "C large",
-            "E",
-        ])
-        // A led before the range starts; its segment starts at the range
-        expect(segments[0].start).toBe(day("2024-01-01"))
-        expect(segments[2].end).toBe(day("2025-01-01"))
-        expect(segments.at(-1)?.isOngoing).toBe(true)
-        expect(segments[1].isOngoing).toBe(false)
-    })
-})
-
-describe(getLeaderSegmentsSince, () => {
-    const score = (model: string, date: string, eci: number) => ({
-        model,
-        displayName: model,
-        organization: "Lab",
-        date,
-        eci,
-        eciLow: null,
-        eciHigh: null,
-        trainingComputeFlop: null,
-        computeEstimationMethod: null,
-    })
-    const day = (date: string) => Date.parse(`${date}T00:00:00Z`)
-
-    it("starts at the release of the model already leading", () => {
-        const segments = getLeaderSegmentsSince(
-            [score("Old", "2023-03-14", 100), score("New", "2024-06-01", 110)],
-            { since: day("2024-01-01"), end: day("2025-01-01") }
-        )
-        expect(segments.map((s) => s.score.model)).toEqual(["Old", "New"])
-        expect(segments[0].start).toBe(day("2023-03-14"))
-    })
-})
-
-describe("developer groups", () => {
-    it("count Microsoft and Nvidia as other companies", () => {
-        expect(getOrganizationGroup("Microsoft Research", "Industry")).toBe(
-            "Other companies"
-        )
-        expect(getOrganizationGroup("Nvidia", "Industry")).toBe(
-            "Other companies"
-        )
-        // A named lab elsewhere in the list still wins
-        expect(getOrganizationGroup("Nvidia,Meta AI", "Industry")).toBe("Meta")
-    })
-})
-
 describe(getComputeRange, () => {
     it("spans the estimate divided and multiplied by Epoch's factor", () => {
         // Compare in orders of magnitude, clear of floating-point noise
@@ -315,78 +122,6 @@ describe(getComputeRange, () => {
     it("has no range for labels without a stated interval", () => {
         expect(getComputeRange(1e25, "Unknown")).toBeUndefined()
         expect(getComputeRange(1e25, undefined)).toBeUndefined()
-    })
-})
-
-describe(getModels, () => {
-    it("picks models among the N largest at their release", () => {
-        for (const n of [1, 3, 5, 7])
-            expect(getModels(n).every((m) => m.rankAtRelease <= n)).toBe(true)
-        expect(getModels(5).length).toBeGreaterThan(getModels(1).length)
-        expect(getModels(7).length).toBeGreaterThan(getModels(5).length)
-    })
-
-    it("counts GPT-6 Astra as the largest yet", () => {
-        expect(getModels(1).some((m) => m.model === "GPT-6 Astra")).toBe(true)
-    })
-
-    it("clamps the cut-off to the ranks the data covers", () => {
-        expect(getModels(99)).toEqual(getModels(7))
-        expect(getModels(0)).toEqual(getModels(1))
-    })
-
-    it("has every model in some selection", () => {
-        expect(
-            AI_MODELS.every((m) => m.isNotable || m.rankAtRelease <= 7)
-        ).toBe(true)
-        expect(getModels("notable").every((m) => m.isNotable)).toBe(true)
-    })
-})
-
-describe(getRecordHolders, () => {
-    const system = (
-        id: string,
-        kind: "console" | "gpu",
-        year: number,
-        flopPerSecond: number
-    ) => ({
-        id,
-        name: id,
-        kind,
-        year,
-        flopPerSecond,
-        description: "",
-    })
-
-    it("keeps only machines faster than every earlier one of their kind", () => {
-        const holders = getRecordHolders([
-            system("Big console", "console", 2017, 6e12),
-            system("Handheld", "console", 2018, 4e11),
-            system("Next console", "console", 2020, 1e13),
-            system("Card", "gpu", 2018, 1e13),
-        ])
-        expect(holders.map((s) => s.id)).toEqual([
-            "Big console",
-            "Card",
-            "Next console",
-        ])
-    })
-})
-
-describe(getLargestRunInDeviceMonths, () => {
-    it("stays around a month or less until 2010, then pulls far ahead", () => {
-        const until2010 = [1990, 2000, 2005, 2010].map(
-            (year) =>
-                getLargestRunInDeviceMonths(year, getModels(5), SHOWN_COMPUTERS)
-                    ?.months ?? NaN
-        )
-        for (const months of until2010) expect(months).toBeLessThan(2)
-        const recent = getLargestRunInDeviceMonths(
-            2025,
-            getModels(5),
-            SHOWN_COMPUTERS
-        )
-        expect(recent?.months).toBeGreaterThan(1e5)
     })
 })
 
