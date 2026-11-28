@@ -1,6 +1,6 @@
 import * as R from "remeda"
 
-import { FRONTIER_MODELS, getModelsInSet } from "./data.js"
+import { getModels } from "./data.js"
 import {
     COMPUTER_SYSTEMS,
     SHOWN_COMPUTERS,
@@ -38,7 +38,7 @@ export interface Walkthrough {
 // Figures the slides quote
 
 // The figures quote the models the slides show: the default set
-const SHOWN_MODELS = getModelsInSet(DEFAULT_VIEW_STATE.modelSet)
+const SHOWN_MODELS = getModels(DEFAULT_VIEW_STATE.modelFilter)
 
 const astra = SHOWN_MODELS.find((m) => m.model === "GPT-6 Astra")
 const h100 = COMPUTER_SYSTEMS.find((c) => c.id === "h100")
@@ -79,12 +79,12 @@ const RECENT_RANGE: [number, number] = [2015, LAST_YEAR]
 // The largest run each year, in months of the best consumer machine
 const deviceMonths2010 = getLargestRunInDeviceMonths(
     2010,
-    FRONTIER_MODELS,
+    SHOWN_MODELS,
     SHOWN_COMPUTERS
 )
 const deviceMonthsNow = getLargestRunInDeviceMonths(
     LAST_YEAR - 1,
-    FRONTIER_MODELS,
+    SHOWN_MODELS,
     SHOWN_COMPUTERS
 )
 

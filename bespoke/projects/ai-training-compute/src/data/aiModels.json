@@ -10,7 +10,7 @@
         "domain": "Robotics",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 1
     },
     {
         "model": "Perceptron Mark I",
@@ -23,7 +23,7 @@
         "domain": "Other",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 1
     },
     {
         "model": "Pandemonium (morse)",
@@ -36,7 +36,7 @@
         "domain": "Language",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 1
     },
     {
         "model": "Samuel Neural Checkers",
@@ -49,7 +49,7 @@
         "domain": "Games",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 2
     },
     {
         "model": "Perceptron (1960)",
@@ -62,7 +62,7 @@
         "domain": "Vision",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 1
     },
     {
         "model": "ADALINE",
@@ -75,7 +75,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 5
     },
     {
         "model": "Linear Decision Functions",
@@ -88,7 +88,7 @@
         "domain": "Mathematics",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 4
     },
     {
         "model": "Print Recognition Logic",
@@ -101,7 +101,7 @@
         "domain": "Vision",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 4
     },
     {
         "model": "Heuristic Reinforcement Learning",
@@ -114,7 +114,7 @@
         "domain": "Robotics",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 6
     },
     {
         "model": "LTE speaker verification system",
@@ -127,7 +127,7 @@
         "domain": "Speech",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 4
     },
     {
         "model": "Cognitron",
@@ -140,7 +140,7 @@
         "domain": "Other",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 6
     },
     {
         "model": "Neocognitron",
@@ -153,7 +153,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 4
     },
     {
         "model": "ASE+ACE",
@@ -166,7 +166,7 @@
         "domain": "Robotics",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 4
     },
     {
         "model": "Distributed representation NN",
@@ -179,7 +179,7 @@
         "domain": "Other",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 4
     },
     {
         "model": "MLP with back-propagation",
@@ -192,7 +192,7 @@
         "domain": "Mathematics",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 2
     },
     {
         "model": "NetTalk (dictionary)",
@@ -205,7 +205,7 @@
         "domain": "Speech",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 2
     },
     {
         "model": "NetTalk (transcription)",
@@ -218,7 +218,7 @@
         "domain": "Speech",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 1
     },
     {
         "model": "Translation-invariant MLP",
@@ -231,7 +231,7 @@
         "domain": null,
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 3
     },
     {
         "model": "MLN-ASR",
@@ -244,7 +244,7 @@
         "domain": "Speech",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 10
     },
     {
         "model": "Invariant image recognition",
@@ -257,7 +257,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 3
     },
     {
         "model": "Handwritten digit recognition network",
@@ -270,7 +270,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 1
     },
     {
         "model": "Speaker-independent vowel classification",
@@ -283,7 +283,20 @@
         "domain": "Speech",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 6
+    },
+    {
+        "model": "ALVINN",
+        "organization": "Carnegie Mellon University (CMU)",
+        "organizationCategory": "Academia",
+        "date": "1989-12-01",
+        "trainingComputeFlop": 10548576000.0,
+        "computeEstimationMethod": "Operation counting",
+        "link": "https://proceedings.neurips.cc/paper/1988/hash/812b4ba287f5ee0bc9d43bbf5bbe87fb-Abstract.html",
+        "domain": "Driving",
+        "confidence": "Confident",
+        "isNotable": false,
+        "rankAtRelease": 7
     },
     {
         "model": "Zip CNN",
@@ -296,7 +309,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 1
     },
     {
         "model": "NETtalk reimplementation",
@@ -309,7 +322,7 @@
         "domain": "Speech",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 3
     },
     {
         "model": "Bankruptcy-NN",
@@ -322,7 +335,7 @@
         "domain": "Other",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 10
     },
     {
         "model": "SexNet compression",
@@ -335,7 +348,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 3
     },
     {
         "model": "Weight Decay",
@@ -348,7 +361,7 @@
         "domain": "Speech",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 4
     },
     {
         "model": "TD-Gammon",
@@ -361,7 +374,7 @@
         "domain": "Games",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 1
     },
     {
         "model": "Cancer drug mechanism prediction",
@@ -374,7 +387,7 @@
         "domain": "Medicine",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 25
     },
     {
         "model": "Siamese-TDNN",
@@ -387,7 +400,7 @@
         "domain": "Vision",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 2
     },
     {
         "model": "ANN Eye Tracker",
@@ -400,7 +413,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 12
     },
     {
         "model": "Ceramic-MLP",
@@ -413,7 +426,7 @@
         "domain": "Materials science",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 16
     },
     {
         "model": "JPMAX",
@@ -426,7 +439,7 @@
         "domain": "Vision",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 32
     },
     {
         "model": "Mixture of linear models",
@@ -439,7 +452,7 @@
         "domain": "Vision",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 6
     },
     {
         "model": "NeuroChess",
@@ -452,7 +465,7 @@
         "domain": "Games",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 5
     },
     {
         "model": "Predictive Coding NN",
@@ -465,7 +478,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 1
     },
     {
         "model": "LISSOM",
@@ -478,7 +491,7 @@
         "domain": "Vision",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 7
     },
     {
         "model": "MUSIC perceptron",
@@ -491,7 +504,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 5
     },
     {
         "model": "System 11",
@@ -504,7 +517,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 16
     },
     {
         "model": "SOM-CNN",
@@ -517,7 +530,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 13
     },
     {
         "model": "LSTM",
@@ -530,7 +543,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 1
     },
     {
         "model": "LeNet-5",
@@ -543,7 +556,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 5
     },
     {
         "model": "RECONTRA-categorized",
@@ -556,7 +569,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 5
     },
     {
         "model": "RECONTRA-uncategorized",
@@ -569,7 +582,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 6
     },
     {
         "model": "Neural LM",
@@ -582,7 +595,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 1
     },
     {
         "model": "PoE MNIST",
@@ -595,7 +608,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 2
     },
     {
         "model": "Decision tree (classification)",
@@ -608,7 +621,7 @@
         "domain": "Vision",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 2
     },
     {
         "model": "NPLM (AP News)",
@@ -621,7 +634,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 2
     },
     {
         "model": "NPLM (Brown)",
@@ -634,7 +647,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 3
     },
     {
         "model": "Invariant CNN",
@@ -647,7 +660,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 14
     },
     {
         "model": "LMICA",
@@ -660,7 +673,20 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 2
+    },
+    {
+        "model": "Synergistic Face Detector",
+        "organization": "NEC Laboratories,Courant Institute of Mathematical Sciences",
+        "organizationCategory": "Industry,Academia",
+        "date": "2004-12-01",
+        "trainingComputeFlop": 52603200000000.0,
+        "computeEstimationMethod": "Hardware",
+        "link": "https://proceedings.neurips.cc/paper/2004/hash/06c284d3f757b15c02f47f3ff06dc275-Abstract.html",
+        "domain": "Vision",
+        "confidence": "Confident",
+        "isNotable": false,
+        "rankAtRelease": 6
     },
     {
         "model": "Hierarchical LM",
@@ -673,7 +699,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 5
     },
     {
         "model": "RankNet",
@@ -686,7 +712,20 @@
         "domain": "Search",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 16
+    },
+    {
+        "model": "Hybrid CNN/SVM Object Categorizer",
+        "organization": "Courant Institute of Mathematical Sciences",
+        "organizationCategory": "Academia",
+        "date": "2006-06-17",
+        "trainingComputeFlop": 97977600000000.0,
+        "computeEstimationMethod": "Operation counting",
+        "link": "https://ieeexplore.ieee.org/document/1640771/",
+        "domain": "Vision",
+        "confidence": "Confident",
+        "isNotable": false,
+        "rankAtRelease": 7
     },
     {
         "model": "SVM-CNN",
@@ -699,7 +738,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 4
     },
     {
         "model": "KN-LM",
@@ -712,7 +751,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 2
     },
     {
         "model": "SB-LM",
@@ -725,7 +764,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 1
     },
     {
         "model": "GNN",
@@ -738,7 +777,20 @@
         "domain": "Other",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 46
+    },
+    {
+        "model": "Long-Range Autonomous Off-Road Driving System",
+        "organization": "Courant Institute of Mathematical Sciences",
+        "organizationCategory": "Academia",
+        "date": "2009-01-08",
+        "trainingComputeFlop": 278721000000000.0,
+        "computeEstimationMethod": "Operation counting",
+        "link": "https://onlinelibrary.wiley.com/doi/abs/10.1002/rob.20276",
+        "domain": "Vision,Robotics,Driving",
+        "confidence": "Confident",
+        "isNotable": false,
+        "rankAtRelease": 7
     },
     {
         "model": "GPU DBNs",
@@ -751,7 +803,20 @@
         "domain": "Other",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 6
+    },
+    {
+        "model": "Conditional Maximum Entropy Model (Gigaworld)",
+        "organization": "Google",
+        "organizationCategory": "Industry",
+        "date": "2009-07-01",
+        "trainingComputeFlop": 1000000000100000000.0,
+        "computeEstimationMethod": null,
+        "link": "https://proceedings.neurips.cc/paper_files/paper/2009/hash/d81f9c1be2e08964bf9f24b15f0e4900-Abstract.html",
+        "domain": "Language",
+        "confidence": "Speculative",
+        "isNotable": false,
+        "rankAtRelease": 2
     },
     {
         "model": "Two Stage Feature Extraction (MNIST)",
@@ -764,7 +829,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 19
     },
     {
         "model": "LCNP LabelMe",
@@ -777,7 +842,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 6
     },
     {
         "model": "LCNP MNIST",
@@ -790,7 +855,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 5
     },
     {
         "model": "LCNP NORB",
@@ -803,7 +868,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 8
     },
     {
         "model": "Feedforward NN",
@@ -816,7 +881,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 12
     },
     {
         "model": "iCCCP",
@@ -829,7 +894,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 10
     },
     {
         "model": "Pooling CNN (Caltech 101)",
@@ -842,7 +907,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 11
     },
     {
         "model": "Pooling CNN (NORB)",
@@ -855,7 +920,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 10
     },
     {
         "model": "KN5 LM + RNN 400/10 (WSJ)",
@@ -868,7 +933,7 @@
         "domain": "Speech",
         "confidence": "Confident",
         "isNotable": false,
-        "isFrontier": true
+        "rankAtRelease": 6
     },
     {
         "model": "RNN 1000/5 + RT09 LM (NIST RT05)",
@@ -881,7 +946,20 @@
         "domain": "Speech",
         "confidence": "Likely",
         "isNotable": false,
-        "isFrontier": true
+        "rankAtRelease": 5
+    },
+    {
+        "model": "RNN 500/10 + RT09 LM (NIST RT05)",
+        "organization": "Brno University of Technology,Johns Hopkins University",
+        "organizationCategory": "Academia,Academia",
+        "date": "2010-09-26",
+        "trainingComputeFlop": 12500000000000000.0,
+        "computeEstimationMethod": "Operation counting",
+        "link": "https://www.isca-archive.org/interspeech_2010/mikolov10_interspeech.html",
+        "domain": "Speech",
+        "confidence": "Confident",
+        "isNotable": false,
+        "rankAtRelease": 7
     },
     {
         "model": "RNN LM",
@@ -894,7 +972,7 @@
         "domain": "Language",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 4
     },
     {
         "model": "Deep Autoencoders",
@@ -907,7 +985,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 6
     },
     {
         "model": "High Performance CNN (NORB)",
@@ -920,7 +998,7 @@
         "domain": "Vision",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 7
     },
     {
         "model": "CNN Committee (MNIST)",
@@ -933,7 +1011,7 @@
         "domain": "Vision",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 5
     },
     {
         "model": "CNN Committee (NIST)",
@@ -946,7 +1024,7 @@
         "domain": "Vision",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 8
     },
     {
         "model": "CNN committee (traffic sign)",
@@ -959,7 +1037,7 @@
         "domain": "Vision",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 22
     },
     {
         "model": "Dropout (CIFAR)",
@@ -972,7 +1050,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 16
     },
     {
         "model": "Dropout (ImageNet)",
@@ -985,7 +1063,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 4
     },
     {
         "model": "Dropout (MNIST)",
@@ -998,7 +1076,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 15
     },
     {
         "model": "Unsupervised High-level Feature Learner",
@@ -1011,7 +1089,7 @@
         "domain": "Vision",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 4
     },
     {
         "model": "LSTM LM",
@@ -1024,7 +1102,7 @@
         "domain": "Language",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 13
     },
     {
         "model": "AlexNet",
@@ -1037,7 +1115,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 5
     },
     {
         "model": "DNN EM segmentation",
@@ -1050,7 +1128,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 5
     },
     {
         "model": "DistBelief Speech",
@@ -1063,7 +1141,7 @@
         "domain": "Speech",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 7
     },
     {
         "model": "DistBelief NNLM",
@@ -1076,7 +1154,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 1
     },
     {
         "model": "ReLU-Speech",
@@ -1089,7 +1167,7 @@
         "domain": "Speech",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 10
     },
     {
         "model": "Hierarchical Scene Labeling (Stanford Background)",
@@ -1102,7 +1180,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 10
     },
     {
         "model": "RCTM",
@@ -1115,7 +1193,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 24
     },
     {
         "model": "RNTN",
@@ -1128,7 +1206,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 22
     },
     {
         "model": "Word2Vec (large)",
@@ -1141,7 +1219,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 16
     },
     {
         "model": "Visualizing CNNs",
@@ -1154,7 +1232,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 6
     },
     {
         "model": "TransE",
@@ -1167,7 +1245,7 @@
         "domain": "Language",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 3
     },
     {
         "model": "DQN",
@@ -1180,7 +1258,7 @@
         "domain": "Games",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 34
     },
     {
         "model": "Image generation",
@@ -1193,7 +1271,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 45
     },
     {
         "model": "GANs",
@@ -1206,7 +1284,7 @@
         "domain": "Image generation",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 8
     },
     {
         "model": "SPPNet",
@@ -1219,7 +1297,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 1
     },
     {
         "model": "SmooCT",
@@ -1232,7 +1310,7 @@
         "domain": "Games",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 17
     },
     {
         "model": "ACF-WIDER",
@@ -1245,7 +1323,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 57
     },
     {
         "model": "RNNsearch-50*",
@@ -1258,7 +1336,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 3
     },
     {
         "model": "VGG16",
@@ -1271,7 +1349,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 1
     },
     {
         "model": "VGG19",
@@ -1284,7 +1362,7 @@
         "domain": "Vision",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 2
     },
     {
         "model": "Seq2Seq LSTM",
@@ -1297,7 +1375,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 1
     },
     {
         "model": "SPN-4+KN5",
@@ -1310,7 +1388,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 25
     },
     {
         "model": "GoogLeNet / InceptionV1",
@@ -1323,7 +1401,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 7
     },
     {
         "model": "TA-CNN",
@@ -1336,7 +1414,7 @@
         "domain": "Vision",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 37
     },
     {
         "model": "SNM-skip",
@@ -1349,7 +1427,7 @@
         "domain": "Language",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 1
     },
     {
         "model": "Fractional Max-Pooling",
@@ -1362,7 +1440,7 @@
         "domain": "Vision",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 23
     },
     {
         "model": "ADAM (CIFAR-10)",
@@ -1375,7 +1453,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 57
     },
     {
         "model": "MSRA (C, PReLU)",
@@ -1388,7 +1466,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 3
     },
     {
         "model": "genCNN + dyn eval",
@@ -1401,7 +1479,7 @@
         "domain": "Language",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 33
     },
     {
         "model": "TC-DNN-BLSTM-DNN",
@@ -1414,7 +1492,7 @@
         "domain": "Speech",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 22
     },
     {
         "model": "U-Net",
@@ -1427,7 +1505,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 29
     },
     {
         "model": "DCNN",
@@ -1440,7 +1518,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 17
     },
     {
         "model": "AlphaGo Fan",
@@ -1453,7 +1531,7 @@
         "domain": "Games",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 1
     },
     {
         "model": "SAF R-CNN",
@@ -1466,7 +1544,7 @@
         "domain": "Vision",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 5
     },
     {
         "model": "Inception v3",
@@ -1479,7 +1557,7 @@
         "domain": "Vision",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 3
     },
     {
         "model": "DeepSpeech2 (English)",
@@ -1492,7 +1570,7 @@
         "domain": "Speech",
         "confidence": "Confident",
         "isNotable": false,
-        "isFrontier": true
+        "rankAtRelease": 5
     },
     {
         "model": "ResNet-101 (ImageNet)",
@@ -1505,7 +1583,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 11
     },
     {
         "model": "ResNet-152 (ImageNet)",
@@ -1518,7 +1596,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 10
     },
     {
         "model": "Variational (untied weights, MC) LSTM (Large)",
@@ -1531,7 +1609,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 54
     },
     {
         "model": "AlphaGo Lee",
@@ -1544,7 +1622,20 @@
         "domain": "Games",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 1
+    },
+    {
+        "model": "10 LSTMS + KN-5 (OPTIMAL WEIGHTS)",
+        "organization": "Google Brain",
+        "organizationCategory": "Industry",
+        "date": "2016-02-11",
+        "trainingComputeFlop": 87892439000000000000.0,
+        "computeEstimationMethod": "Hardware",
+        "link": "https://arxiv.org/abs/1602.02410",
+        "domain": "Language",
+        "confidence": "Likely",
+        "isNotable": false,
+        "rankAtRelease": 6
     },
     {
         "model": "BIG LSTM+CNN INPUTS",
@@ -1557,7 +1648,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": false,
-        "isFrontier": true
+        "rankAtRelease": 4
     },
     {
         "model": "Named Entity Recognition model",
@@ -1570,7 +1661,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 36
     },
     {
         "model": "R-FCN",
@@ -1583,7 +1674,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 23
     },
     {
         "model": "ResNet-200",
@@ -1596,7 +1687,7 @@
         "domain": "Vision",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 8
     },
     {
         "model": "GNMT",
@@ -1609,7 +1700,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 1
     },
     {
         "model": "Pointer Sentinel-LSTM (medium)",
@@ -1622,7 +1713,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 64
     },
     {
         "model": "Xception",
@@ -1635,7 +1726,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 3
     },
     {
         "model": "SPIDER2",
@@ -1648,7 +1739,7 @@
         "domain": "Biology",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 57
     },
     {
         "model": "VD-LSTM+REAL Large",
@@ -1661,7 +1752,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 57
     },
     {
         "model": "BIDAF",
@@ -1674,7 +1765,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 19
     },
     {
         "model": "NAS with base 8 and shared embeddings",
@@ -1687,7 +1778,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 68
     },
     {
         "model": "NASv3 (CIFAR-10)",
@@ -1700,7 +1791,7 @@
         "domain": "Vision",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 2
     },
     {
         "model": "ResNeXt-101 (64×4d)",
@@ -1713,7 +1804,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 16
     },
     {
         "model": "PolyNet",
@@ -1726,7 +1817,7 @@
         "domain": "Vision",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 10
     },
     {
         "model": "HR-ResNet101",
@@ -1739,7 +1830,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 20
     },
     {
         "model": "EnhanceNet",
@@ -1752,7 +1843,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 44
     },
     {
         "model": "DeepStack",
@@ -1765,7 +1856,7 @@
         "domain": "Games",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 15
     },
     {
         "model": "MoE-Multi",
@@ -1778,7 +1869,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 9
     },
     {
         "model": "Transformer",
@@ -1791,7 +1882,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 22
     },
     {
         "model": "DeepLoc",
@@ -1804,7 +1895,7 @@
         "domain": "Biology",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 36
     },
     {
         "model": "JFT",
@@ -1817,7 +1908,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 4
     },
     {
         "model": "ConvS2S (ensemble of 8 models)",
@@ -1830,7 +1921,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 13
     },
     {
         "model": "AWD-LSTM - 3-layer LSTM (tied) + continuous cache pointer (WT2)",
@@ -1843,7 +1934,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 48
     },
     {
         "model": "RetinaNet-R101",
@@ -1856,7 +1947,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 30
     },
     {
         "model": "OpenAI TI7 DOTA 1v1",
@@ -1869,7 +1960,7 @@
         "domain": "Games",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 5
     },
     {
         "model": "EI-REHN-1000D",
@@ -1882,7 +1973,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 85
     },
     {
         "model": "Libratus",
@@ -1895,7 +1986,7 @@
         "domain": "Games",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 6
     },
     {
         "model": "GL-LWGC-AWD-MoS-LSTM + dynamic evaluation (WT2)",
@@ -1908,7 +1999,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 49
     },
     {
         "model": "PyramidNet",
@@ -1921,7 +2012,7 @@
         "domain": "Vision",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 108
     },
     {
         "model": "ISS",
@@ -1934,7 +2025,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 101
     },
     {
         "model": "AWD-LSTM+WT+Cache+IOG (WT2)",
@@ -1947,7 +2038,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 104
     },
     {
         "model": "AlphaGo Zero",
@@ -1960,7 +2051,7 @@
         "domain": "Games",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 5
     },
     {
         "model": "AlphaGo Master",
@@ -1973,7 +2064,7 @@
         "domain": "Games",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 10
     },
     {
         "model": "Fraternal dropout + AWD-LSTM 3-layer (WT2)",
@@ -1986,7 +2077,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 53
     },
     {
         "model": "AWD-LSTM-MoS + dynamic evaluation (WT2, 2017)",
@@ -1999,7 +2090,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 33
     },
     {
         "model": "AlphaZero",
@@ -2012,7 +2103,7 @@
         "domain": "Games",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 12
     },
     {
         "model": "ELMo",
@@ -2025,7 +2116,7 @@
         "domain": "Language",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 113
     },
     {
         "model": "QRNN",
@@ -2038,7 +2129,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 45
     },
     {
         "model": "IMPALA",
@@ -2051,7 +2142,7 @@
         "domain": "Games",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 13
     },
     {
         "model": "4 layer QRNN (h=2500)",
@@ -2064,7 +2155,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 49
     },
     {
         "model": "YOLOv3",
@@ -2077,7 +2168,7 @@
         "domain": "Vision",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 28
     },
     {
         "model": "ResNeXt-101 32x48d",
@@ -2090,7 +2181,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 1
     },
     {
         "model": "Dropout-LSTM+Noise(Bernoulli) (WT2)",
@@ -2103,7 +2194,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 76
     },
     {
         "model": "aLSTM(depth-2)+RecurrentPolicy (WT2)",
@@ -2116,7 +2207,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 83
     },
     {
         "model": "GPT-1",
@@ -2129,7 +2220,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 29
     },
     {
         "model": "FTW (For The Win)",
@@ -2142,7 +2233,7 @@
         "domain": "Games",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 24
     },
     {
         "model": "Big-Little Net",
@@ -2155,7 +2246,7 @@
         "domain": "Vision",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 74
     },
     {
         "model": "Big-Little Net (speech)",
@@ -2168,7 +2259,7 @@
         "domain": "Speech",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 67
     },
     {
         "model": "Big Transformer for Back-Translation",
@@ -2181,7 +2272,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 9
     },
     {
         "model": "(ensemble): AWD-LSTM-DOC (fin) × 5 (WT2)",
@@ -2194,7 +2285,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 58
     },
     {
         "model": "Transformer + Simple Recurrent Unit",
@@ -2207,7 +2298,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 40
     },
     {
         "model": "LSTM+NeuralCache",
@@ -2220,7 +2311,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 161
     },
     {
         "model": "BigGAN-deep 512x512",
@@ -2233,7 +2324,7 @@
         "domain": "Image generation",
         "confidence": "Likely",
         "isNotable": false,
-        "isFrontier": true
+        "rankAtRelease": 5
     },
     {
         "model": "Transformer (Adaptive Input Embeddings) WT103",
@@ -2246,7 +2337,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 28
     },
     {
         "model": "BERT-Large",
@@ -2259,7 +2350,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 16
     },
     {
         "model": "TrellisNet",
@@ -2272,7 +2363,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 52
     },
     {
         "model": "Mesh-TensorFlow Transformer 2.9B (translation)",
@@ -2285,7 +2376,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 25
     },
     {
         "model": "Mesh-TensorFlow Transformer 4.9B (language)",
@@ -2298,7 +2389,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 19
     },
     {
         "model": "Fine-tuned-AWD-LSTM-DOC (fin)",
@@ -2311,7 +2402,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 109
     },
     {
         "model": "Multi-cell LSTM",
@@ -2324,7 +2415,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 161
     },
     {
         "model": "StyleGAN",
@@ -2337,7 +2428,7 @@
         "domain": "Image generation",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 116
     },
     {
         "model": "Transformer-XL (257M)",
@@ -2350,7 +2441,7 @@
         "domain": "Language",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 14
     },
     {
         "model": "Hanabi 4 player",
@@ -2363,7 +2454,7 @@
         "domain": "Games",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 53
     },
     {
         "model": "GPT-2 (1.5B)",
@@ -2376,7 +2467,7 @@
         "domain": "Language",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 6
     },
     {
         "model": "GPT-2 (355M)",
@@ -2389,7 +2480,7 @@
         "domain": "Language",
         "confidence": "Speculative",
         "isNotable": false,
-        "isFrontier": true
+        "rankAtRelease": 4
     },
     {
         "model": "GPT-2 (774M)",
@@ -2402,7 +2493,7 @@
         "domain": "Language",
         "confidence": "Speculative",
         "isNotable": false,
-        "isFrontier": true
+        "rankAtRelease": 3
     },
     {
         "model": "KataGo",
@@ -2415,7 +2506,7 @@
         "domain": "Games",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 42
     },
     {
         "model": "SciBERT",
@@ -2428,7 +2519,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 29
     },
     {
         "model": "Cross-lingual alignment",
@@ -2441,7 +2532,7 @@
         "domain": "Language",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 70
     },
     {
         "model": "WeNet (Penn Treebank)",
@@ -2454,7 +2545,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 79
     },
     {
         "model": "BERT-Large-CAS (PTB+WT2+WT103)",
@@ -2467,7 +2558,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 25
     },
     {
         "model": "MuseNet",
@@ -2480,7 +2571,7 @@
         "domain": "Audio",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 23
     },
     {
         "model": "AWD-LSTM-DRILL + dynamic evaluation† (WT2)",
@@ -2493,7 +2584,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 104
     },
     {
         "model": "Grover-Mega",
@@ -2506,7 +2597,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": false,
-        "isFrontier": true
+        "rankAtRelease": 4
     },
     {
         "model": "DLRM-2020",
@@ -2519,7 +2610,7 @@
         "domain": "Recommendation",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 71
     },
     {
         "model": "XLNet",
@@ -2532,7 +2623,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 3
     },
     {
         "model": "Transformer-XL Large + Phrase Induction",
@@ -2545,7 +2636,7 @@
         "domain": "Language",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 23
     },
     {
         "model": "AWD-LSTM + MoS + Partial Shuffled",
@@ -2558,7 +2649,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 114
     },
     {
         "model": "RoBERTa Large",
@@ -2571,7 +2662,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 2
     },
     {
         "model": "Pluribus",
@@ -2584,7 +2675,7 @@
         "domain": "Games",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 147
     },
     {
         "model": "trRosetta",
@@ -2597,7 +2688,7 @@
         "domain": "Biology",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 49
     },
     {
         "model": "UDSMProt",
@@ -2610,7 +2701,7 @@
         "domain": "Biology",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 103
     },
     {
         "model": "Megatron-BERT",
@@ -2623,7 +2714,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 1
     },
     {
         "model": "Megatron-LM (1.2B)",
@@ -2636,7 +2727,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 19
     },
     {
         "model": "Megatron-LM (8.3B)",
@@ -2649,7 +2740,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 2
     },
     {
         "model": "AlphaX-1",
@@ -2662,7 +2753,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 105
     },
     {
         "model": "DistilBERT",
@@ -2675,7 +2766,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 72
     },
     {
         "model": "T5-11B",
@@ -2688,7 +2779,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 1
     },
     {
         "model": "T5-3B",
@@ -2701,7 +2792,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 4
     },
     {
         "model": "AlphaStar",
@@ -2714,7 +2805,7 @@
         "domain": "Games",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 1
     },
     {
         "model": "Base LM + kNN LM + Continuous Cache",
@@ -2727,7 +2818,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 62
     },
     {
         "model": "XLM-RoBERTa",
@@ -2740,7 +2831,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 4
     },
     {
         "model": "CamemBERT",
@@ -2753,7 +2844,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 26
     },
     {
         "model": "Sandwich Transformer",
@@ -2766,7 +2857,7 @@
         "domain": "Language",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 70
     },
     {
         "model": "Noisy Student (L2)",
@@ -2779,7 +2870,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 3
     },
     {
         "model": "MuZero",
@@ -2792,7 +2883,7 @@
         "domain": "Games",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 61
     },
     {
         "model": "Transformer-XL DeFINE (141M)",
@@ -2805,7 +2896,7 @@
         "domain": "Language",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 111
     },
     {
         "model": "MMLSTM (PTB)",
@@ -2818,7 +2909,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 178
     },
     {
         "model": "MMLSTM (WT-2)",
@@ -2831,7 +2922,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 159
     },
     {
         "model": "OpenAI Five",
@@ -2844,7 +2935,7 @@
         "domain": "Games",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 2
     },
     {
         "model": "OpenAI Five Rerun",
@@ -2857,7 +2948,7 @@
         "domain": "Games",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 7
     },
     {
         "model": "DD-PPO",
@@ -2870,7 +2961,7 @@
         "domain": "Robotics",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 31
     },
     {
         "model": "AlphaFold",
@@ -2883,7 +2974,7 @@
         "domain": "Biology",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 54
     },
     {
         "model": "ContextNet + Noisy Student",
@@ -2896,7 +2987,7 @@
         "domain": "Speech",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 12
     },
     {
         "model": "Meena",
@@ -2909,7 +3000,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 1
     },
     {
         "model": "TaLK Convolution",
@@ -2922,7 +3013,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 77
     },
     {
         "model": "ALBERT-xxlarge",
@@ -2935,7 +3026,7 @@
         "domain": "Language",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 18
     },
     {
         "model": "Turing-NLG",
@@ -2948,7 +3039,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 8
     },
     {
         "model": "FFN SwiGLU",
@@ -2961,7 +3052,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 74
     },
     {
         "model": "Feedback Transformer",
@@ -2974,7 +3065,7 @@
         "domain": "Language",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 103
     },
     {
         "model": "TransformerXL + spectrum control",
@@ -2987,7 +3078,7 @@
         "domain": "Language",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 81
     },
     {
         "model": "Tensor-Transformer(1core)+PN (WT103)",
@@ -3000,7 +3091,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 128
     },
     {
         "model": "ELECTRA",
@@ -3013,7 +3104,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 19
     },
     {
         "model": "MetNet",
@@ -3026,7 +3117,7 @@
         "domain": "Earth science",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 106
     },
     {
         "model": "Once for All",
@@ -3039,7 +3130,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 39
     },
     {
         "model": "UnifiedQA",
@@ -3052,7 +3143,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 98
     },
     {
         "model": "DETR",
@@ -3065,7 +3156,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 44
     },
     {
         "model": "GPT-3 175B (davinci)",
@@ -3078,7 +3169,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 1
     },
     {
         "model": "iGPT-XL",
@@ -3091,7 +3182,7 @@
         "domain": "Vision,Image generation",
         "confidence": "Likely",
         "isNotable": false,
-        "isFrontier": true
+        "rankAtRelease": 5
     },
     {
         "model": "GShard (dense)",
@@ -3104,7 +3195,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 5
     },
     {
         "model": "DeLighT",
@@ -3117,7 +3208,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 139
     },
     {
         "model": "ERNIE-GEN (large)",
@@ -3130,7 +3221,7 @@
         "domain": "Language",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 72
     },
     {
         "model": "ProBERTa",
@@ -3143,7 +3234,7 @@
         "domain": "Biology",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 135
     },
     {
         "model": "LUKE",
@@ -3156,7 +3247,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 12
     },
     {
         "model": "Conformer + Wav2vec 2.0 + Noisy Student",
@@ -3169,7 +3260,7 @@
         "domain": "Speech",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 26
     },
     {
         "model": "mT5-XXL",
@@ -3182,7 +3273,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 4
     },
     {
         "model": "German ELECTRA Large",
@@ -3195,7 +3286,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 47
     },
     {
         "model": "ViT-Huge/14",
@@ -3208,7 +3299,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 32
     },
     {
         "model": "wave2vec 2.0 LARGE",
@@ -3221,7 +3312,7 @@
         "domain": "Speech",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 33
     },
     {
         "model": "KEPLER",
@@ -3234,7 +3325,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 44
     },
     {
         "model": "AlphaFold 2",
@@ -3247,7 +3338,7 @@
         "domain": "Biology",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 35
     },
     {
         "model": "CPM-Large",
@@ -3260,7 +3351,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 81
     },
     {
         "model": "ESM1b",
@@ -3273,7 +3364,7 @@
         "domain": "Biology",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 29
     },
     {
         "model": "DensePhrases",
@@ -3286,7 +3377,7 @@
         "domain": "Language",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 176
     },
     {
         "model": "CT-MoS (WT2)",
@@ -3299,7 +3390,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 203
     },
     {
         "model": "ERNIE-Doc (247M)",
@@ -3312,7 +3403,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 118
     },
     {
         "model": "CLIP (ViT L/14@336px)",
@@ -3325,7 +3416,7 @@
         "domain": "Multimodal,Vision,Language,Video",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 21
     },
     {
         "model": "DALL-E",
@@ -3338,7 +3429,7 @@
         "domain": "Image generation",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 7
     },
     {
         "model": "Switch",
@@ -3351,7 +3442,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 4
     },
     {
         "model": "DeiT-B",
@@ -3364,7 +3455,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 107
     },
     {
         "model": "DLWP",
@@ -3377,7 +3468,7 @@
         "domain": "Earth science",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 167
     },
     {
         "model": "MSA Transformer",
@@ -3390,7 +3481,7 @@
         "domain": "Biology",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 32
     },
     {
         "model": "SRU++ Large",
@@ -3403,7 +3494,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 143
     },
     {
         "model": "Meta Pseudo Labels",
@@ -3416,7 +3507,7 @@
         "domain": "Vision",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 7
     },
     {
         "model": "Generative BST",
@@ -3429,7 +3520,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 19
     },
     {
         "model": "M6-T",
@@ -3442,7 +3533,7 @@
         "domain": "Multimodal,Language,Vision",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 35
     },
     {
         "model": "PLUG",
@@ -3455,7 +3546,20 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 10
+    },
+    {
+        "model": "PanGu-α",
+        "organization": "Huawei Noah's Ark Lab",
+        "organizationCategory": "Industry",
+        "date": "2021-04-25",
+        "trainingComputeFlop": 5.112e22,
+        "computeEstimationMethod": "Operation counting,Third-party estimation",
+        "link": "https://arxiv.org/abs/2104.12369",
+        "domain": "Language",
+        "confidence": "Likely",
+        "isNotable": false,
+        "rankAtRelease": 7
     },
     {
         "model": "ProtBERT-BFD",
@@ -3468,7 +3572,7 @@
         "domain": "Biology",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 12
     },
     {
         "model": "ProtT5-XL-U50",
@@ -3481,7 +3585,20 @@
         "domain": "Biology",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 21
+    },
+    {
+        "model": "ProtT5-XXL",
+        "organization": "Technical University of Munich,Med AI Technology,Nvidia,Oak Ridge National Laboratory,Google,Seoul National University",
+        "organizationCategory": "Academia,Industry,Government,Industry,Academia",
+        "date": "2021-05-04",
+        "trainingComputeFlop": 7.37e22,
+        "computeEstimationMethod": "Third-party estimation,Operation counting",
+        "link": "https://www.biorxiv.org/content/10.1101/2020.07.12.199554v3 or \nhttps://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=9477085",
+        "domain": "Biology",
+        "confidence": "Confident",
+        "isNotable": false,
+        "rankAtRelease": 6
     },
     {
         "model": "ADM",
@@ -3494,7 +3611,7 @@
         "domain": "Image generation",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 44
     },
     {
         "model": "MedBERT",
@@ -3507,7 +3624,7 @@
         "domain": "Medicine",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 191
     },
     {
         "model": "CogView",
@@ -3520,7 +3637,7 @@
         "domain": "Image generation",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 17
     },
     {
         "model": "Transformer local-attention (NesT-B)",
@@ -3533,7 +3650,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 164
     },
     {
         "model": "ByT5-XXL",
@@ -3546,7 +3663,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 6
     },
     {
         "model": "Wu Dao 2.0",
@@ -3559,7 +3676,7 @@
         "domain": "Multimodal,Language,Vision,Image generation",
         "confidence": "Speculative",
         "isNotable": false,
-        "isFrontier": true
+        "rankAtRelease": 1
     },
     {
         "model": "ViT-G/14",
@@ -3572,7 +3689,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 10
     },
     {
         "model": "CoAtNet",
@@ -3585,7 +3702,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 15
     },
     {
         "model": "EMDR",
@@ -3598,7 +3715,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 72
     },
     {
         "model": "DeBERTa",
@@ -3611,7 +3728,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 23
     },
     {
         "model": "ALIGN",
@@ -3624,7 +3741,7 @@
         "domain": "Multimodal,Vision,Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 23
     },
     {
         "model": "Denoising Diffusion Probabilistic Models (LSUN Bedroom)",
@@ -3637,7 +3754,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 141
     },
     {
         "model": "StyleGAN3-R",
@@ -3650,7 +3767,7 @@
         "domain": "Image generation",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 66
     },
     {
         "model": "StyleGAN3-T",
@@ -3663,7 +3780,7 @@
         "domain": "Image generation",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 79
     },
     {
         "model": "EfficientNetV2-XL",
@@ -3676,7 +3793,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 139
     },
     {
         "model": "Fold2Seq",
@@ -3689,7 +3806,7 @@
         "domain": "Biology",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 303
     },
     {
         "model": "Adaptive Input Transformer + RD",
@@ -3702,7 +3819,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 144
     },
     {
         "model": "ERNIE 3.0",
@@ -3715,7 +3832,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 27
     },
     {
         "model": "Codex",
@@ -3728,7 +3845,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 9
     },
     {
         "model": "GOAT",
@@ -3741,7 +3858,7 @@
         "domain": "Games",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 27
     },
     {
         "model": "HuBERT",
@@ -3754,7 +3871,7 @@
         "domain": "Speech",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 57
     },
     {
         "model": "SEER",
@@ -3767,7 +3884,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 34
     },
     {
         "model": "YOLOX-X",
@@ -3780,7 +3897,7 @@
         "domain": "Vision",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 104
     },
     {
         "model": "Jurassic-1-Jumbo",
@@ -3793,7 +3910,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 2
     },
     {
         "model": "Zidong Taichu",
@@ -3806,7 +3923,7 @@
         "domain": "Multimodal,Speech,Vision,Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 99
     },
     {
         "model": "DNABERT",
@@ -3819,7 +3936,7 @@
         "domain": "Biology",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 145
     },
     {
         "model": "XLMR-XXL",
@@ -3832,7 +3949,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 22
     },
     {
         "model": "FLAN 137B",
@@ -3845,7 +3962,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 1
     },
     {
         "model": "PermuteFormer",
@@ -3858,7 +3975,7 @@
         "domain": "Language",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 254
     },
     {
         "model": "HyperCLOVA 204B",
@@ -3871,7 +3988,20 @@
         "domain": "Language",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 5
+    },
+    {
+        "model": "HyperCLOVA 82B",
+        "organization": "NAVER,Search Solutions",
+        "organizationCategory": "Industry,Industry",
+        "date": "2021-09-10",
+        "trainingComputeFlop": 1.476e23,
+        "computeEstimationMethod": "Operation counting,Hardware",
+        "link": "https://arxiv.org/abs/2109.04650",
+        "domain": "Language",
+        "confidence": "Confident",
+        "isNotable": false,
+        "rankAtRelease": 6
     },
     {
         "model": "PLATO-XL",
@@ -3884,7 +4014,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 52
     },
     {
         "model": "Turing ULRv5",
@@ -3897,7 +4027,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 28
     },
     {
         "model": "AlphaFold-Multimer",
@@ -3910,7 +4040,7 @@
         "domain": "Biology",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 77
     },
     {
         "model": "Megatron-Turing NLG 530B",
@@ -3923,7 +4053,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 3
     },
     {
         "model": "Yuan 1.0",
@@ -3936,7 +4066,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 5
     },
     {
         "model": "base LM+GNN+kNN",
@@ -3949,7 +4079,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 186
     },
     {
         "model": "S4",
@@ -3962,7 +4092,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 179
     },
     {
         "model": "CodeT5-base",
@@ -3975,7 +4105,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 103
     },
     {
         "model": "Projected GAN",
@@ -3988,7 +4118,7 @@
         "domain": "Image generation",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 243
     },
     {
         "model": "Masked Autoencoders ViT-H",
@@ -4001,7 +4131,7 @@
         "domain": "Vision",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 136
     },
     {
         "model": "Swin Transformer V2 (SwinV2-G)",
@@ -4014,7 +4144,7 @@
         "domain": "Vision,Video",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 112
     },
     {
         "model": "BASIC-L",
@@ -4027,7 +4157,7 @@
         "domain": "Vision",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 23
     },
     {
         "model": "Florence",
@@ -4040,7 +4170,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 19
     },
     {
         "model": "NÜWA",
@@ -4053,7 +4183,7 @@
         "domain": "Multimodal,Vision,Image generation,Video,Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 67
     },
     {
         "model": "Student of Games",
@@ -4066,7 +4196,7 @@
         "domain": "Games",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 27
     },
     {
         "model": "Gopher (280B)",
@@ -4079,7 +4209,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 4
     },
     {
         "model": "GLaM",
@@ -4092,7 +4222,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 6
     },
     {
         "model": "EXAONE 1.0",
@@ -4105,7 +4235,7 @@
         "domain": "Multimodal,Language,Vision",
         "confidence": "Speculative",
         "isNotable": false,
-        "isFrontier": true
+        "rankAtRelease": 2
     },
     {
         "model": "Contriever",
@@ -4118,7 +4248,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 173
     },
     {
         "model": "XGLM-7.5B",
@@ -4131,7 +4261,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 45
     },
     {
         "model": "ERNIE 3.0 Titan",
@@ -4144,7 +4274,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 4
     },
     {
         "model": "Detic",
@@ -4157,7 +4287,7 @@
         "domain": "Vision",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 240
     },
     {
         "model": "InstructGPT 175B",
@@ -4170,7 +4300,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 10
     },
     {
         "model": "AlphaCode",
@@ -4183,7 +4313,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 12
     },
     {
         "model": "RETRO-7B",
@@ -4196,7 +4326,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 58
     },
     {
         "model": "GPT-NeoX-20B",
@@ -4209,7 +4339,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 17
     },
     {
         "model": "LaMDA",
@@ -4222,7 +4352,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 9
     },
     {
         "model": "ProteinBERT",
@@ -4235,7 +4365,7 @@
         "domain": "Biology",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 208
     },
     {
         "model": "ST-MoE",
@@ -4248,7 +4378,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 13
     },
     {
         "model": "FourCastNet",
@@ -4261,7 +4391,7 @@
         "domain": "Earth science",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 167
     },
     {
         "model": "PolyCoder",
@@ -4274,7 +4404,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 132
     },
     {
         "model": "Statement Curriculum Learning",
@@ -4287,7 +4417,7 @@
         "domain": "Language,Mathematics",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 60
     },
     {
         "model": "ViT-G (model soup)",
@@ -4300,7 +4430,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 105
     },
     {
         "model": "GPT-3.5 (davinci-002)",
@@ -4313,7 +4443,7 @@
         "domain": "Language",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 1
     },
     {
         "model": "Segatron-XL large, M=384 + HCP",
@@ -4326,7 +4456,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 249
     },
     {
         "model": "Make-A-Scene",
@@ -4339,7 +4469,7 @@
         "domain": "Image generation",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 89
     },
     {
         "model": "Chinchilla",
@@ -4352,7 +4482,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 8
     },
     {
         "model": "PaLM (540B)",
@@ -4365,7 +4495,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 2
     },
     {
         "model": "DALL·E 2",
@@ -4378,7 +4508,7 @@
         "domain": "Image generation",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 14
     },
     {
         "model": "BERT-RBP",
@@ -4391,7 +4521,7 @@
         "domain": "Biology",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 199
     },
     {
         "model": "Stable Diffusion (LDM-KL-8-G)",
@@ -4404,7 +4534,7 @@
         "domain": "Image generation",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 32
     },
     {
         "model": "Sparse all-MLP",
@@ -4417,7 +4547,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 163
     },
     {
         "model": "Flamingo",
@@ -4430,7 +4560,7 @@
         "domain": "Multimodal,Vision,Language,Video",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 19
     },
     {
         "model": "OPT-175B",
@@ -4443,7 +4573,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 10
     },
     {
         "model": "UL2",
@@ -4456,7 +4586,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 24
     },
     {
         "model": "Gato",
@@ -4469,7 +4599,7 @@
         "domain": "Multimodal,Robotics,Games,Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 114
     },
     {
         "model": "Imagen",
@@ -4482,7 +4612,7 @@
         "domain": "Image generation",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 76
     },
     {
         "model": "GPT-2 Medium (FlashAttention)",
@@ -4495,7 +4625,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 155
     },
     {
         "model": "Tranception",
@@ -4508,7 +4638,7 @@
         "domain": "Biology",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 97
     },
     {
         "model": "DITTO",
@@ -4521,7 +4651,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 344
     },
     {
         "model": "CoCa",
@@ -4534,7 +4664,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 34
     },
     {
         "model": "Parti",
@@ -4547,7 +4677,7 @@
         "domain": "Image generation",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 11
     },
     {
         "model": "ProGen2-xlarge",
@@ -4560,7 +4690,7 @@
         "domain": "Biology",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 87
     },
     {
         "model": "Minerva (540B)",
@@ -4573,7 +4703,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 1
     },
     {
         "model": "CodeT5-large",
@@ -4586,7 +4716,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 136
     },
     {
         "model": "NLLB",
@@ -4599,7 +4729,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 82
     },
     {
         "model": "BLOOM-176B",
@@ -4612,7 +4742,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 15
     },
     {
         "model": "ESM2-15B",
@@ -4625,7 +4755,7 @@
         "domain": "Biology",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 38
     },
     {
         "model": "OmegaPLM",
@@ -4638,7 +4768,7 @@
         "domain": "Biology",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 103
     },
     {
         "model": "AlexaTM 20B",
@@ -4651,7 +4781,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 27
     },
     {
         "model": "GLM-130B",
@@ -4664,7 +4794,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 18
     },
     {
         "model": "BlenderBot 3",
@@ -4677,7 +4807,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 13
     },
     {
         "model": "BEIT-3",
@@ -4690,7 +4820,7 @@
         "domain": "Multimodal,Vision,Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 270
     },
     {
         "model": "PaLI",
@@ -4703,7 +4833,7 @@
         "domain": "Language,Vision,Multimodal",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 32
     },
     {
         "model": "Whisper",
@@ -4716,7 +4846,7 @@
         "domain": "Speech",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 144
     },
     {
         "model": "DiffDock",
@@ -4729,7 +4859,7 @@
         "domain": "Biology",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 277
     },
     {
         "model": "AlphaTensor",
@@ -4742,7 +4872,7 @@
         "domain": "Other,Games,Mathematics",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 204
     },
     {
         "model": "GenSLM",
@@ -4755,7 +4885,7 @@
         "domain": "Biology",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 182
     },
     {
         "model": "Flan-PaLM 540B",
@@ -4768,7 +4898,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 3
     },
     {
         "model": "U-PaLM (540B)",
@@ -4781,7 +4911,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 4
     },
     {
         "model": "eDiff-I",
@@ -4794,7 +4924,7 @@
         "domain": "Image generation",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 300
     },
     {
         "model": "Mogrifier RLSTM (WT2)",
@@ -4807,7 +4937,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 485
     },
     {
         "model": "InternImage",
@@ -4820,7 +4950,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 163
     },
     {
         "model": "EVA-01",
@@ -4833,7 +4963,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 105
     },
     {
         "model": "Galactica",
@@ -4846,7 +4976,7 @@
         "domain": "Language,Biology",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 26
     },
     {
         "model": "Fusion in Encoder",
@@ -4859,7 +4989,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 268
     },
     {
         "model": "AR-LDM",
@@ -4872,7 +5002,7 @@
         "domain": "Image generation",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 226
     },
     {
         "model": "Discriminator Guidance",
@@ -4885,7 +5015,7 @@
         "domain": "Image generation",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 258
     },
     {
         "model": "Vega v2",
@@ -4898,7 +5028,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 47
     },
     {
         "model": "CaLM",
@@ -4911,7 +5041,7 @@
         "domain": "Biology",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 331
     },
     {
         "model": "Hybrid H3-2.7B",
@@ -4924,7 +5054,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 141
     },
     {
         "model": "VALL-E",
@@ -4937,7 +5067,7 @@
         "domain": "Audio,Speech",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 380
     },
     {
         "model": "DreamerV3",
@@ -4950,7 +5080,7 @@
         "domain": "Games",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 265
     },
     {
         "model": "Nucleotide Transformer",
@@ -4963,7 +5093,7 @@
         "domain": "Biology",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 133
     },
     {
         "model": "Ankh_large",
@@ -4976,7 +5106,7 @@
         "domain": "Biology",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 143
     },
     {
         "model": "DDPM-IP (CelebA)",
@@ -4989,7 +5119,7 @@
         "domain": "Image generation",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 254
     },
     {
         "model": "BLIP-2 (Q-Former)",
@@ -5002,7 +5132,7 @@
         "domain": "Vision,Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 207
     },
     {
         "model": "ViT-22B",
@@ -5015,7 +5145,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 36
     },
     {
         "model": "LLaMA-65B",
@@ -5028,7 +5158,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 14
     },
     {
         "model": "DiT-XL/2",
@@ -5041,7 +5171,7 @@
         "domain": "Image generation",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 244
     },
     {
         "model": "AudioGen",
@@ -5054,7 +5184,7 @@
         "domain": "Audio",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 134
     },
     {
         "model": "Falcon-40B",
@@ -5067,7 +5197,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 34
     },
     {
         "model": "GPT-4 (Mar 2023)",
@@ -5080,7 +5210,7 @@
         "domain": "Multimodal,Language,Vision",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 1
     },
     {
         "model": "PanGu-Σ",
@@ -5093,7 +5223,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 17
     },
     {
         "model": "SigLIP 400M",
@@ -5106,7 +5236,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 171
     },
     {
         "model": "VideoMAE V2",
@@ -5119,7 +5249,7 @@
         "domain": "Video",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 142
     },
     {
         "model": "BloombergGPT",
@@ -5132,7 +5262,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 38
     },
     {
         "model": "Segment Anything Model",
@@ -5145,7 +5275,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 155
     },
     {
         "model": "Incoder-6.7B",
@@ -5158,7 +5288,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 195
     },
     {
         "model": "SenseChat",
@@ -5171,7 +5301,7 @@
         "domain": "Language",
         "confidence": "Speculative",
         "isNotable": false,
-        "isFrontier": true
+        "rankAtRelease": 2
     },
     {
         "model": "DINOv2",
@@ -5184,7 +5314,7 @@
         "domain": "Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 160
     },
     {
         "model": "LLaVA",
@@ -5197,7 +5327,7 @@
         "domain": "Multimodal,Vision,Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 60
     },
     {
         "model": "StarCoder",
@@ -5210,7 +5340,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 57
     },
     {
         "model": "PaLM 2",
@@ -5223,7 +5353,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 2
     },
     {
         "model": "InstructBLIP",
@@ -5236,7 +5366,7 @@
         "domain": "Multimodal,Language,Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 324
     },
     {
         "model": "ONE-PEACE",
@@ -5249,7 +5379,7 @@
         "domain": "Multimodal,Vision,Speech,Language",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 328
     },
     {
         "model": "PaLI-X",
@@ -5262,7 +5392,7 @@
         "domain": "Multimodal,Language,Vision,Video",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 16
     },
     {
         "model": "GPT-4 (Jun 2023)",
@@ -5275,7 +5405,7 @@
         "domain": "Multimodal,Language,Vision",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 1
     },
     {
         "model": "HyenaDNA",
@@ -5288,7 +5418,7 @@
         "domain": "Biology",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 246
     },
     {
         "model": "Pangu-Weather",
@@ -5301,7 +5431,7 @@
         "domain": "Earth science",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 104
     },
     {
         "model": "InternLM",
@@ -5314,7 +5444,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 15
     },
     {
         "model": "xTrimoPGLM -100B",
@@ -5327,7 +5457,7 @@
         "domain": "Biology",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 18
     },
     {
         "model": "Claude 2",
@@ -5340,7 +5470,7 @@
         "domain": "Language",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 5
     },
     {
         "model": "Llama 2-70B",
@@ -5353,7 +5483,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 18
     },
     {
         "model": "Llama 2-7B",
@@ -5366,7 +5496,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 73
     },
     {
         "model": "AudioLM",
@@ -5379,7 +5509,7 @@
         "domain": "Audio",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 509
     },
     {
         "model": "GGNN",
@@ -5392,7 +5522,7 @@
         "domain": "Biology",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 198
     },
     {
         "model": "PeptideBERT",
@@ -5405,7 +5535,7 @@
         "domain": "Biology",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 655
     },
     {
         "model": "Jais",
@@ -5418,7 +5548,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 108
     },
     {
         "model": "Swift",
@@ -5431,7 +5561,7 @@
         "domain": "Robotics",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 654
     },
     {
         "model": "Falcon-180B",
@@ -5444,7 +5574,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 6
     },
     {
         "model": "Amazon Titan",
@@ -5457,7 +5587,7 @@
         "domain": "Language,Image generation",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 4
     },
     {
         "model": "FinGPT-13B",
@@ -5470,7 +5600,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 67
     },
     {
         "model": "RoseTTAFold All-Atom (RFAA)",
@@ -5483,7 +5613,7 @@
         "domain": "Biology",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 399
     },
     {
         "model": "CODEFUSION (Python)",
@@ -5496,7 +5626,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 544
     },
     {
         "model": "ChatGLM3-6B",
@@ -5509,7 +5639,7 @@
         "domain": "Multimodal,Language,Vision",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 123
     },
     {
         "model": "Skywork-13B",
@@ -5522,7 +5652,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 56
     },
     {
         "model": "Yi-34B",
@@ -5535,7 +5665,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 30
     },
     {
         "model": "Grok-1",
@@ -5548,7 +5678,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 8
     },
     {
         "model": "LLaVA 1.5",
@@ -5561,7 +5691,7 @@
         "domain": "Multimodal,Language,Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 111
     },
     {
         "model": "CogVLM-17B",
@@ -5574,7 +5704,7 @@
         "domain": "Multimodal,Vision,Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 128
     },
     {
         "model": "MultiBand Diffusion",
@@ -5587,7 +5717,7 @@
         "domain": "Audio,Speech",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 520
     },
     {
         "model": "RoFormer",
@@ -5600,7 +5730,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 621
     },
     {
         "model": "SPHINX (Llama 2 13B)",
@@ -5613,7 +5743,7 @@
         "domain": "Vision,Language,Multimodal",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 178
     },
     {
         "model": "Volcano 13B",
@@ -5626,7 +5756,7 @@
         "domain": "Language,Multimodal,Vision",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 151
     },
     {
         "model": "GraphCast",
@@ -5639,7 +5769,7 @@
         "domain": "Earth science",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 202
     },
     {
         "model": "Nemotron-3-8B",
@@ -5652,7 +5782,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 78
     },
     {
         "model": "Inflection-2",
@@ -5665,7 +5795,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 3
     },
     {
         "model": "Qwen-72B",
@@ -5678,7 +5808,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 18
     },
     {
         "model": "Gemini 1.0 Ultra",
@@ -5691,7 +5821,7 @@
         "domain": "Multimodal,Language,Vision",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 1
     },
     {
         "model": "Llama Guard",
@@ -5704,7 +5834,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 86
     },
     {
         "model": "Mixtral 8x7B",
@@ -5717,7 +5847,7 @@
         "domain": "Language",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 33
     },
     {
         "model": "VILA-13B",
@@ -5730,7 +5860,7 @@
         "domain": "Multimodal,Language,Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 337
     },
     {
         "model": "CogAgent",
@@ -5743,7 +5873,7 @@
         "domain": "Vision,Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 138
     },
     {
         "model": "FunSearch",
@@ -5756,7 +5886,7 @@
         "domain": "Language,Search",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 53
     },
     {
         "model": "nekomata-14b",
@@ -5769,7 +5899,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 70
     },
     {
         "model": "GQA-8-XXL",
@@ -5782,7 +5912,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 190
     },
     {
         "model": "Qwen1.5-72B",
@@ -5795,7 +5925,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 19
     },
     {
         "model": "Stable Diffusion 3",
@@ -5808,7 +5938,7 @@
         "domain": "Image generation",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 172
     },
     {
         "model": "MegaScale (Production)",
@@ -5821,7 +5951,7 @@
         "domain": "Language",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 7
     },
     {
         "model": "Aramco Metabrain AI",
@@ -5834,7 +5964,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 4
     },
     {
         "model": "Inflection-2.5",
@@ -5847,7 +5977,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 6
     },
     {
         "model": "MM1-30B",
@@ -5860,7 +5990,7 @@
         "domain": "Multimodal,Language,Vision",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 55
     },
     {
         "model": "DBRX",
@@ -5873,7 +6003,20 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 15
+    },
+    {
+        "model": "Grok-1.5",
+        "organization": "xAI",
+        "organizationCategory": "Industry",
+        "date": "2024-03-28",
+        "trainingComputeFlop": 9.26e24,
+        "computeEstimationMethod": null,
+        "link": "https://x.ai/blog/grok-1.5",
+        "domain": "Language",
+        "confidence": "Speculative",
+        "isNotable": false,
+        "rankAtRelease": 6
     },
     {
         "model": "Reka Core",
@@ -5886,7 +6029,7 @@
         "domain": "Multimodal,Language,Vision,Video,Speech",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 7
     },
     {
         "model": "Llama 3-70B",
@@ -5899,7 +6042,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 9
     },
     {
         "model": "GenCast",
@@ -5912,7 +6055,7 @@
         "domain": "Earth science",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 477
     },
     {
         "model": "VILA1.5-13B",
@@ -5925,7 +6068,7 @@
         "domain": "Multimodal,Language,Vision,Video",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 428
     },
     {
         "model": "AlphaFold 3",
@@ -5938,7 +6081,7 @@
         "domain": "Biology",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 230
     },
     {
         "model": "Yi-Large",
@@ -5951,7 +6094,7 @@
         "domain": "Language",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 25
     },
     {
         "model": "Octo-Base",
@@ -5964,7 +6107,7 @@
         "domain": "Robotics",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 514
     },
     {
         "model": "ALLaM adapted 70B",
@@ -5977,7 +6120,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 36
     },
     {
         "model": "Qwen2-72B",
@@ -5990,7 +6133,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 16
     },
     {
         "model": "OpenVLA",
@@ -6003,7 +6146,7 @@
         "domain": "Robotics,Vision,Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 162
     },
     {
         "model": "Nemotron-4 340B",
@@ -6016,7 +6159,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 4
     },
     {
         "model": "DeepSeek-Coder-V2 236B",
@@ -6029,7 +6172,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 33
     },
     {
         "model": "Claude 3.5 Sonnet",
@@ -6042,7 +6185,7 @@
         "domain": "Multimodal,Language,Vision",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 2
     },
     {
         "model": "ESM3 (98B)",
@@ -6055,7 +6198,7 @@
         "domain": "Biology",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 42
     },
     {
         "model": "Llama 3.1-405B",
@@ -6068,7 +6211,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 2
     },
     {
         "model": "AFM-on-device",
@@ -6081,7 +6224,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 83
     },
     {
         "model": "AFM-server",
@@ -6094,7 +6237,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 16
     },
     {
         "model": "LLaVA-OV-72B",
@@ -6107,7 +6250,7 @@
         "domain": "Multimodal,Vision,Language,Video",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 21
     },
     {
         "model": "Grok-2",
@@ -6120,7 +6263,7 @@
         "domain": "Language,Vision,Multimodal",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 3
     },
     {
         "model": "DeepSeek-V2.5",
@@ -6133,7 +6276,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 35
     },
     {
         "model": "Qwen2.5-32B",
@@ -6146,7 +6289,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 22
     },
     {
         "model": "Qwen2.5 Instruct (72B)",
@@ -6159,7 +6302,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 15
     },
     {
         "model": "Qwen2.5-72B",
@@ -6172,7 +6315,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 16
     },
     {
         "model": "Telechat2-115B",
@@ -6185,7 +6328,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 18
     },
     {
         "model": "Llama 3.2 11B",
@@ -6198,7 +6341,7 @@
         "domain": "Multimodal,Vision,Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 85
     },
     {
         "model": "Movie Gen Video",
@@ -6211,7 +6354,7 @@
         "domain": "Video,Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 41
     },
     {
         "model": "RDT-1B",
@@ -6224,7 +6367,7 @@
         "domain": "Robotics",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 304
     },
     {
         "model": "Llama-3.1-Nemotron-70B-Instruct",
@@ -6237,7 +6380,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 13
     },
     {
         "model": "CHAI-1",
@@ -6250,7 +6393,7 @@
         "domain": "Biology",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 446
     },
     {
         "model": "Yi-Lightning",
@@ -6263,7 +6406,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 46
     },
     {
         "model": "NVLM-D 72B",
@@ -6276,7 +6419,7 @@
         "domain": "Vision,Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 29
     },
     {
         "model": "NVLM-H 72B",
@@ -6289,7 +6432,7 @@
         "domain": "Vision,Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 29
     },
     {
         "model": "NVLM-X 72B",
@@ -6302,7 +6445,7 @@
         "domain": "Vision,Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 27
     },
     {
         "model": "Doubao-pro",
@@ -6315,7 +6458,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 5
     },
     {
         "model": "Hunyuan-Large",
@@ -6328,7 +6471,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 28
     },
     {
         "model": "Amazon Nova Pro",
@@ -6341,7 +6484,7 @@
         "domain": "Multimodal,Language,Video,Vision",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 21
     },
     {
         "model": "Llama 3.3 70B",
@@ -6354,7 +6497,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 21
     },
     {
         "model": "EXAONE 3.5 32B",
@@ -6367,7 +6510,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 58
     },
     {
         "model": "DeepSeek-V3",
@@ -6380,7 +6523,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 32
     },
     {
         "model": "Eurus-2-7B-PRIME",
@@ -6393,7 +6536,7 @@
         "domain": "Mathematics,Language",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 676
     },
     {
         "model": "DeepSeek-R1",
@@ -6406,7 +6549,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 32
     },
     {
         "model": "Eagle 2",
@@ -6419,7 +6562,7 @@
         "domain": "Vision,Robotics,Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 326
     },
     {
         "model": "Grok 3",
@@ -6432,7 +6575,7 @@
         "domain": "Language,Vision,Multimodal",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 1
     },
     {
         "model": "Claude 3.7 Sonnet",
@@ -6445,7 +6588,7 @@
         "domain": "Language,Vision,Multimodal",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 4
     },
     {
         "model": "GPT-4.5",
@@ -6458,7 +6601,7 @@
         "domain": "Language,Vision,Multimodal",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 1
     },
     {
         "model": "QwQ-32B",
@@ -6471,7 +6614,7 @@
         "domain": "Language",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 35
     },
     {
         "model": "Hunyuan-TurboS",
@@ -6484,7 +6627,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 28
     },
     {
         "model": "EXAONE Deep 32B",
@@ -6497,7 +6640,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 80
     },
     {
         "model": "Llama Nemotron Ultra 253B",
@@ -6510,7 +6653,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": false,
-        "isFrontier": true
+        "rankAtRelease": 4
     },
     {
         "model": "DeepSeek-V3 (Mar 2025)",
@@ -6523,7 +6666,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 41
     },
     {
         "model": "Llama 4 Behemoth (preview)",
@@ -6536,7 +6679,7 @@
         "domain": "Multimodal,Language,Vision",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 3
     },
     {
         "model": "Llama 4 Maverick",
@@ -6549,7 +6692,7 @@
         "domain": "Multimodal,Language,Vision",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 66
     },
     {
         "model": "Llama 4 Scout",
@@ -6562,7 +6705,7 @@
         "domain": "Multimodal,Language,Vision",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 34
     },
     {
         "model": "Pangu Ultra",
@@ -6575,7 +6718,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 14
     },
     {
         "model": "Qwen3-235B-A22B",
@@ -6588,7 +6731,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 36
     },
     {
         "model": "Seed1.5-VL",
@@ -6601,7 +6744,7 @@
         "domain": "Vision,Language,Multimodal,Video",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 92
     },
     {
         "model": "DeepSeek-R1 (May 2025)",
@@ -6614,7 +6757,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 49
     },
     {
         "model": "FGN",
@@ -6627,7 +6770,7 @@
         "domain": "Earth science",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 552
     },
     {
         "model": "Grok 4",
@@ -6640,7 +6783,7 @@
         "domain": "Language,Multimodal,Vision",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 1
     },
     {
         "model": "Kimi K2",
@@ -6653,7 +6796,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 65
     },
     {
         "model": "EXAONE 4.0 (32B)",
@@ -6666,7 +6809,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 73
     },
     {
         "model": "Qwen3-Coder-480B-A35B",
@@ -6679,7 +6822,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 96
     },
     {
         "model": "Qwen3-235B-A22B (Jul 2025)",
@@ -6692,7 +6835,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 37
     },
     {
         "model": "Qwen3-235B-A22B-Thinking (Jul 2025)",
@@ -6705,7 +6848,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 37
     },
     {
         "model": "GLM-4.5",
@@ -6718,7 +6861,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 40
     },
     {
         "model": "gpt-oss-120b",
@@ -6731,7 +6874,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 36
     },
     {
         "model": "gpt-oss-20b",
@@ -6744,7 +6887,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 183
     },
     {
         "model": "GPT-5",
@@ -6757,7 +6900,7 @@
         "domain": "Multimodal,Language,Vision",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 4
     },
     {
         "model": "LongCat-Flash",
@@ -6770,7 +6913,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 52
     },
     {
         "model": "Qwen3-Max",
@@ -6783,7 +6926,7 @@
         "domain": "Language",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 16
     },
     {
         "model": "AgentFounder-30B",
@@ -6796,7 +6939,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 176
     },
     {
         "model": "Qwen3-Omni-30B-A3B",
@@ -6809,7 +6952,7 @@
         "domain": "Multimodal,Language,Vision,Speech,Video",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 466
     },
     {
         "model": "Qwen3-VL-235B-A22B",
@@ -6822,7 +6965,7 @@
         "domain": "Language,Vision,Multimodal,Video",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 39
     },
     {
         "model": "GLM-4.6",
@@ -6835,7 +6978,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 45
     },
     {
         "model": "Ling-1T",
@@ -6848,7 +6991,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 38
     },
     {
         "model": "Kimi K2 Thinking",
@@ -6861,7 +7004,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 52
     },
     {
         "model": "Olmo 3",
@@ -6874,7 +7017,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 147
     },
     {
         "model": "Nemotron 3-Nano-30B-A3B",
@@ -6887,7 +7030,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 218
     },
     {
         "model": "GLM-4.7",
@@ -6900,7 +7043,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 48
     },
     {
         "model": "K-EXAONE",
@@ -6913,7 +7056,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 125
     },
     {
         "model": "Solar Open 100B",
@@ -6926,7 +7069,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 128
     },
     {
         "model": "Kimi K2.5",
@@ -6939,7 +7082,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 41
     },
     {
         "model": "GLM-5",
@@ -6952,7 +7095,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 37
     },
     {
         "model": "Composer 2",
@@ -6965,7 +7108,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 13
     },
     {
         "model": "MolmoAct 2",
@@ -6978,7 +7121,7 @@
         "domain": "Vision,Language,Robotics",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 606
     },
     {
         "model": "EXAONE 4.5",
@@ -6991,7 +7134,7 @@
         "domain": "Language,Multimodal",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 65
     },
     {
         "model": "MiMo-V2.5",
@@ -7004,7 +7147,7 @@
         "domain": "Language,Multimodal,Vision,Audio,Video",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 55
     },
     {
         "model": "MiMo-V2.5-Pro",
@@ -7017,7 +7160,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 39
     },
     {
         "model": "DeepSeek-V4-Flash",
@@ -7030,7 +7173,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 107
     },
     {
         "model": "DeepSeek-V4-Pro",
@@ -7043,7 +7186,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 22
     },
     {
         "model": "Composer 2.5",
@@ -7056,7 +7199,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 8
     },
     {
         "model": "Nemotron 3 Ultra",
@@ -7069,7 +7212,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 45
     },
     {
         "model": "Solar Open2 250B",
@@ -7082,7 +7225,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 170
     },
     {
         "model": "LongCat-2.0",
@@ -7095,7 +7238,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 21
     },
     {
         "model": "Inkling",
@@ -7108,7 +7251,7 @@
         "domain": "Language,Multimodal,Audio,Video,Vision",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 19
     },
     {
         "model": "Kimi K3",
@@ -7121,7 +7264,7 @@
         "domain": "Language,Multimodal,Vision",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 17
     },
     {
         "model": "A.X K2",
@@ -7134,7 +7277,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 127
     },
     {
         "model": "K-EXAONE 2.0",
@@ -7147,7 +7290,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 81
     },
     {
         "model": "Motif-3",
@@ -7160,7 +7303,7 @@
         "domain": "Language",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 171
     },
     {
         "model": "GLM-5.3-Flash",
@@ -7173,7 +7316,7 @@
         "domain": "Language,Vision,Multimodal",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 91
     },
     {
         "model": "GPT-6 Astra",
@@ -7186,7 +7329,7 @@
         "domain": "Multimodal,Language,Vision",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": true
+        "rankAtRelease": 1
     },
     {
         "model": "WeatherNext 3",
@@ -7199,7 +7342,7 @@
         "domain": "Earth science",
         "confidence": "Speculative",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 328
     },
     {
         "model": "DeepSeek V4.1 Flash",
@@ -7212,7 +7355,7 @@
         "domain": "Language,Vision,Multimodal",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 65
     },
     {
         "model": "Mistral Large 4",
@@ -7225,7 +7368,7 @@
         "domain": "Language,Multimodal,Vision",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 21
     },
     {
         "model": "MAI-Base-2",
@@ -7238,7 +7381,7 @@
         "domain": "Language,Vision,Multimodal",
         "confidence": "Confident",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 15
     },
     {
         "model": "Ripple-65B Preview",
@@ -7251,7 +7394,7 @@
         "domain": "Language",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 60
     },
     {
         "model": "Inkling 2 Small",
@@ -7264,6 +7407,6 @@
         "domain": "Language,Vision,Multimodal",
         "confidence": "Likely",
         "isNotable": true,
-        "isFrontier": false
+        "rankAtRelease": 334
     }
 ]

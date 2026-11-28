@@ -503,7 +503,7 @@
         "eciLow": 121.54,
         "eciHigh": 127.71,
         "trainingComputeFlop": null,
-        "computeEstimationMethod": "Benchmarks"
+        "computeEstimationMethod": null
     },
     {
         "model": "StarCoder 2 15B",
@@ -569,7 +569,7 @@
         "eciLow": 115.91,
         "eciHigh": 123.59,
         "trainingComputeFlop": null,
-        "computeEstimationMethod": "Cost"
+        "computeEstimationMethod": null
     },
     {
         "model": "Nemotron-4 15B",
@@ -591,7 +591,7 @@
         "eciLow": 122.49,
         "eciHigh": 128.31,
         "trainingComputeFlop": null,
-        "computeEstimationMethod": "Benchmarks"
+        "computeEstimationMethod": null
     },
     {
         "model": "Claude 3 Sonnet",
@@ -635,7 +635,7 @@
         "eciLow": 122.49,
         "eciHigh": 128.76,
         "trainingComputeFlop": null,
-        "computeEstimationMethod": "Benchmarks"
+        "computeEstimationMethod": null
     },
     {
         "model": "CodeQwen1.5-7B",
@@ -833,7 +833,7 @@
         "eciLow": 120.46,
         "eciHigh": 126.8,
         "trainingComputeFlop": null,
-        "computeEstimationMethod": "Benchmarks"
+        "computeEstimationMethod": null
     },
     {
         "model": "Mistral NeMo",
@@ -899,7 +899,7 @@
         "eciLow": 124.1,
         "eciHigh": 129.89,
         "trainingComputeFlop": null,
-        "computeEstimationMethod": "Benchmarks"
+        "computeEstimationMethod": null
     },
     {
         "model": "o1-mini",
@@ -1031,7 +1031,7 @@
         "eciLow": 119.15,
         "eciHigh": 126.26,
         "trainingComputeFlop": null,
-        "computeEstimationMethod": "Hardware"
+        "computeEstimationMethod": null
     },
     {
         "model": "Claude 3.5 Haiku",
@@ -1064,7 +1064,7 @@
         "eciLow": 126.06,
         "eciHigh": 131.17,
         "trainingComputeFlop": null,
-        "computeEstimationMethod": "Benchmarks"
+        "computeEstimationMethod": null
     },
     {
         "model": "INTELLECT-1",

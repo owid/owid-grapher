@@ -6,7 +6,7 @@ import { ResponsiveContainer } from "../../../../components/ResponsiveContainer/
 import { ComputeScatter } from "./ComputeScatter.js"
 import { Legend } from "./Legend.js"
 import { TimeRangeSlider } from "./TimeRangeSlider.js"
-import { getModelsInSet } from "../core/data.js"
+import { getModels } from "../core/data.js"
 import { FIRST_YEAR, LAST_YEAR } from "../core/constants.js"
 import { SHOWN_COMPUTERS } from "../core/computers.js"
 import { REFERENCE_POINTS } from "../core/referencePoints.js"
@@ -35,7 +35,7 @@ export function ChartBody({
     const focusedGroup =
         focus?.scheme === view.colorScheme ? focus.group : undefined
 
-    const models = getModelsInSet(view.modelSet)
+    const models = getModels(view.modelFilter)
     const [startYear, endYear] = view.timeRange
     const isInRange = (year: number): boolean =>
         year >= startYear && year <= endYear

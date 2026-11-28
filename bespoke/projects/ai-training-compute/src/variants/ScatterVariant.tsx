@@ -4,7 +4,7 @@ import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 
 import { ChartBody } from "../components/ChartBody.js"
 import { ChartSubtitle } from "../components/ChartSubtitle.js"
-import { ModelSetSwitch } from "../components/ModelSetSwitch.js"
+import { ModelFilterDropdown } from "../components/ModelFilterDropdown.js"
 import { YScaleSwitch } from "../components/YScaleSwitch.js"
 import { FRONTIER_TIME_RANGE } from "../core/frontier.js"
 import { useViewState } from "../core/viewState.js"
@@ -42,9 +42,9 @@ export function ScatterVariant({
                 }
             />
             <div className="ai-training-compute__controls">
-                <ModelSetSwitch
-                    modelSet={view.modelSet}
-                    onChange={(modelSet) => updateView({ modelSet })}
+                <ModelFilterDropdown
+                    modelFilter={view.modelFilter}
+                    onChange={(modelFilter) => updateView({ modelFilter })}
                 />
                 <YScaleSwitch
                     yScaleType={view.yScaleType}

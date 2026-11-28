@@ -18,8 +18,8 @@ export interface RawAiModel {
     confidence: string | null
     /** In Epoch's "notable models" set (meets its notability criteria) */
     isNotable: boolean
-    /** In Epoch's "frontier models" set (top 5 by training compute when released) */
-    isFrontier: boolean
+    /** Rank by training compute among all models released by the same day (1 = largest yet) */
+    rankAtRelease: number
 }
 
 export interface AiModel {
@@ -35,7 +35,7 @@ export interface AiModel {
     domain?: string
     confidence?: string
     isNotable: boolean
-    isFrontier: boolean
+    rankAtRelease: number
 }
 
 export const COLOR_SCHEMES = [
@@ -46,9 +46,13 @@ export const COLOR_SCHEMES = [
 ] as const
 export type ColorScheme = (typeof COLOR_SCHEMES)[number]
 
-/** Which of Epoch's model sets the scatter shows */
-export const MODEL_SETS = ["frontier", "notable"] as const
-export type ModelSet = (typeof MODEL_SETS)[number]
+/**
+ * Which models the scatter shows: those among the N largest by training
+ * compute when they came out (Epoch AI calls the top 5 "frontier models"),
+ * or all of Epoch's notable models
+ */
+export type ModelFilter = number | "notable"
+export const MAX_RANK_AT_RELEASE = 7
 
 /** How the y axis spaces training computation */
 export const Y_SCALE_TYPES = ["log", "linear"] as const

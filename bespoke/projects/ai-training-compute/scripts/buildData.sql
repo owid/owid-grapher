@@ -1,15 +1,13 @@
 -- Regenerates the bundled data files from Epoch AI's published datasets.
 -- Usage (from the project root):
 --   curl -sL -o /tmp/notable_ai_models.csv https://epoch.ai/data/notable_ai_models.csv
---   curl -sL -o /tmp/frontier_ai_models.csv https://epoch.ai/data/frontier_ai_models.csv
 --   curl -sL -o /tmp/all_ai_models.csv https://epoch.ai/data/all_ai_models.csv
 --   curl -sL -o /tmp/benchmark_data.zip https://epoch.ai/data/benchmark_data.zip
 --   unzip -o -d /tmp/benchmark_data /tmp/benchmark_data.zip
 --   duckdb -c ".read scripts/buildData.sql"
 
--- The notable and frontier files each lack some columns (the estimation
--- method, the organization categorization), so the rows come from the
--- all-models file, which covers both sets
+-- The notable-models file lacks some columns (the estimation method), so
+-- the rows come from the all-models file, which covers every notable model
 CREATE TEMP TABLE all_models AS
 SELECT
     Model AS model,
@@ -21,38 +19,51 @@ SELECT
     Link AS link,
     Domain AS domain,
     Confidence AS confidence
-FROM read_csv_auto('/tmp/all_ai_models.csv');
+FROM read_csv_auto('/tmp/all_ai_models.csv')
+WHERE "Training compute (FLOP)" IS NOT NULL
+    AND "Publication date" IS NOT NULL;
 
 CREATE TEMP TABLE notable AS
 SELECT Model AS model FROM read_csv_auto('/tmp/notable_ai_models.csv');
 
--- Frontier: in the top 5 by training compute at the time of release
-CREATE TEMP TABLE frontier AS
-SELECT Model AS model FROM read_csv_auto('/tmp/frontier_ai_models.csv');
+-- Each model's rank by training compute among all models released on or
+-- before the same day: 1 means it was the largest yet. Epoch's own
+-- "frontier models" are those ranked 5 or better; we compute the rank
+-- ourselves so the chart can offer other cut-offs
+CREATE TEMP TABLE ranked AS
+SELECT
+    a.*,
+    1 + (
+        SELECT count(*) FROM all_models b
+        WHERE b.publicationDate <= a.publicationDate
+            AND b.trainingComputeFlop > a.trainingComputeFlop
+    ) AS rankAtRelease
+FROM all_models a;
 
--- Models with a training compute estimate that are notable, frontier or
--- both: the scatter, which shows one set or the other
+-- The largest cut-off the chart offers
+CREATE TEMP TABLE settings AS SELECT 7 AS maxRank;
+
+-- Models that are notable or among the 7 largest at their release: the
+-- scatter shows either the notable ones or those within a chosen rank
 COPY (
     SELECT
-        a.model,
-        a.organization,
-        a.organizationCategory,
-        strftime(a.publicationDate, '%Y-%m-%d') AS date,
-        a.trainingComputeFlop,
-        a.computeEstimationMethod,
+        r.model,
+        r.organization,
+        r.organizationCategory,
+        strftime(r.publicationDate, '%Y-%m-%d') AS date,
+        r.trainingComputeFlop,
+        r.computeEstimationMethod,
         -- Epoch's row for GPT-6 Astra has no link yet
-        coalesce(a.link, CASE WHEN a.model = 'GPT-6 Astra'
+        coalesce(r.link, CASE WHEN r.model = 'GPT-6 Astra'
             THEN 'https://openai.com/index/gpt-6-astra/' END) AS link,
-        a.domain,
-        a.confidence,
-        a.model IN (SELECT model FROM notable) AS isNotable,
-        a.model IN (SELECT model FROM frontier) AS isFrontier
-    FROM all_models a
-    WHERE (a.model IN (SELECT model FROM notable)
-            OR a.model IN (SELECT model FROM frontier))
-        AND a.trainingComputeFlop IS NOT NULL
-        AND a.publicationDate IS NOT NULL
-    ORDER BY a.publicationDate, a.model
+        r.domain,
+        r.confidence,
+        r.model IN (SELECT model FROM notable) AS isNotable,
+        r.rankAtRelease
+    FROM ranked r
+    WHERE r.model IN (SELECT model FROM notable)
+        OR r.rankAtRelease <= (SELECT maxRank FROM settings)
+    ORDER BY r.publicationDate, r.model
 ) TO 'src/data/aiModels.json' (FORMAT json, ARRAY true);
 
 -- Epoch Capabilities Index scores, with each model's compute estimate (if

@@ -120,20 +120,22 @@
     }
 }
 
-// The model set switch on the left, the y-axis scale switch on the right
+// Which models to show on the left, the y-axis scale switch on the right
 .ai-training-compute__controls {
     display: flex;
     flex-wrap: wrap;
-    align-items: center;
+    // The dropdown has its label above it; line the switch up with its box
+    align-items: flex-end;
     justify-content: space-between;
     gap: 6px 12px;
     margin: 4px 0 10px;
 }
 
-.model-set-switch {
+.model-filter {
     display: flex;
     flex-wrap: wrap;
-    align-items: center;
+    // The dropdown has its label above it; line the info icon up with the box
+    align-items: flex-end;
     gap: 6px 12px;
 }
 
@@ -148,7 +150,11 @@
     color: $gray-70;
 }
 
-.model-set-switch__info {
+.model-filter__dropdown {
+    min-width: 280px;
+}
+
+.model-filter__info {
     display: grid;
     place-content: center;
     padding: 4px;
@@ -164,7 +170,7 @@
     }
 }
 
-.model-set-switch__tooltip {
+.model-filter__tooltip {
     font-size: 13px;
     line-height: 1.4;
 

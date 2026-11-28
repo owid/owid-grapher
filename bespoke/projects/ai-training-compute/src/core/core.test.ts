@@ -29,7 +29,7 @@ import {
 } from "./computers.js"
 import { getLargestRunInDeviceMonths } from "./hardwareComparison.js"
 import { spreadLabels } from "./labelLayout.js"
-import { AI_MODELS, FRONTIER_MODELS, getModelsInSet } from "./data.js"
+import { AI_MODELS, getModels } from "./data.js"
 
 describe(formatFlopInWords, () => {
     it.each([
@@ -318,15 +318,28 @@ describe(getComputeRange, () => {
     })
 })
 
-describe("model sets", () => {
-    it("put every model in at least one of Epoch's sets", () => {
-        expect(AI_MODELS.every((m) => m.isNotable || m.isFrontier)).toBe(true)
-        expect(getModelsInSet("notable").every((m) => m.isNotable)).toBe(true)
-        expect(getModelsInSet("frontier").every((m) => m.isFrontier)).toBe(true)
+describe(getModels, () => {
+    it("picks models among the N largest at their release", () => {
+        for (const n of [1, 3, 5, 7])
+            expect(getModels(n).every((m) => m.rankAtRelease <= n)).toBe(true)
+        expect(getModels(5).length).toBeGreaterThan(getModels(1).length)
+        expect(getModels(7).length).toBeGreaterThan(getModels(5).length)
     })
 
-    it("include frontier models that aren't notable", () => {
-        expect(getModelsInSet("frontier").some((m) => !m.isNotable)).toBe(true)
+    it("counts GPT-6 Astra as the largest yet", () => {
+        expect(getModels(1).some((m) => m.model === "GPT-6 Astra")).toBe(true)
+    })
+
+    it("clamps the cut-off to the ranks the data covers", () => {
+        expect(getModels(99)).toEqual(getModels(7))
+        expect(getModels(0)).toEqual(getModels(1))
+    })
+
+    it("has every model in some selection", () => {
+        expect(
+            AI_MODELS.every((m) => m.isNotable || m.rankAtRelease <= 7)
+        ).toBe(true)
+        expect(getModels("notable").every((m) => m.isNotable)).toBe(true)
     })
 })
 
@@ -364,16 +377,13 @@ describe(getLargestRunInDeviceMonths, () => {
     it("stays around a month or less until 2010, then pulls far ahead", () => {
         const until2010 = [1990, 2000, 2005, 2010].map(
             (year) =>
-                getLargestRunInDeviceMonths(
-                    year,
-                    FRONTIER_MODELS,
-                    SHOWN_COMPUTERS
-                )?.months ?? NaN
+                getLargestRunInDeviceMonths(year, getModels(5), SHOWN_COMPUTERS)
+                    ?.months ?? NaN
         )
         for (const months of until2010) expect(months).toBeLessThan(2)
         const recent = getLargestRunInDeviceMonths(
             2025,
-            FRONTIER_MODELS,
+            getModels(5),
             SHOWN_COMPUTERS
         )
         expect(recent?.months).toBeGreaterThan(1e5)

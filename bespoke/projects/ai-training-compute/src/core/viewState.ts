@@ -4,14 +4,14 @@ import {
     ColorScheme,
     FIRST_YEAR,
     LAST_YEAR,
-    ModelSet,
+    ModelFilter,
     YScaleType,
 } from "./constants.js"
 
 /** Everything about what the chart shows that a reader or a slide can change */
 export interface ViewState {
-    /** Epoch's frontier models (the default), or all its notable ones */
-    modelSet: ModelSet
+    /** Models among the N largest at their release, or all notable ones */
+    modelFilter: ModelFilter
     timeRange: [number, number]
     colorScheme: ColorScheme
     showComputers: boolean
@@ -27,7 +27,8 @@ export interface ViewState {
 }
 
 export const DEFAULT_VIEW_STATE: ViewState = {
-    modelSet: "frontier",
+    // The top 5 at release: what Epoch AI calls frontier models
+    modelFilter: 5,
     timeRange: [FIRST_YEAR, LAST_YEAR],
     colorScheme: "organization",
     showComputers: false,
