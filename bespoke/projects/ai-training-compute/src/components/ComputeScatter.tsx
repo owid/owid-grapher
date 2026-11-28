@@ -13,11 +13,12 @@ import {
 } from "@ourworldindata/grapher/src/color/ColorConstants.js"
 
 import { usePinnedTooltip } from "../../../../hooks/usePinnedTooltip.js"
-import { AiModel, ColorScheme } from "../core/constants.js"
+import { AiModel, ColorScheme, YScaleType } from "../core/constants.js"
 import {
     formatFlopInWords,
     formatPowerOfTen,
     formatPowerOfTenTick,
+    formatScientific,
 } from "../core/formatFlop.js"
 import { darkenColorForHighContrastText } from "@ourworldindata/grapher/src/color/ColorUtils.js"
 import { getGroupColor } from "../core/colorSchemes.js"
@@ -32,6 +33,8 @@ import { LANDMARKS } from "../core/landmarks.js"
 import { spreadLabels } from "../core/labelLayout.js"
 import { Box, placeLabels } from "../core/labelPlacement.js"
 import {
+    getLinearYMax,
+    getLinearYTicks,
     getYearTicks,
     getYExponentDomain,
     getYTickExponents,
@@ -55,7 +58,10 @@ const POINT_OPACITY = 0.8
 const HOVER_RADIUS = 14
 const COMPUTER_MARKER_SIZE = 8
 const COMPUTER_COLOR = GRAY_90
-const AXIS_TITLE = "Training computation (FLOP) – logarithmic scale"
+const AXIS_TITLES: Record<YScaleType, string> = {
+    log: "Training computation (FLOP) – logarithmic scale",
+    linear: "Training computation (FLOP)",
+}
 
 export type HoverTarget =
     | { kind: "model"; model: AiModel }
@@ -78,6 +84,7 @@ export function ComputeScatter({
     focusedGroup,
     frontierSegments,
     showUncertainty = false,
+    yScaleType = "log",
 }: {
     width: number
     height: number
@@ -99,6 +106,7 @@ export function ComputeScatter({
     frontierSegments?: LeaderSegment[]
     /** Draw each model's 90% range from Epoch's confidence label */
     showUncertainty?: boolean
+    yScaleType?: YScaleType
 }) {
     const svgRef = useRef<SVGSVGElement>(null)
     const [hover, setHover] = useState<
@@ -111,23 +119,35 @@ export function ComputeScatter({
     )
 
     const isNarrow = width < 600
+    const isLog = yScaleType === "log"
 
     // The axes the target time range calls for; on an animated change, the
     // x and y domains ease there together
     const isInTargetRange = (year: number): boolean =>
         year >= timeRange[0] && year <= timeRange[1]
-    const targetYDomain = getYExponentDomain([
+    const targetValues = [
         ...models
             .filter((m) => isInTargetRange(m.year))
             .map((m) => m.trainingComputeFlop),
         ...computers
             .filter((c) => isInTargetRange(c.year))
             .map(getMonthOfComputation),
-    ])
-    const [startYear, endYear, minExp, maxExp] = useTween(
-        [timeRange[0], timeRange[1], targetYDomain[0], targetYDomain[1]],
+    ]
+    const targetYDomain = getYExponentDomain(targetValues)
+    const targetLinearMax = getLinearYMax(targetValues)
+    // The linear maximum eases in log space, so a thousandfold zoom doesn't
+    // spend most of the animation near the old value
+    const [startYear, endYear, minExp, maxExp, linearMaxExp] = useTween(
+        [
+            timeRange[0],
+            timeRange[1],
+            targetYDomain[0],
+            targetYDomain[1],
+            Math.log10(targetLinearMax),
+        ],
         { animate: animateTransitions }
     )
+    const linearMax = 10 ** linearMaxExp
     const shownTimeRange: [number, number] = [startYear, endYear]
     const yExponentDomain: [number, number] = [minExp, maxExp]
     // Whole exponents in view, for gridlines and labels
@@ -147,13 +167,23 @@ export function ComputeScatter({
         isNarrow
             ? [formatPowerOfTenTick(exp), `(${formatPowerOfTen(exp)})`]
             : [`${formatPowerOfTenTick(exp)} (${formatPowerOfTen(exp)})`]
-    // Sized for the target axis, so the plot doesn't jitter mid-animation
+    // Linear ticks read "200 septillion (2 × 10²⁶)"; on narrow charts just
+    // the words, as a second line would run off the top of the plot
+    const linearTickLines = (value: number): string[] => {
+        if (value === 0) return ["0"]
+        const words = formatFlopInWords(value, { significantDigits: 3 })
+        return isNarrow ? [words] : [`${words} (${formatScientific(value)})`]
+    }
+    const lineWidth = (line: string): number =>
+        Bounds.forText(line, { fontSize: FONT_SIZE }).width
+    // Sized for the target axis, so the plot doesn't jitter mid-animation.
+    // Linear ticks depend on the plot height; a generous guess at it is
+    // enough here, as every tick label of a domain is about as wide.
     const tickLabelWidth = Math.max(
-        ...R.range(targetYDomain[0], targetYDomain[1] + 1).flatMap((exp) =>
-            tickLines(exp).map(
-                (line) => Bounds.forText(line, { fontSize: FONT_SIZE }).width
-            )
-        )
+        ...(isLog
+            ? R.range(targetYDomain[0], targetYDomain[1] + 1).flatMap(tickLines)
+            : getLinearYTicks(targetLinearMax, height).flatMap(linearTickLines)
+        ).map(lineWidth)
     )
 
     const bounds = new Bounds(0, 0, width, height)
@@ -178,19 +208,36 @@ export function ComputeScatter({
     const xScale = scaleLinear()
         .domain([startYear, endYear])
         .range([plot.left, plot.right])
-    const yScale = scaleLog()
-        .domain([10 ** minExp, 10 ** maxExp])
-        .range([plot.bottom, plot.top])
+    const yDomain: [number, number] = isLog
+        ? [10 ** minExp, 10 ** maxExp]
+        : [0, linearMax]
+    const yScale = isLog
+        ? scaleLog().domain(yDomain).range([plot.bottom, plot.top])
+        : scaleLinear().domain(yDomain).range([plot.bottom, plot.top])
 
-    const tickExponents = getYTickExponents(yExponentDomain, plot.height)
-    // A gridline at every thousandfold step, labeled or not
-    const gridExponents = R.range(firstExp, lastExp + 1).filter(
-        (exp) => exp % 3 === 0
-    )
+    // Log: labels at round powers of a thousand, and a gridline at every
+    // thousandfold step, labeled or not. Linear: a gridline per label.
+    const tickExponents = isLog
+        ? getYTickExponents(yExponentDomain, plot.height)
+        : []
+    const yTicks: { value: number; lines: string[] }[] = isLog
+        ? tickExponents.map((exp) => ({
+              value: 10 ** exp,
+              lines: tickLines(exp),
+          }))
+        : getLinearYTicks(linearMax, plot.height).map((value) => ({
+              value,
+              lines: linearTickLines(value),
+          }))
+    const gridValues = isLog
+        ? R.range(firstExp, lastExp + 1)
+              .filter((exp) => exp % 3 === 0)
+              .map((exp) => 10 ** exp)
+        : yTicks.map((tick) => tick.value)
     const yearTicks = getYearTicks(shownTimeRange, plot.width)
 
     const visibleReferencePoints = referencePoints.filter(
-        (r) => r.flop >= 10 ** minExp && r.flop <= 10 ** maxExp
+        (r) => r.flop >= yDomain[0] && r.flop <= yDomain[1]
     )
     const referenceLayout = layoutReferenceLabels(
         visibleReferencePoints,
@@ -209,8 +256,9 @@ export function ComputeScatter({
                 (line) => Bounds.forText(line, { fontSize: FONT_SIZE }).width
             )
         )
+    // Thousandfold steps only make sense on the log axis
     const arrowLayout = layoutThousandfoldArrows({
-        tickExponents,
+        tickExponents: isLog ? tickExponents : [],
         yScale,
         isNarrow,
         tickLabelLeft,
@@ -230,7 +278,13 @@ export function ComputeScatter({
     const labels = useMemo(
         () =>
             layoutPointLabels({
-                models: visibleModels.filter(isInFocus),
+                // On the linear axis most models sit on the baseline, where
+                // labels would only crowd each other
+                models: visibleModels.filter(
+                    (m) =>
+                        isInFocus(m) &&
+                        (isLog || m.trainingComputeFlop >= 0.03 * linearMax)
+                ),
                 computers: visibleComputers,
                 labeledModels,
                 xScale,
@@ -256,6 +310,8 @@ export function ComputeScatter({
             colorScheme,
             minExp,
             maxExp,
+            linearMax,
+            yScaleType,
             referencePoints,
             showFrontierRow,
         ]
@@ -380,7 +436,7 @@ export function ComputeScatter({
                     cursor: hoveredModel?.link ? "pointer" : "default",
                 }}
                 role="img"
-                aria-label="Scatter plot of the training computation of notable AI models over time, on a logarithmic scale"
+                aria-label={`Scatter plot of the training computation of notable AI models over time, on a ${isLog ? "logarithmic" : "linear"} scale`}
             >
                 <defs>
                     <clipPath id="compute-scatter-plot-clip">
@@ -394,13 +450,13 @@ export function ComputeScatter({
                 </defs>
 
                 {/* Gridlines */}
-                {gridExponents.map((exp) => (
+                {gridValues.map((value) => (
                     <line
-                        key={`grid-${exp}`}
+                        key={`grid-${value}`}
                         x1={plot.left}
                         x2={plot.right}
-                        y1={yScale(10 ** exp)}
-                        y2={yScale(10 ** exp)}
+                        y1={yScale(value)}
+                        y2={yScale(value)}
                         stroke={GRAY_30}
                     />
                 ))}
@@ -413,14 +469,13 @@ export function ComputeScatter({
                     fontWeight={700}
                     fill={GRAY_80}
                 >
-                    {AXIS_TITLE}
+                    {AXIS_TITLES[yScaleType]}
                 </text>
-                {tickExponents.map((exp) => {
-                    const lines = tickLines(exp)
-                    const y = yScale(10 ** exp)
+                {yTicks.map(({ value, lines }) => {
+                    const y = yScale(value)
                     return (
                         <text
-                            key={`y-${exp}`}
+                            key={`y-${value}`}
                             x={plot.left - 6}
                             y={y - ((lines.length - 1) * FONT_SIZE) / 2}
                             textAnchor="end"

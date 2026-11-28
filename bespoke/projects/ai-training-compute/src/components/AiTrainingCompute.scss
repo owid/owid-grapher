@@ -120,12 +120,32 @@
     }
 }
 
+// The model set switch on the left, the y-axis scale switch on the right
+.ai-training-compute__controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px 12px;
+    margin: 4px 0 10px;
+}
+
 .model-set-switch {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: 6px 12px;
-    margin: 4px 0 10px;
+}
+
+.y-scale-switch {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.y-scale-switch__label {
+    font-size: 13px;
+    color: $gray-70;
 }
 
 .model-set-switch__info {

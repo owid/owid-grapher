@@ -1,4 +1,5 @@
 import * as R from "remeda"
+import { scaleLinear } from "d3-scale"
 
 /**
  * Exponent range of the log y axis. The bottom snaps down to a multiple of
@@ -36,6 +37,25 @@ export function getYTickExponents(
         Math.ceil(minExp - 1e-9) + 0,
         Math.floor(maxExp + 1e-9) + 1
     ).filter((exp) => exp % (step ?? 9) === 0)
+}
+
+/**
+ * Upper end of the linear y axis, which always starts at zero: a little
+ * headroom over the largest value, rounded to a nice number
+ */
+export function getLinearYMax(values: number[]): number {
+    const max = Math.max(0, ...values)
+    if (max === 0) return 1
+    return scaleLinear()
+        .domain([0, max * 1.05])
+        .nice()
+        .domain()[1]
+}
+
+/** Round values for the linear y axis, spaced to leave room for each label */
+export function getLinearYTicks(yMax: number, plotHeight: number): number[] {
+    const count = Math.max(2, Math.floor(plotHeight / 50))
+    return scaleLinear().domain([0, yMax]).ticks(count)
 }
 
 /** Year ticks at a round step that leaves room for each label */

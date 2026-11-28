@@ -9,6 +9,7 @@ import { useContainerWidth } from "../../../../hooks/useContainerWidth.js"
 import { ChartBody } from "../components/ChartBody.js"
 import { ChartSubtitle } from "../components/ChartSubtitle.js"
 import { ModelSetSwitch } from "../components/ModelSetSwitch.js"
+import { YScaleSwitch } from "../components/YScaleSwitch.js"
 import { NOTE, SOURCE } from "../components/ChartSource.js"
 import {
     SlideFooter,
@@ -160,10 +161,16 @@ export function TutorialVariant({
                         }
                     />
                 )}
-                <ModelSetSwitch
-                    modelSet={view.modelSet}
-                    onChange={(modelSet) => updateView({ modelSet })}
-                />
+                <div className="ai-training-compute__controls">
+                    <ModelSetSwitch
+                        modelSet={view.modelSet}
+                        onChange={(modelSet) => updateView({ modelSet })}
+                    />
+                    <YScaleSwitch
+                        yScaleType={view.yScaleType}
+                        onChange={(yScaleType) => updateView({ yScaleType })}
+                    />
+                </div>
                 <ChartBody
                     view={view}
                     animate={animate}

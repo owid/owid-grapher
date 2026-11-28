@@ -87,6 +87,7 @@ export function ChartBody({
                                     : undefined
                             }
                             showUncertainty={view.showUncertainty}
+                            yScaleType={view.yScaleType}
                         />
                     )}
                 </ResponsiveContainer>

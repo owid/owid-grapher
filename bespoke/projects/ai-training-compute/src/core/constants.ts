@@ -50,6 +50,10 @@ export type ColorScheme = (typeof COLOR_SCHEMES)[number]
 export const MODEL_SETS = ["frontier", "notable"] as const
 export type ModelSet = (typeof MODEL_SETS)[number]
 
+/** How the y axis spaces training computation */
+export const Y_SCALE_TYPES = ["log", "linear"] as const
+export type YScaleType = (typeof Y_SCALE_TYPES)[number]
+
 /** Seconds in the one-month run every human and computer comparison uses */
 export const SECONDS_PER_MONTH = 30 * 24 * 60 * 60
 

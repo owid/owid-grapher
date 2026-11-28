@@ -13,7 +13,13 @@ import {
 } from "./colorSchemes.js"
 import { getLeaderSegments, getLeaderSegmentsSince } from "./eci.js"
 import { getComputeRange } from "./uncertainty.js"
-import { getYearTicks, getYExponentDomain, getYTickExponents } from "./axes.js"
+import {
+    getLinearYMax,
+    getLinearYTicks,
+    getYearTicks,
+    getYExponentDomain,
+    getYTickExponents,
+} from "./axes.js"
 import { placeLabels } from "./labelPlacement.js"
 import {
     COMPUTER_SYSTEMS,
@@ -371,5 +377,34 @@ describe(getLargestRunInDeviceMonths, () => {
             SHOWN_COMPUTERS
         )
         expect(recent?.months).toBeGreaterThan(1e5)
+    })
+})
+
+describe(getLinearYMax, () => {
+    it("leaves headroom over the largest value and rounds it", () => {
+        for (const max of [4.8e26, 9.6e25, 3.1e24]) {
+            const yMax = getLinearYMax([1e20, max])
+            expect(yMax).toBeGreaterThanOrEqual(max * 1.05)
+            expect(yMax).toBeLessThan(max * 1.5)
+        }
+    })
+
+    it("falls back to 1 without positive values", () => {
+        expect(getLinearYMax([])).toBe(1)
+    })
+})
+
+describe(getLinearYTicks, () => {
+    it("starts at zero and stays within the domain", () => {
+        const ticks = getLinearYTicks(6e26, 400)
+        expect(ticks[0]).toBe(0)
+        expect(ticks.at(-1)).toBeLessThanOrEqual(6e26)
+        expect(ticks.length).toBeGreaterThanOrEqual(3)
+    })
+
+    it("uses fewer ticks on short plots", () => {
+        expect(getLinearYTicks(6e26, 120).length).toBeLessThan(
+            getLinearYTicks(6e26, 600).length
+        )
     })
 })

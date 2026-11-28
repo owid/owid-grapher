@@ -1,6 +1,12 @@
 import { useCallback, useState } from "react"
 
-import { ColorScheme, FIRST_YEAR, LAST_YEAR, ModelSet } from "./constants.js"
+import {
+    ColorScheme,
+    FIRST_YEAR,
+    LAST_YEAR,
+    ModelSet,
+    YScaleType,
+} from "./constants.js"
 
 /** Everything about what the chart shows that a reader or a slide can change */
 export interface ViewState {
@@ -13,6 +19,11 @@ export interface ViewState {
     /** The row of ECI leaders, most of them missing from the scatter */
     showFrontier: boolean
     showUncertainty: boolean
+    /**
+     * Logarithmic (the default, which the walkthroughs are written for) or
+     * linear, which shows how far the latest runs dwarf everything before
+     */
+    yScaleType: YScaleType
 }
 
 export const DEFAULT_VIEW_STATE: ViewState = {
@@ -23,6 +34,7 @@ export const DEFAULT_VIEW_STATE: ViewState = {
     showThresholds: false,
     showFrontier: false,
     showUncertainty: false,
+    yScaleType: "log",
 }
 
 export function clampYear(year: number): number {

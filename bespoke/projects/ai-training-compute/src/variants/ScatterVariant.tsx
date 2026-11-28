@@ -5,6 +5,7 @@ import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 import { ChartBody } from "../components/ChartBody.js"
 import { ChartSubtitle } from "../components/ChartSubtitle.js"
 import { ModelSetSwitch } from "../components/ModelSetSwitch.js"
+import { YScaleSwitch } from "../components/YScaleSwitch.js"
 import { FRONTIER_TIME_RANGE } from "../core/frontier.js"
 import { useViewState } from "../core/viewState.js"
 import { initialViewFromConfig, useLabeledModels } from "../core/chartConfig.js"
@@ -40,10 +41,16 @@ export function ScatterVariant({
                     />
                 }
             />
-            <ModelSetSwitch
-                modelSet={view.modelSet}
-                onChange={(modelSet) => updateView({ modelSet })}
-            />
+            <div className="ai-training-compute__controls">
+                <ModelSetSwitch
+                    modelSet={view.modelSet}
+                    onChange={(modelSet) => updateView({ modelSet })}
+                />
+                <YScaleSwitch
+                    yScaleType={view.yScaleType}
+                    onChange={(yScaleType) => updateView({ yScaleType })}
+                />
+            </div>
             <ChartBody
                 view={view}
                 animate={animate}
