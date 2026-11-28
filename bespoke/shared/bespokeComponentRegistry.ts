@@ -4,6 +4,14 @@ export const BESPOKE_COMPONENT_REGISTRY: Record<
     string,
     BespokeComponentDefinition
 > = {
+    "ai-training-compute": {
+        scriptUrl: "/ai-training-compute/index.js",
+        // TODO: the bundle still ships its data (src/data/notableAiModels.json).
+        // These point at the ETL export step it should move to; nothing
+        // fetches them yet.
+        dataUrl: "epoch/latest/ai_training_compute",
+        metadataFilename: "ai-training-compute.metadata.json",
+    },
     "causes-of-death": {
         scriptUrl: "/causes-of-death/index.js",
         dataUrl: "ihme_gbd/latest/gbd_treemap_json",
