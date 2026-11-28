@@ -2,7 +2,7 @@ import { useMemo, useState } from "react"
 import * as R from "remeda"
 import { QueryClientProvider } from "@tanstack/react-query"
 import { NuqsAdapter } from "nuqs/adapters/react"
-import { parseAsStringEnum } from "nuqs"
+import { parseAsInteger, parseAsStringEnum } from "nuqs"
 
 import type { BespokeVariantProps } from "owid-bespoke-types"
 
@@ -18,6 +18,7 @@ import { useUrlState } from "../../../../hooks/useUrlState.js"
 import { ColorByDropdown } from "../components/ColorByDropdown.js"
 import { ComputeChart } from "../components/ComputeChart.js"
 import { Legend } from "../components/Legend.js"
+import { TimeRangeSlider } from "../components/TimeRangeSlider.js"
 import { YScaleSwitch } from "../components/YScaleSwitch.js"
 import {
     AiModel,
@@ -28,7 +29,11 @@ import {
 import { COLOR_SCHEMES } from "../core/colorSchemes.js"
 import { ChartData, queryClient, useChartData } from "../core/data.js"
 import { DEFAULT_SUBTITLES } from "../core/text.js"
-import { getTimeDomain } from "../core/timeDomain.js"
+import {
+    getInitialYearRange,
+    getTimeDomain,
+    getYearExtent,
+} from "../core/timeDomain.js"
 import type { AiTrainingComputeConfig } from "../index.js"
 
 export function ScatterVariant({
@@ -89,13 +94,28 @@ function CaptionedScatterVariant({
                 .filter(Boolean),
         [config.labeledModels]
     )
+    // The timeline runs over the data's years; the configured start and
+    // end years only set where it starts
+    const yearExtent = useMemo(() => getYearExtent(data.models), [data.models])
+    const initialRange = getInitialYearRange(yearExtent, {
+        startYear: config.startYear,
+        endYear: config.endYear,
+    })
+    const [startYear, setStartYear] = useUrlState({
+        key: "start",
+        parser: parseAsInteger,
+        defaultValue: initialRange[0],
+    })
+    const [endYear, setEndYear] = useUrlState({
+        key: "end",
+        parser: parseAsInteger,
+        defaultValue: initialRange[1],
+    })
+    const yearRange = getInitialYearRange(yearExtent, { startYear, endYear })
     const xDomain = useMemo(
-        () =>
-            getTimeDomain(data.models, {
-                startYear: config.startYear,
-                endYear: config.endYear,
-            }),
-        [data.models, config.startYear, config.endYear]
+        () => getTimeDomain(yearRange),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [yearRange[0], yearRange[1]]
     )
     const counts = useMemo(
         () => countGroups(data.models, colorBy, xDomain),
@@ -156,6 +176,17 @@ function CaptionedScatterVariant({
                         )}
                     </ResponsiveContainer>
                 </div>
+                {!config.hideTimeline && (
+                    <TimeRangeSlider
+                        min={yearExtent[0]}
+                        max={yearExtent[1]}
+                        range={yearRange}
+                        onChange={([start, end]) => {
+                            setStartYear(start)
+                            setEndYear(end)
+                        }}
+                    />
+                )}
                 <ChartFooter note={config.note} />
             </Frame>
         </BespokeMetadataProvider>

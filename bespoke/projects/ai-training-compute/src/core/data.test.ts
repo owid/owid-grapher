@@ -2,7 +2,11 @@ import { describe, expect, it } from "vitest"
 
 import { findIndicatorIds, joinIndicators, MultidimConfig } from "./data.js"
 import { parseFlopBound } from "./config.js"
-import { getTimeDomain } from "./timeDomain.js"
+import {
+    getInitialYearRange,
+    getTimeDomain,
+    getYearExtent,
+} from "./timeDomain.js"
 import { getYAxis } from "./yAxis.js"
 import { getColor } from "./colorSchemes.js"
 import { AiModel } from "./constants.js"
@@ -132,17 +136,28 @@ const model = (year: number, flop = 1e24): AiModel => ({
     reporting: "Estimated by Epoch AI",
 })
 
-describe(getTimeDomain, () => {
+describe(getInitialYearRange, () => {
     const models = [model(1950.5), model(2026.7)]
+    const extent = getYearExtent(models)
 
-    it("spans whole years from the earliest model to the latest", () => {
-        expect(getTimeDomain(models, {})).toEqual([1950, 2027])
+    it("spans the data's years unless the config narrows it", () => {
+        expect(extent).toEqual([1950, 2026])
+        expect(getInitialYearRange(extent, {})).toEqual([1950, 2026])
+        expect(
+            getInitialYearRange(extent, { startYear: 2010, endYear: 2020 })
+        ).toEqual([2010, 2020])
     })
 
-    it("includes the configured end year in full", () => {
+    it("keeps configured years within the data", () => {
         expect(
-            getTimeDomain(models, { startYear: 2010, endYear: 2020 })
-        ).toEqual([2010, 2021])
+            getInitialYearRange(extent, { startYear: 1900, endYear: 2100 })
+        ).toEqual([1950, 2026])
+    })
+})
+
+describe(getTimeDomain, () => {
+    it("includes the last year in full", () => {
+        expect(getTimeDomain([2010, 2020])).toEqual([2010, 2021])
     })
 })
 
@@ -189,5 +204,24 @@ describe(getColor, () => {
     it("uses the multidim's colors for each group", () => {
         expect(getColor("developer", model(2020))).toBe("#4285F4")
         expect(getColor("reporting", model(2020))).toBe("#996D36")
+    })
+})
+
+describe("narrow y axis labels", () => {
+    it("use powers of ten alone", () => {
+        const log = getYAxis({
+            values: [40, 9.4e26],
+            yScaleType: "log",
+            yBounds: {},
+            isNarrow: true,
+        })
+        expect(log.linesFor(1e6)).toEqual(["10⁶"])
+        const linear = getYAxis({
+            values: [9.4e26],
+            yScaleType: "linear",
+            yBounds: {},
+            isNarrow: true,
+        })
+        expect(linear.linesFor(2e26)).toEqual(["2 × 10²⁶"])
     })
 })

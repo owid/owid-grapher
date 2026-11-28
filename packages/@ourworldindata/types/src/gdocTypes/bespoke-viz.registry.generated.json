@@ -57,12 +57,12 @@
         {
           "name": "startYear",
           "type": "integer",
-          "description": "First year on the time axis. Defaults to the year of the earliest model"
+          "description": "First year shown at first. Defaults to the year of the earliest model; readers can widen it with the timeline"
         },
         {
           "name": "endYear",
           "type": "integer",
-          "description": "Last year on the time axis, included in full. Defaults to the year of the latest model"
+          "description": "Last year shown at first, included in full. Defaults to the year of the latest model"
         },
         {
           "name": "yAxisMin",
@@ -106,6 +106,12 @@
           "name": "hideColorBy",
           "type": "boolean",
           "description": "Hide the “Color by” dropdown",
+          "default": "false"
+        },
+        {
+          "name": "hideTimeline",
+          "type": "boolean",
+          "description": "Hide the timeline under the chart, which narrows the time range",
           "default": "false"
         },
         {

@@ -55,12 +55,12 @@ export const CONFIG_SPEC = {
     startYear: {
         type: "integer",
         description:
-            "First year on the time axis. Defaults to the year of the earliest model",
+            "First year shown at first. Defaults to the year of the earliest model; readers can widen it with the timeline",
     },
     endYear: {
         type: "integer",
         description:
-            "Last year on the time axis, included in full. Defaults to the year of the latest model",
+            "Last year shown at first, included in full. Defaults to the year of the latest model",
     },
     yAxisMin: {
         type: "custom",
@@ -97,6 +97,12 @@ export const CONFIG_SPEC = {
         type: "boolean",
         default: "false",
         description: "Hide the “Color by” dropdown",
+    },
+    hideTimeline: {
+        type: "boolean",
+        default: "false",
+        description:
+            "Hide the timeline under the chart, which narrows the time range",
     },
     showUncertainty: {
         type: "boolean",

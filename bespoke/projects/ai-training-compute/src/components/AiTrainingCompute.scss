@@ -96,3 +96,18 @@
     height: 10px;
     border-radius: 50%;
 }
+
+// Timeline: the shared TimeSlider's styles plus a filled span between the
+// two thumbs
+
+.time-range-slider {
+    margin: 4px 0 12px;
+}
+
+.time-range-slider__fill {
+    position: absolute;
+    top: 50%;
+    height: 2px;
+    transform: translateY(-50%);
+    background: $blue-50;
+}

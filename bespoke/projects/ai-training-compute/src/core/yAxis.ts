@@ -22,8 +22,8 @@ export interface YTick {
 /**
  * The y axis's domain, labeled ticks and gridlines. Log: labels read
  * "1 million (10⁶)" at round powers of a thousand, with a gridline at every
- * thousandfold step; on narrow charts the power of ten goes on a second
- * line. Linear: round values from zero, with a gridline per label.
+ * thousandfold step. Linear: round values from zero, with a gridline per
+ * label. Narrow charts label in powers of ten alone ("10⁶", "2 × 10²⁶").
  */
 export function getYAxis({
     values,
@@ -49,7 +49,7 @@ export function getYAxis({
         const linesFor = (value: number): string[] => {
             const exp = Math.round(Math.log10(value))
             return isNarrow
-                ? [formatPowerOfTenTick(exp), `(${formatPowerOfTen(exp)})`]
+                ? [formatPowerOfTen(exp)]
                 : [`${formatPowerOfTenTick(exp)} (${formatPowerOfTen(exp)})`]
         }
         const ticksFor = (plotHeight: number): YTick[] =>
@@ -78,9 +78,9 @@ export function getYAxis({
     const domain: [number, number] = [min, max]
     const linesFor = (value: number): string[] => {
         if (value === 0) return ["0"]
+        if (isNarrow) return [formatScientific(value)]
         const words = formatFlopInWords(value, { significantDigits: 3 })
-        // A second line would run off the top of the plot on narrow charts
-        return isNarrow ? [words] : [`${words} (${formatScientific(value)})`]
+        return [`${words} (${formatScientific(value)})`]
     }
     const ticksFor = (plotHeight: number): YTick[] =>
         (min === 0
