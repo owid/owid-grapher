@@ -44,3 +44,22 @@ export class OwidGoogleAuth {
         return OwidGoogleAuth.cachedGoogleReadonlyAuth
     }
 }
+
+/**
+ * Google only shows a doc's suggestions to accounts that can comment on it or
+ * edit it, whatever the OAuth scope, and answers anyone else with a 403. The
+ * service account is a viewer on most docs, so turn that 403 into a message
+ * that says which access is missing.
+ */
+export function explainSuggestionsAccessError(
+    error: unknown,
+    clientEmail: string = GDOCS_CLIENT_EMAIL
+): unknown {
+    const status = (error as { status?: unknown } | null)?.status
+    if (status !== 403) return error
+    const googleMessage = error instanceof Error ? error.message : String(error)
+    return new Error(
+        `Can't preview suggestions: Google only shares a doc's suggestions with accounts that can comment on it, and the service account ${clientEmail} can only view this doc. Give it Commenter access to the doc (or to its shared drive). Google's message: ${googleMessage}`,
+        { cause: error }
+    )
+}

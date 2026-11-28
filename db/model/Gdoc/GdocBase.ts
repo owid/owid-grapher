@@ -46,7 +46,10 @@ import {
 import { PROD_URL } from "../../../site/SiteConstants.js"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 import { match, P } from "ts-pattern"
-import { OwidGoogleAuth } from "../../OwidGoogleAuth.js"
+import {
+    explainSuggestionsAccessError,
+    OwidGoogleAuth,
+} from "../../OwidGoogleAuth.js"
 import { acceptAllGdocSuggestions } from "./acceptAllGdocSuggestions.js"
 import { getDatapageIndicatorId } from "../Variable.js"
 import { createLinkForNarrativeChart, createLinkFromUrl } from "../Link.js"
@@ -1044,10 +1047,13 @@ export class GdocBase implements OwidGdocBaseInterface {
             ? "SUGGESTIONS_INLINE"
             : "PREVIEW_WITHOUT_SUGGESTIONS"
 
-        const { data } = await docsClient.documents.get({
-            documentId: this.id,
-            suggestionsViewMode,
-        })
+        const { data } = await docsClient.documents
+            .get({ documentId: this.id, suggestionsViewMode })
+            .catch((error: unknown) => {
+                throw acceptSuggestions
+                    ? explainSuggestionsAccessError(error)
+                    : error
+            })
 
         const normalizedDocument: docs_v1.Schema$Document = acceptSuggestions
             ? acceptAllGdocSuggestions(data)
