@@ -9,10 +9,11 @@ import {
     DisplaySource,
     prepareSourcesForDisplay,
     OwidSource,
-    IndicatorTitleWithFragments,
     joinTitleFragments,
     getIndicatorCitations,
     openLinkInNewTabAttrs,
+    parseTimespan,
+    excludeUndefined,
 } from "@ourworldindata/utils"
 import {
     IndicatorSources,
@@ -30,7 +31,7 @@ import { action, computed, makeObservable, observable } from "mobx"
 import { observer } from "mobx-react"
 import { faPencilAlt } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { OwidColumnDef } from "@ourworldindata/types"
+import { OwidColumnDef, OwidProcessingLevel } from "@ourworldindata/types"
 import { CoreColumn } from "@ourworldindata/core-table"
 import { Modal } from "./Modal"
 import { SourcesKeyDataTable } from "./SourcesKeyDataTable"
@@ -66,6 +67,14 @@ export interface SourcesModalManager {
 
 interface SourcesModalProps {
     manager: SourcesModalManager
+}
+
+interface SourcesModalTab {
+    column: CoreColumn
+    title: string
+    attribution?: string
+    timespan?: string
+    label: TabItem
 }
 
 @observer
@@ -140,43 +149,75 @@ export class SourcesModal extends React.Component<SourcesModalProps> {
         )
     }
 
-    @computed private get tabs(): {
-        column: CoreColumn
-        title: string
-        label: TabItem
-    }[] {
-        return _.uniqBy(
-            this.columns.map((column) => {
-                let title = column.titlePublicOrDisplayName.title
+    @computed get tabs(): SourcesModalTab[] {
+        const columnTabs = this.columns.map((column) => {
+            let title = column.titlePublicOrDisplayName.title
 
-                // Historical and projected columns may have the same name,
-                // so we add "(projection)" to the title of projected columns
-                // to distinguish them
-                if (
-                    column.isProjection &&
-                    this.columns.some(
-                        (c) => title === c.titlePublicOrDisplayName.title
-                    )
+            // Historical and projected columns may have the same name,
+            // so we add "(projection)" to the title of projected columns
+            // to distinguish them
+            if (
+                column.isProjection &&
+                this.columns.some(
+                    (c) => title === c.titlePublicOrDisplayName.title
                 )
-                    title += " (projection)"
+            )
+                title += " (projection)"
 
-                const attribution = joinTitleFragments(
-                    column.titlePublicOrDisplayName.attributionShort,
-                    column.titlePublicOrDisplayName.titleVariant
+            const attribution = joinTitleFragments(
+                column.titlePublicOrDisplayName.attributionShort,
+                column.titlePublicOrDisplayName.titleVariant
+            )
+
+            const label = this.makeTabLabelString(title, attribution)
+
+            return { column, title, attribution, label }
+        })
+
+        // Indicators that would render the same tab, apart from their
+        // date range, share one tab that spans all of their date ranges
+        const tabs = Object.values(
+            _.groupBy(columnTabs, ({ column, label }) =>
+                makeTabMergeKey(label, column)
+            )
+        ).map((tabsToMerge) => {
+            const [firstTab] = tabsToMerge
+            return {
+                ...firstTab,
+                timespan: mergeTimespans(
+                    tabsToMerge.map(({ column }) => column.def.timespan)
+                ),
+            }
+        })
+
+        const labelCounts = _.countBy(tabs, (tab) => tab.label)
+
+        return tabs.map(({ column, title, attribution, timespan, label }) => {
+            if (labelCounts[label] > 1) {
+                const disambiguator = [
+                    column.display?.name,
+                    column.nonEmptyName,
+                ].find(
+                    (name) =>
+                        name && name !== column.titlePublicOrDisplayName.title
                 )
+                if (disambiguator && disambiguator !== attribution)
+                    attribution = attribution
+                        ? `${attribution} (${disambiguator})`
+                        : disambiguator
+            }
 
-                return {
-                    title,
-                    column,
-                    label: {
-                        key: this.makeTabLabelString(title, attribution),
-                        element: this.makeTabLabelElement(title, attribution),
-                    },
-                }
-            }),
-            // deduplicate tabs by their label
-            (tab) => tab.label.key
-        )
+            return {
+                column,
+                title,
+                attribution,
+                timespan,
+                label: {
+                    key: column.slug,
+                    element: this.makeTabLabelElement(title, attribution),
+                },
+            }
+        })
     }
 
     @computed private get tabLabels(): TabItem[] {
@@ -184,27 +225,25 @@ export class SourcesModal extends React.Component<SourcesModalProps> {
     }
 
     @computed private get tabLabelWidths(): number[] {
-        return this.tabs.map(({ column }) => {
-            const title = `${column.titlePublicOrDisplayName.title}`
-            const fragments = joinTitleFragments(
-                column.titlePublicOrDisplayName.attributionShort,
-                column.titlePublicOrDisplayName.titleVariant
-            )
-            return measureTabWidth(title, fragments)
-        })
+        return this.tabs.map(({ title, attribution }) =>
+            measureTabWidth(title, attribution)
+        )
     }
 
     private renderSource({
         column,
         title,
+        timespan,
     }: {
         column: CoreColumn
         title?: string
+        timespan?: string
     }): React.ReactElement {
         return (
             <Source
                 title={title}
                 column={column}
+                timespan={timespan}
                 editBaseUrl={this.editBaseUrl}
                 isEmbeddedInADataPage={
                     this.manager.isEmbeddedInADataPage ?? false
@@ -327,7 +366,10 @@ export class SourcesModal extends React.Component<SourcesModalProps> {
         // have no columns with source information at all
         if (this.tabs.length === 0) return this.renderNoSources()
         return this.tabs.length === 1
-            ? this.renderSource({ column: this.tabs[0].column })
+            ? this.renderSource({
+                  column: this.tabs[0].column,
+                  timespan: this.tabs[0].timespan,
+              })
             : this.renderMultipleSources()
     }
 
@@ -372,9 +414,33 @@ export class SourcesModal extends React.Component<SourcesModalProps> {
     }
 }
 
+interface SourceContent {
+    title: string
+    titleFragments?: string
+    timespan?: string
+    descriptionBelowTitle?: string
+    attribution?: string
+    owidProcessingLevel?: OwidProcessingLevel
+    lastUpdated?: string
+    nextUpdate?: string
+    unit?: string
+    unitConversionFactor: number
+    link?: string
+    descriptionShort?: string
+    descriptionKey?: string
+    descriptionFromProducer?: string
+    descriptionProcessing?: string
+    attributionShort?: string
+    additionalInfo?: string
+    hasFaqs: boolean
+    sourcesForDisplay: DisplaySource[]
+    citations: { short: string; long: string }
+}
+
 interface SourceProps {
     column: CoreColumn
     title?: string
+    timespan?: string
     editBaseUrl?: string
     isEmbeddedInADataPage?: boolean
     openLinksInNewTab?: boolean
@@ -387,121 +453,63 @@ export class Source extends React.Component<SourceProps> {
         makeObservable(this)
     }
 
-    @computed get column(): CoreColumn {
-        return this.props.column
-    }
-
-    @computed get def(): OwidColumnDef & { source?: OwidSource } {
-        return { ...this.column.def, source: this.column.source }
-    }
-
-    @computed private get citations(): { short: string; long: string } {
-        return getIndicatorCitations({
-            indicatorTitle: this.titleWithFragments,
-            origins: this.def.origins ?? [],
-            source: this.source,
-            attributions: getAttributionFragmentsFromVariable(this.def),
-            attributionShort: this.def.presentation?.attributionShort,
-            titleVariant: this.def.presentation?.titleVariant,
-            owidProcessingLevel: this.def.owidProcessingLevel,
-        })
-    }
-
-    @computed private get source(): OwidSource {
-        return this.def.source ?? {}
-    }
-
-    @computed private get titleWithFragments(): IndicatorTitleWithFragments {
-        return this.column.titlePublicOrDisplayName
+    @computed private get content(): SourceContent {
+        return getSourceContent(this.props.column)
     }
 
     @computed private get title(): string {
-        return this.props.title ?? this.titleWithFragments.title
+        return this.props.title ?? this.content.title
     }
 
+    @computed private get timespan(): string | undefined {
+        return this.props.timespan ?? this.content.timespan
+    }
+
+    // On a merged tab, this links to the first indicator only
     @computed private get editUrl(): string | undefined {
         if (!this.props.editBaseUrl) return undefined
 
+        const def: OwidColumnDef = this.props.column.def
+        const { owidVariableId, datasetId } = def
+
         // point user directly to the variable edit page if possible
-        if (this.def.owidVariableId) {
-            return `${this.props.editBaseUrl}/variables/${this.def.owidVariableId}`
+        if (owidVariableId) {
+            return `${this.props.editBaseUrl}/variables/${owidVariableId}`
         }
 
         // if that's not possible, point user to the dataset edit page
-        if (this.def.datasetId) {
-            return `${this.props.editBaseUrl}/datasets/${this.def.datasetId}`
+        if (datasetId) {
+            return `${this.props.editBaseUrl}/datasets/${datasetId}`
         }
 
         // we can't link to an edit page for explorers that define the FASTT in TSV
         return undefined
     }
 
-    @computed get attributions(): string | undefined {
-        const attributionFragments = getAttributionFragmentsFromVariable(
-            this.def
-        )
-        if (attributionFragments.length === 0) return undefined
-        return formatAttributions(attributionFragments)
-    }
-
-    @computed get lastUpdated(): string | undefined {
-        return getLastUpdatedFromVariable(this.def)
-    }
-
-    @computed get nextUpdate(): string | undefined {
-        return getNextUpdateFromVariable(this.def)
-    }
-
-    @computed get unit(): string | undefined {
-        return this.column.unit
-    }
-
     @computed private get datapageHasFAQSection(): boolean {
-        const faqCount = this.def.presentation?.faqs?.length ?? 0
-        return !!this.props.isEmbeddedInADataPage && faqCount > 0
+        return !!this.props.isEmbeddedInADataPage && this.content.hasFaqs
     }
 
     @computed private get showDescriptions(): boolean {
         return (
-            !!this.def.descriptionKey ||
-            !!this.def.descriptionFromProducer ||
-            !!this.source.additionalInfo
+            !!this.content.descriptionKey ||
+            !!this.content.descriptionFromProducer ||
+            !!this.content.additionalInfo
         )
-    }
-
-    @computed private get sourcesForDisplay(): DisplaySource[] {
-        return prepareSourcesForDisplay(this.def)
     }
 
     @computed protected get sourcesSectionHeading(): string {
         return "The data of this indicator is based on the following sources:"
     }
 
-    @computed private get hideSourcesForDisplay(): boolean {
-        // the "Continent" variable curated by OWID is used in many charts but doesn't come with useful source information.
-        // that's why we hide the sources section for this indicator for now, but we might decide to show it in the future.
-        return (
-            !!this.def.owidVariableId &&
-            isContinentsVariableId(this.def.owidVariableId)
-        )
-    }
-
-    @computed private get descriptionBelowTitle(): string | undefined {
-        return this.def.descriptionShort || this.def.description
-    }
-
     protected renderTitle(): React.ReactElement {
         return (
             <h2>
                 <span className="title">{this.title}</span>{" "}
-                {(this.titleWithFragments.attributionShort ||
-                    this.titleWithFragments.titleVariant) && (
+                {this.content.titleFragments && (
                     <>
                         <span className="title-fragments">
-                            {joinTitleFragments(
-                                this.titleWithFragments.attributionShort,
-                                this.titleWithFragments.titleVariant
-                            )}
+                            {this.content.titleFragments}
                         </span>{" "}
                     </>
                 )}
@@ -521,71 +529,67 @@ export class Source extends React.Component<SourceProps> {
         return (
             <div className="source">
                 {this.renderTitle()}
-                {this.descriptionBelowTitle && (
+                {this.content.descriptionBelowTitle && (
                     <div className="description-below-title">
                         <SimpleMarkdownText
-                            text={this.descriptionBelowTitle}
+                            text={this.content.descriptionBelowTitle}
                             openLinksInNewTab={this.props.openLinksInNewTab}
                         />
                     </div>
                 )}
                 <SourcesKeyDataTable
-                    attribution={this.attributions}
-                    owidProcessingLevel={this.def.owidProcessingLevel}
-                    dateRange={this.def.timespan}
-                    lastUpdated={this.lastUpdated}
-                    nextUpdate={this.nextUpdate}
-                    unit={this.unit}
-                    link={this.source.link}
-                    unitConversionFactor={this.column.unitConversionFactor}
+                    attribution={this.content.attribution}
+                    owidProcessingLevel={this.content.owidProcessingLevel}
+                    dateRange={this.timespan}
+                    lastUpdated={this.content.lastUpdated}
+                    nextUpdate={this.content.nextUpdate}
+                    unit={this.content.unit}
+                    link={this.content.link}
+                    unitConversionFactor={this.content.unitConversionFactor}
                     isEmbeddedInADataPage={this.props.isEmbeddedInADataPage}
                     openLinksInNewTab={this.props.openLinksInNewTab}
                 />
                 {this.showDescriptions && (
                     <SourcesDescriptions
-                        descriptionShort={this.def.descriptionShort}
-                        descriptionKey={this.def.descriptionKey}
+                        descriptionShort={this.content.descriptionShort}
+                        descriptionKey={this.content.descriptionKey}
                         hasFaqEntries={this.datapageHasFAQSection}
                         descriptionFromProducer={
-                            this.def.descriptionFromProducer
+                            this.content.descriptionFromProducer
                         }
-                        attributionShort={
-                            this.def.presentation?.attributionShort
-                        }
-                        additionalInfo={this.source.additionalInfo}
+                        attributionShort={this.content.attributionShort}
+                        additionalInfo={this.content.additionalInfo}
                         isEmbeddedInADataPage={this.props.isEmbeddedInADataPage}
                         openLinksInNewTab={this.props.openLinksInNewTab}
                     />
                 )}
-                {!this.hideSourcesForDisplay &&
-                    this.sourcesForDisplay &&
-                    this.sourcesForDisplay.length > 0 && (
-                        <>
-                            <h3 className="heading">
-                                {this.sourcesSectionHeading}
-                            </h3>
-                            <IndicatorSources
-                                sources={this.sourcesForDisplay}
-                                isEmbeddedInADataPage={
-                                    this.props.isEmbeddedInADataPage
-                                }
-                                openLinksInNewTab={this.props.openLinksInNewTab}
-                            />
-                        </>
-                    )}
+                {this.content.sourcesForDisplay.length > 0 && (
+                    <>
+                        <h3 className="heading">
+                            {this.sourcesSectionHeading}
+                        </h3>
+                        <IndicatorSources
+                            sources={this.content.sourcesForDisplay}
+                            isEmbeddedInADataPage={
+                                this.props.isEmbeddedInADataPage
+                            }
+                            openLinksInNewTab={this.props.openLinksInNewTab}
+                        />
+                    </>
+                )}
                 <h3 className="heading heading--tight">
                     How we process data at Our World in Data:
                 </h3>
                 <IndicatorProcessing
-                    descriptionProcessing={this.def.descriptionProcessing}
+                    descriptionProcessing={this.content.descriptionProcessing}
                     openLinksInNewTab={this.props.openLinksInNewTab}
                 />
                 <h3 className="heading heading--tight">
                     How to cite this data:
                 </h3>
                 <DataCitation
-                    citationShort={this.citations.short}
-                    citationLong={this.citations.long}
+                    citationShort={this.content.citations.short}
+                    citationLong={this.content.citations.long}
                 />
             </div>
         )
@@ -604,4 +608,77 @@ const measureTabWidth = (label: string, secondary?: string): number => {
     const borderWidth = 2
 
     return labelWidth + secondaryTextWidth + padding + borderWidth
+}
+
+/** Key shared by indicators whose tabs differ in nothing but a parseable date range */
+const makeTabMergeKey = (label: string, column: CoreColumn): string => {
+    const { timespan, ...content } = getSourceContent(column)
+    const hasDateRange = parseTimespan(timespan ?? "") !== undefined
+    return JSON.stringify([
+        label,
+        content,
+        hasDateRange,
+        hasDateRange ? undefined : timespan,
+    ])
+}
+
+const getSourceContent = (column: CoreColumn): SourceContent => {
+    const def: OwidColumnDef & { source: OwidSource } = {
+        ...column.def,
+        source: column.source,
+    }
+    const { title, attributionShort, titleVariant } =
+        column.titlePublicOrDisplayName
+    const attributionFragments = getAttributionFragmentsFromVariable(def)
+
+    // The "Continent" indicator curated by OWID is used in many charts but
+    // doesn't come with useful source information
+    const isContinents =
+        !!def.owidVariableId && isContinentsVariableId(def.owidVariableId)
+
+    return {
+        title,
+        titleFragments: joinTitleFragments(attributionShort, titleVariant),
+        timespan: def.timespan,
+        descriptionBelowTitle: def.descriptionShort || def.description,
+        attribution:
+            attributionFragments.length > 0
+                ? formatAttributions(attributionFragments)
+                : undefined,
+        owidProcessingLevel: def.owidProcessingLevel,
+        lastUpdated: getLastUpdatedFromVariable(def),
+        nextUpdate: getNextUpdateFromVariable(def),
+        unit: column.unit,
+        unitConversionFactor: column.unitConversionFactor,
+        link: def.source.link,
+        descriptionShort: def.descriptionShort,
+        descriptionKey: def.descriptionKey,
+        descriptionFromProducer: def.descriptionFromProducer,
+        descriptionProcessing: def.descriptionProcessing,
+        attributionShort: def.presentation?.attributionShort,
+        additionalInfo: def.source.additionalInfo,
+        hasFaqs: (def.presentation?.faqs?.length ?? 0) > 0,
+        sourcesForDisplay: isContinents ? [] : prepareSourcesForDisplay(def),
+        citations: getIndicatorCitations({
+            indicatorTitle: column.titlePublicOrDisplayName,
+            origins: def.origins ?? [],
+            source: def.source,
+            attributions: attributionFragments,
+            attributionShort: def.presentation?.attributionShort,
+            titleVariant: def.presentation?.titleVariant,
+            owidProcessingLevel: def.owidProcessingLevel,
+        }),
+    }
+}
+
+const mergeTimespans = (
+    timespans: (string | undefined)[]
+): string | undefined => {
+    const years = excludeUndefined(
+        timespans.map((timespan) => parseTimespan(timespan ?? ""))
+    )
+    if (timespans.length === 1 || years.length === 0) return timespans[0]
+    const firstYear = _.min(years.map((y) => y.firstYear))
+    const lastYear = _.max(years.map((y) => y.lastYear))
+    return `${firstYear}-${lastYear}`
 }
