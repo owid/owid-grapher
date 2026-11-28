@@ -3,22 +3,37 @@
     {
       "id": "ai-training-compute",
       "entryFile": "bespoke/projects/ai-training-compute/src/index.tsx",
+      "sidecarFile": "bespoke/projects/ai-training-compute/docs.md",
       "prose": {
-        "intro": ""
+        "intro": "The computation used to train each notable AI model, as a scatter by publication date, with the data from OWID's \"Notable AI models\" multidim. Reach for it in articles about the growth of AI training, where a narrower time range, fixed axis ends or the uncertainty of the estimates help make a point.\n\n```archie\n{.bespoke-component}\n  bundle: ai-training-compute\n  variant: scatter\n  size: wide\n{}\n```\n\n```archie\n{.bespoke-component}\n  bundle: ai-training-compute\n  variant: scatter\n  size: wide\n  {.config}\n    title: Training computation of AI models since 2010\n    startYear: 2010\n    yAxisMin: 1e15\n    colorBy: developer\n    hideColorBy: true\n  {}\n{}\n```\n\n```archie\n{.bespoke-component}\n  bundle: ai-training-compute\n  variant: scatter\n  size: wide\n  {.config}\n    startYear: 2018\n    yScale: linear\n    hideYScaleToggle: true\n    showUncertainty: true\n  {}\n{}\n```",
+        "notes": "The y-axis ends take a number of FLOP in any common notation: `1e24`, `10^24`, `10²⁴` or `3 × 10^24`. Note that `10e24` means 10 × 10²⁴, which is 10²⁵.\n\nWithout an authored subtitle, the chart uses the multidim's subtitle for the current color, which explains what the colors show, so it changes when a reader switches the color.\n\nThe uncertainty ranges come from Epoch AI's confidence in each estimate (within 3×, 10× or 31× either way, as 90% intervals). The OWID data doesn't carry the confidence label yet, so the bundle looks it up by model name in a file generated from Epoch AI's data; a model new to the OWID data shows no range until that file is regenerated."
       },
-      "examples": [],
+      "examples": [
+        {
+          "archie": "{.bespoke-component}\n  bundle: ai-training-compute\n  variant: scatter\n  size: wide\n{}",
+          "flavour": "archie",
+          "section": "intro",
+          "position": 0
+        },
+        {
+          "archie": "{.bespoke-component}\n  bundle: ai-training-compute\n  variant: scatter\n  size: wide\n  {.config}\n    title: Training computation of AI models since 2010\n    startYear: 2010\n    yAxisMin: 1e15\n    colorBy: developer\n    hideColorBy: true\n  {}\n{}",
+          "flavour": "archie",
+          "section": "intro",
+          "position": 1
+        },
+        {
+          "archie": "{.bespoke-component}\n  bundle: ai-training-compute\n  variant: scatter\n  size: wide\n  {.config}\n    startYear: 2018\n    yScale: linear\n    hideYScaleToggle: true\n    showUncertainty: true\n  {}\n{}",
+          "flavour": "archie",
+          "section": "intro",
+          "position": 2
+        }
+      ],
       "variants": [
         {
           "name": "scatter",
-          "description": "Training computation of notable AI models over time, colored by developer, with a zoomable time range",
+          "description": "The computation used to train each notable AI model, by publication date, colored by developer or by whether the figure was reported or estimated",
           "defaultSize": "wide",
           "archie": "{.bespoke-component}\nbundle: ai-training-compute\nvariant: scatter\nsize: wide\n{}\n"
-        },
-        {
-          "name": "tutorial",
-          "description": "The same chart with guided walkthroughs beside it, played slide by slide: missing frontier models, uncertainty, familiar computers and legal thresholds",
-          "defaultSize": "widest",
-          "archie": "{.bespoke-component}\nbundle: ai-training-compute\nvariant: tutorial\nsize: widest\n{}\n"
         }
       ],
       "config": [
@@ -26,41 +41,84 @@
           "name": "title",
           "type": "string",
           "description": "Chart title",
-          "default": "How much computation was used to train AI systems?"
+          "default": "Computation used to train notable AI models"
         },
         {
           "name": "subtitle",
           "type": "string",
-          "description": "Chart subtitle. A sentence on frontier models missing since 2024, with a link that zooms to them, is always appended",
-          "default": "Total number of calculations (floating-point operations, FLOP) used to train each AI system."
+          "description": "Chart subtitle. Defaults to the multidim's subtitle for the current color, which explains what the colors show"
+        },
+        {
+          "name": "note",
+          "type": "string",
+          "description": "Note in the chart's footer",
+          "default": "One floating-point operation (FLOP) is a single calculation, such as adding or multiplying two decimal numbers. Where developers do not report it, Epoch AI estimates training compute from a model’s size, training data, hardware, or cost; the least-documented estimates may be off by a factor of about 30. About half of notable models have no compute figure and are not shown."
         },
         {
           "name": "startYear",
           "type": "integer",
-          "description": "First year of the time range shown at first",
-          "default": "1940"
+          "description": "First year on the time axis. Defaults to the year of the earliest model"
         },
         {
           "name": "endYear",
           "type": "integer",
-          "description": "Last year of the time range shown at first. Defaults to next year"
+          "description": "Last year on the time axis, included in full. Defaults to the year of the latest model"
+        },
+        {
+          "name": "yAxisMin",
+          "type": "custom",
+          "format": "A number of FLOP, such as `1e24`, `10^24` or `10²⁴`",
+          "description": "Bottom of the y axis. Defaults to fit the models in view, from 0 on a linear axis"
+        },
+        {
+          "name": "yAxisMax",
+          "type": "custom",
+          "format": "A number of FLOP, such as `1e27`, `10^27` or `10²⁷`",
+          "description": "Top of the y axis. Defaults to fit the models in view"
+        },
+        {
+          "name": "yScale",
+          "type": "enum",
+          "values": [
+            "log",
+            "linear"
+          ],
+          "description": "Whether the y axis starts logarithmic or linear",
+          "default": "log"
+        },
+        {
+          "name": "hideYScaleToggle",
+          "type": "boolean",
+          "description": "Hide the switch between a logarithmic and linear y axis",
+          "default": "false"
+        },
+        {
+          "name": "colorBy",
+          "type": "enum",
+          "values": [
+            "reporting",
+            "developer"
+          ],
+          "description": "What the dot colors show at first: whether the figure was reported by the developer or estimated by Epoch AI, or the developer",
+          "default": "reporting"
+        },
+        {
+          "name": "hideColorBy",
+          "type": "boolean",
+          "description": "Hide the “Color by” dropdown",
+          "default": "false"
+        },
+        {
+          "name": "showUncertainty",
+          "type": "boolean",
+          "description": "Draw each estimate's 90% uncertainty range, from Epoch AI's confidence in it",
+          "default": "false"
         },
         {
           "name": "labeledModels",
           "type": "string",
-          "description": "Comma-separated model names (as in Epoch's data) to label directly on the chart, most important first",
+          "description": "Comma-separated model names (as in the data) to label on the chart, most important first",
           "default": "GPT-6 Astra, AlexNet, GPT-3 175B (davinci), AlphaGo Lee, Theseus, Perceptron Mark I, TD-Gammon, AlphaFold 2, GPT-4 (Mar 2023), NetTalk (transcription), Neocognitron, ADALINE, GraphCast"
-        },
-        {
-          "name": "walkthrough",
-          "type": "string",
-          "description": "Tutorial variant only: the id of a walkthrough to start playing (missing-frontier-models, uncertainty, computers, legal-thresholds)"
-        },
-        {
-          "name": "hideControls",
-          "type": "boolean",
-          "description": "Hide the time slider under the chart",
-          "default": "false"
         }
       ]
     },

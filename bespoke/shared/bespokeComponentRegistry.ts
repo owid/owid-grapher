@@ -6,11 +6,13 @@ export const BESPOKE_COMPONENT_REGISTRY: Record<
 > = {
     "ai-training-compute": {
         scriptUrl: "/ai-training-compute/index.js",
-        // TODO: the bundle still ships its data (src/data/notableAiModels.json).
-        // These point at the ETL export step it should move to; nothing
-        // fetches them yet.
-        dataUrl: "epoch/latest/ai_training_compute",
-        metadataFilename: "ai-training-compute.metadata.json",
+        // The OWID indicators behind the "Notable AI models" multidim. The
+        // bundle reads the current indicator ids from the multidim's config;
+        // the metadata file is the training-compute indicator's, for the
+        // methods box on featured viz pages, and needs updating if that
+        // indicator is replaced.
+        dataUrl: "https://api.ourworldindata.org/v1/indicators",
+        metadataFilename: "1366440.metadata.json",
     },
     "causes-of-death": {
         scriptUrl: "/causes-of-death/index.js",

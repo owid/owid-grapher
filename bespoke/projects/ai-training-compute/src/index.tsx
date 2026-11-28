@@ -1,10 +1,6 @@
 import { createRoot } from "react-dom/client"
 import { enableShadowDOM } from "@react-stately/flags"
 
-import { VariantName } from "./core/constants.js"
-import { ScatterVariant } from "./variants/ScatterVariant.js"
-import { TutorialVariant } from "./variants/TutorialVariant.js"
-
 import type {
     BespokeComponentMountFn,
     BespokeComponentMountOpts,
@@ -14,6 +10,15 @@ import type {
 import StylesTarget from "vite-plugin-css-position/react"
 
 import { ConfigFromSpec, parseConfigFromSpec } from "../../../helpers/config.js"
+import { EmbedOptionsProvider } from "../../../hooks/useEmbedOptions.js"
+
+import {
+    COLOR_BY_OPTIONS,
+    VariantName,
+    Y_SCALE_TYPES,
+} from "./core/constants.js"
+import { parseFlopBound } from "./core/config.js"
+import { ScatterVariant } from "./variants/ScatterVariant.js"
 
 import "./index.scss"
 
@@ -25,57 +30,86 @@ export const VARIANTS = [
     {
         name: "scatter",
         description:
-            "Training computation of notable AI models over time, colored by developer, with a zoomable time range",
+            "The computation used to train each notable AI model, by publication date, colored by developer or by whether the figure was reported or estimated",
         component: ScatterVariant,
-    },
-    {
-        name: "tutorial",
-        description:
-            "The same chart with guided walkthroughs beside it, played slide by slide: missing frontier models, uncertainty, familiar computers and legal thresholds",
-        component: TutorialVariant,
-        defaultSize: "widest",
     },
 ] satisfies BespokeComponentVariantsList<VariantName>
 
 export const CONFIG_SPEC = {
     title: {
         type: "string",
-        default: "How much computation was used to train AI systems?",
+        default: "Computation used to train notable AI models",
         description: "Chart title",
     },
     subtitle: {
         type: "string",
-        default:
-            "Total number of calculations (floating-point operations, FLOP) used to train each AI system.",
         description:
-            "Chart subtitle. A sentence on frontier models missing since 2024, with a link that zooms to them, is always appended",
+            "Chart subtitle. Defaults to the multidim's subtitle for the current color, which explains what the colors show",
+    },
+    note: {
+        type: "string",
+        default:
+            "One floating-point operation (FLOP) is a single calculation, such as adding or multiplying two decimal numbers. Where developers do not report it, Epoch AI estimates training compute from a model’s size, training data, hardware, or cost; the least-documented estimates may be off by a factor of about 30. About half of notable models have no compute figure and are not shown.",
+        description: "Note in the chart's footer",
     },
     startYear: {
         type: "integer",
-        default: "1940",
-        description: "First year of the time range shown at first",
+        description:
+            "First year on the time axis. Defaults to the year of the earliest model",
     },
     endYear: {
         type: "integer",
         description:
-            "Last year of the time range shown at first. Defaults to next year",
+            "Last year on the time axis, included in full. Defaults to the year of the latest model",
+    },
+    yAxisMin: {
+        type: "custom",
+        format: "A number of FLOP, such as `1e24`, `10^24` or `10²⁴`",
+        parse: parseFlopBound,
+        description:
+            "Bottom of the y axis. Defaults to fit the models in view, from 0 on a linear axis",
+    },
+    yAxisMax: {
+        type: "custom",
+        format: "A number of FLOP, such as `1e27`, `10^27` or `10²⁷`",
+        parse: parseFlopBound,
+        description: "Top of the y axis. Defaults to fit the models in view",
+    },
+    yScale: {
+        type: "enum",
+        values: Y_SCALE_TYPES,
+        default: "log",
+        description: "Whether the y axis starts logarithmic or linear",
+    },
+    hideYScaleToggle: {
+        type: "boolean",
+        default: "false",
+        description: "Hide the switch between a logarithmic and linear y axis",
+    },
+    colorBy: {
+        type: "enum",
+        values: COLOR_BY_OPTIONS,
+        default: "reporting",
+        description:
+            "What the dot colors show at first: whether the figure was reported by the developer or estimated by Epoch AI, or the developer",
+    },
+    hideColorBy: {
+        type: "boolean",
+        default: "false",
+        description: "Hide the “Color by” dropdown",
+    },
+    showUncertainty: {
+        type: "boolean",
+        default: "false",
+        description:
+            "Draw each estimate's 90% uncertainty range, from Epoch AI's confidence in it",
     },
     labeledModels: {
         type: "string",
         default:
             "GPT-6 Astra, AlexNet, GPT-3 175B (davinci), AlphaGo Lee, Theseus, Perceptron Mark I, TD-Gammon, AlphaFold 2, GPT-4 (Mar 2023), NetTalk (transcription), Neocognitron, ADALINE, GraphCast",
         description:
-            "Comma-separated model names (as in Epoch's data) to label directly on the chart, most important first",
-    },
-    walkthrough: {
-        type: "string",
-        description:
-            "Tutorial variant only: the id of a walkthrough to start playing (missing-frontier-models, uncertainty, computers, legal-thresholds)",
-    },
-    hideControls: {
-        type: "boolean",
-        default: "false",
-        description: "Hide the time slider under the chart",
+            "Comma-separated model names (as in the data) to label on the chart, most important first",
     },
 } as const satisfies BespokeConfigSpec
 
@@ -91,6 +125,13 @@ export const mount: BespokeComponentMountFn = (
         return
     }
 
+    if (!opts.dataUrl || !opts.metadataUrl) {
+        container.textContent =
+            "Missing data URLs: add an entry for this bundle to the bespoke component registry"
+        return
+    }
+
+    const urls = { dataUrl: opts.dataUrl, metadataUrl: opts.metadataUrl }
     const config = parseConfigFromSpec(CONFIG_SPEC, opts.config ?? {})
 
     const root = createRoot(container)
@@ -98,7 +139,9 @@ export const mount: BespokeComponentMountFn = (
         <>
             {/* Vite-injected styles land here, inside the Shadow DOM */}
             <StylesTarget />
-            <variant.component config={config} />
+            <EmbedOptionsProvider options={opts.embedOptions}>
+                <variant.component config={config} urls={urls} />
+            </EmbedOptionsProvider>
         </>
     )
     return () => root.unmount()

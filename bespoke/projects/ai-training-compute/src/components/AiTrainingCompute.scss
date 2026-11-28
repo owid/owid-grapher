@@ -1,72 +1,76 @@
-.ai-training-compute__chart-area {
-    height: 640px;
+// The loading and error states take the chart's height, so the page doesn't
+// jump when the data arrives
+.ai-training-compute-box {
+    height: 760px;
 
     @include sm-only {
-        height: 500px;
+        height: 640px;
     }
 }
 
-.compute-scatter {
+// "Color by" on the left, the y-axis scale switch on the right
+.ai-training-compute__controls {
+    display: flex;
+    flex-wrap: wrap;
+    // The dropdown has its label above it; line the switch up with its box
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 6px 12px;
+    margin: 4px 0 10px;
+}
+
+.color-by-dropdown {
+    min-width: 220px;
+}
+
+.y-scale-switch {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.y-scale-switch__label {
+    font-size: 13px;
+    color: $gray-70;
+}
+
+.ai-training-compute__chart-area {
+    height: 600px;
+
+    @include sm-only {
+        height: 480px;
+    }
+}
+
+.compute-chart {
     position: relative;
     width: 100%;
     height: 100%;
 }
 
-.compute-scatter-tooltip__description {
-    margin: 8px 0 0;
+.compute-tooltip__description {
+    margin: 0 0 8px;
     font-size: 13px;
+    font-style: italic;
     line-height: 1.4;
     color: $dark-text;
 }
 
-.compute-scatter-tooltip__description--lead {
-    margin: 0 0 8px;
-    font-style: italic;
-}
-
-// Time range slider: the shared TimeSlider's styles plus a filled span
-// between the two thumbs
-
-.time-range-slider {
-    margin: 4px 0 12px;
-}
-
-.time-range-slider__fill {
-    position: absolute;
-    top: 50%;
-    height: 2px;
-    transform: translateY(-50%);
-    background: $blue-50;
-}
-
 // Legend
 
-.ai-legend {
-    margin: 4px 0 12px;
-    font-size: 13px;
-    color: $dark-text;
-}
-
-.ai-legend__title {
-    margin: 0 0 4px;
-    color: $gray-70;
-}
-
-.ai-legend__items {
+.compute-legend {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: 4px 14px;
-    margin: 0;
+    margin: 4px 0 12px;
     padding: 0;
     list-style: none;
+    font-size: 13px;
+    color: $dark-text;
 }
 
-.ai-legend__items--computers {
-    margin-top: 6px;
-}
-
-.ai-legend__item {
+.compute-legend__item {
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -82,103 +86,13 @@
     }
 }
 
-.ai-legend__item--faded {
+.compute-legend__item--faded {
     opacity: 0.4;
 }
 
-.ai-legend__swatch {
+.compute-legend__swatch {
     display: inline-block;
     width: 10px;
     height: 10px;
     border-radius: 50%;
-}
-
-.ai-legend__computer {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.ai-legend__computer-note {
-    color: $gray-70;
-    font-style: italic;
-}
-
-// Looks like a link inside the subtitle text; shows and zooms to the frontier row
-.ai-training-compute__inline-link {
-    padding: 0;
-    border: none;
-    background: none;
-    font: inherit;
-    color: inherit;
-    text-decoration: underline;
-    text-underline-offset: 2px;
-    cursor: pointer;
-
-    &:hover {
-        color: $dark-text;
-    }
-}
-
-// Which models to show on the left, the y-axis scale switch on the right
-.ai-training-compute__controls {
-    display: flex;
-    flex-wrap: wrap;
-    // The dropdown has its label above it; line the switch up with its box
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 6px 12px;
-    margin: 4px 0 10px;
-}
-
-.model-filter {
-    display: flex;
-    flex-wrap: wrap;
-    // The dropdown has its label above it; line the info icon up with the box
-    align-items: flex-end;
-    gap: 6px 12px;
-}
-
-.y-scale-switch {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.y-scale-switch__label {
-    font-size: 13px;
-    color: $gray-70;
-}
-
-.model-filter__dropdown {
-    min-width: 280px;
-}
-
-.model-filter__info {
-    display: grid;
-    place-content: center;
-    padding: 4px;
-    border: none;
-    background: none;
-    font-size: 15px;
-    color: $gray-60;
-    cursor: help;
-
-    &:hover,
-    &:focus-visible {
-        color: $gray-90;
-    }
-}
-
-.model-filter__tooltip {
-    font-size: 13px;
-    line-height: 1.4;
-
-    p {
-        margin: 0;
-    }
-
-    p + p {
-        margin-top: 6px;
-    }
 }
